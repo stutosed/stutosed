@@ -44,6 +44,7 @@ next-env.d.ts
 .open-next/
 .wrangler/
 .dev.vars
+worker-configuration.d.ts
 
 # raw bot link dumps, root assets & scratch files
 /Links of coures by bot/

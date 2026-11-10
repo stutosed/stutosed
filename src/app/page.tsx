@@ -856,7 +856,7 @@ export default function HomePage() {
       if (code) {
         fetch(`/api/v1/stream?code=${encodeURIComponent(code)}&provider=${provider}`)
           .then((r) => r.json())
-          .then((json) => {
+          .then((json: any) => {
             const streamData = json?.data || json;
             if (streamData?.streamUrl) {
               sessionStorage.setItem(
