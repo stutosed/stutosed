@@ -19,7 +19,6 @@ import { INITIAL_COURSES, getTotalStats, getCourseById, getCoursesByCategory, lo
 import { getSubjectThumbnail, getDynamicThumbnailUrl } from '@/lib/subjectThumbnails';
 import { Course, LectureItem, UserProfile } from '@/types';
 import { getWorkerProxyUrl, resolveDirectMediaUrl } from '@/lib/proxyConfig';
-import { createClient } from '@/lib/supabase/client';
 import { pullCloudUserData, syncLectureWatched } from '@/lib/supabaseSync';
 import {
   BookOpen,
@@ -485,115 +484,35 @@ export default function HomePage() {
     } catch {}
   }, []);
 
-  // Supabase User Auth listener & PKCE code exchange
+  // Student Profile loader (Local State & Offline-First)
   useEffect(() => {
     try {
-      const supabase = createClient();
+      const savedName = localStorage.getItem('stutosed_user_name') || 'Advik';
+      setUserName(savedName);
+      setMemberSince('October 2026');
 
-      // Handle OAuth PKCE code parameter in URL if redirected here directly
-      if (typeof window !== 'undefined' && window.location.search.includes('code=')) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        if (code) {
-          supabase.auth.exchangeCodeForSession(code).then(() => {
-            urlParams.delete('code');
-            const newQuery = urlParams.toString();
-            const cleanUrl = window.location.pathname + (newQuery ? `?${newQuery}` : '');
-            window.history.replaceState({}, '', cleanUrl);
-          }).catch(() => {});
-        }
+      const savedProfile = localStorage.getItem('stutosed_user_profile');
+      if (savedProfile) {
+        setUser(JSON.parse(savedProfile));
+      } else {
+        setUser({
+          id: 'local_student',
+          email: 'student@stutosed.in',
+          full_name: savedName,
+          avatar_url: undefined,
+        });
       }
 
-      supabase.auth.getUser().then(({ data }: any) => {
-        if (data?.user) {
-          const metaName = data.user.user_metadata?.full_name || data.user.user_metadata?.display_name || data.user.user_metadata?.name;
-          const fallbackName = localStorage.getItem('stutosed_user_name') || 'Advik';
-          const resolvedName = metaName || fallbackName;
-          setUserName(resolvedName);
-
-          const joinedDate = data.user.created_at
-            ? new Date(data.user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-            : 'August 2026';
-          setMemberSince(joinedDate);
-
-          const photoUrl =
-            data.user.user_metadata?.avatar_url ||
-            data.user.user_metadata?.picture ||
-            data.user.identities?.[0]?.identity_data?.avatar_url ||
-            data.user.identities?.[0]?.identity_data?.picture ||
-            null;
-
-          setUser({
-            id: data.user.id,
-            email: data.user.email || '',
-            full_name: resolvedName,
-            avatar_url: photoUrl,
-          });
-          setIsAuthOpen(false);
-          pullCloudUserData()
-            .then(() => {
-              try {
-                const savedWatched = JSON.parse(localStorage.getItem(WATCHED_KEY) || '{}');
-                setWatchedUrls(new Set(Object.keys(savedWatched)));
-                const savedLast = localStorage.getItem(LAST_PLAYED_KEY);
-                if (savedLast) setLastPlayed(JSON.parse(savedLast));
-              } catch {}
-            })
-            .catch(() => {});
-        } else {
-          // If not logged in, maintain guest session without forcing auth modal
-          setUser(null);
-          setUserName('Advik');
-          setIsAuthCompulsory(false);
-          setIsAuthOpen(false);
-        }
-      });
-
-      const { data: authListener } = supabase.auth.onAuthStateChange((_: any, session: any) => {
-        if (session?.user) {
-          const metaName = session.user.user_metadata?.full_name || session.user.user_metadata?.display_name || session.user.user_metadata?.name;
-          const fallbackName = localStorage.getItem('stutosed_user_name') || 'Advik';
-          const resolvedName = metaName || fallbackName;
-          setUserName(resolvedName);
-
-          const joinedDate = session.user.created_at
-            ? new Date(session.user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-            : 'August 2026';
-          setMemberSince(joinedDate);
-
-          const photoUrl =
-            session.user.user_metadata?.avatar_url ||
-            session.user.user_metadata?.picture ||
-            session.user.identities?.[0]?.identity_data?.avatar_url ||
-            session.user.identities?.[0]?.identity_data?.picture ||
-            null;
-
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            full_name: resolvedName,
-            avatar_url: photoUrl,
-          });
-          setIsAuthOpen(false);
-          pullCloudUserData()
-            .then(() => {
-              try {
-                const savedWatched = JSON.parse(localStorage.getItem(WATCHED_KEY) || '{}');
-                setWatchedUrls(new Set(Object.keys(savedWatched)));
-                const savedLast = localStorage.getItem(LAST_PLAYED_KEY);
-                if (savedLast) setLastPlayed(JSON.parse(savedLast));
-              } catch {}
-            })
-            .catch(() => {});
-        } else {
-          setUser(null);
-          setIsAuthCompulsory(true);
-        }
-      });
-
-      return () => {
-        authListener?.subscription?.unsubscribe?.();
-      };
+      pullCloudUserData()
+        .then(() => {
+          try {
+            const savedWatched = JSON.parse(localStorage.getItem(WATCHED_KEY) || '{}');
+            setWatchedUrls(new Set(Object.keys(savedWatched)));
+            const savedLast = localStorage.getItem(LAST_PLAYED_KEY);
+            if (savedLast) setLastPlayed(JSON.parse(savedLast));
+          } catch {}
+        })
+        .catch(() => {});
     } catch {}
   }, []);
 
@@ -1086,9 +1005,8 @@ export default function HomePage() {
           theme={theme}
           onToggleTheme={handleToggleTheme}
           onSelectView={(v) => handleViewChange(v)}
-          onSignOut={async () => {
-            const supabase = createClient();
-            await supabase.auth.signOut();
+          onSignOut={() => {
+            localStorage.removeItem('stutosed_user_profile');
             setUser(null);
             setUserName('Advik');
             setIsAuthCompulsory(false);
@@ -2105,15 +2023,16 @@ export default function HomePage() {
                         placeholder="Enter name"
                       />
                       <button
-                        onClick={async () => {
+                        onClick={() => {
                           const clean = nameInput.trim() || 'Advik';
                           setUserName(clean);
                           try {
                             localStorage.setItem('stutosed_user_name', clean);
-                            const supabase = createClient();
-                            await supabase.auth.updateUser({
-                              data: { full_name: clean, display_name: clean },
-                            });
+                            if (user) {
+                              const updated = { ...user, full_name: clean };
+                              setUser(updated);
+                              localStorage.setItem('stutosed_user_profile', JSON.stringify(updated));
+                            }
                           } catch {}
                           setIsEditingName(false);
                         }}
@@ -2192,12 +2111,12 @@ export default function HomePage() {
               <div className="profile-signout-wrap">
                 {user ? (
                   <button
-                    onClick={async () => {
-                      const supabase = createClient();
-                      await supabase.auth.signOut();
+                    onClick={() => {
+                      localStorage.removeItem('stutosed_user_profile');
                       setUser(null);
-                      setIsAuthCompulsory(true);
-                      setIsAuthOpen(true);
+                      setUserName('Advik');
+                      setIsAuthCompulsory(false);
+                      setIsAuthOpen(false);
                     }}
                     style={{
                       padding: '7px 16px',
@@ -2684,21 +2603,18 @@ export default function HomePage() {
         />
       )}
 
-      {/* Supabase Google & Email Auth Modal */}
+      {/* Student Profile / Auth Modal */}
       <AuthModal
         isOpen={isAuthOpen}
         isCompulsory={isAuthCompulsory}
         onClose={() => setIsAuthOpen(false)}
         user={user}
-        onSignOut={async () => {
-          try {
-            const supabase = createClient();
-            await supabase.auth.signOut();
-            setUser(null);
-            setUserName('Advik');
-            setIsAuthCompulsory(false);
-            setIsAuthOpen(false);
-          } catch {}
+        onSignOut={() => {
+          localStorage.removeItem('stutosed_user_profile');
+          setUser(null);
+          setUserName('Advik');
+          setIsAuthCompulsory(false);
+          setIsAuthOpen(false);
         }}
       />
 

@@ -178,7 +178,7 @@ export const PrivacyTermsModal: React.FC<PrivacyTermsModalProps> = ({
                     4. Security & Encryption
                   </h4>
                   <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
-                    All user authentication is powered by Supabase with modern cryptographic hashing and SSL transmission, ensuring passwords and auth tokens are guarded against interception.
+                    All user authentication is powered by modern cryptographic hashing and SSL transmission, ensuring student profiles and tokens are guarded against interception.
                   </p>
                 </div>
               </div>

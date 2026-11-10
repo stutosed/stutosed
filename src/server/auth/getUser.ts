@@ -1,21 +1,12 @@
 import 'server-only';
-import { User } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase/server';
 
-export async function getUser(): Promise<User | null> {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
+export interface AuthUser {
+  id: string;
+  email?: string;
+  [key: string]: unknown;
+}
 
-    if (error || !user) {
-      return null;
-    }
-
-    return user;
-  } catch {
-    return null;
-  }
+export async function getUser(): Promise<AuthUser | null> {
+  // Supabase auth removed. Ready for new auth provider.
+  return null;
 }

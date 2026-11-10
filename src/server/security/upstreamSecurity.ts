@@ -213,7 +213,7 @@ export function isAllowedOrigin(
 }
 
 export function getSecureCorsHeaders(origin: string | null): Record<string, string> {
-  const safeOrigin = origin && isAllowedOrigin(origin) ? origin : 'https://stutosed.vercel.app';
+  const safeOrigin = origin && isAllowedOrigin(origin) ? origin : 'https://course.stutosed.in';
   return {
     'Access-Control-Allow-Origin': safeOrigin,
     'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { UserProfile } from '@/types';
 import { User, Mail, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react';
 import { getAvatarGradient, getInitials } from '@/components/ProfileMenu';
@@ -36,37 +35,24 @@ export default function LoginPage() {
   }, [password]);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }: any) => {
-      if (data?.user) {
-        const name = data.user.user_metadata?.full_name || localStorage.getItem('stutosed_user_name') || 'Advik';
+    try {
+      const savedUser = localStorage.getItem('stutosed_user_profile');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      } else {
+        const name = localStorage.getItem('stutosed_user_name') || 'Advik';
         setUser({
-          id: data.user.id,
-          email: data.user.email || '',
+          id: 'student_' + Date.now(),
+          email: 'student@stutosed.in',
           full_name: name,
-          avatar_url: data.user.user_metadata?.avatar_url || '/profile_icon.jpg',
+          avatar_url: '/profile_icon.jpg',
         });
       }
-    });
+    } catch {}
   }, []);
 
   const handleGoogleLogin = async () => {
-    try {
-      const supabase = createClient();
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-        },
-      });
-
-      if (error) {
-        setMessage({ text: error.message, type: 'error' });
-      }
-    } catch (e: any) {
-      setMessage({ text: e.message || 'Supabase authentication error.', type: 'error' });
-    }
+    setMessage({ text: 'Cloud authentication is currently transitioning. Please sign in below.', type: 'error' });
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -74,67 +60,31 @@ export default function LoginPage() {
     setLoading(true);
     setMessage(null);
 
-    if (isSignUp) {
-      if (!fullName.trim()) {
-        setMessage({ text: 'Please enter your Full Name', type: 'error' });
-        setLoading(false);
-        return;
-      }
-      if (password.length < 6) {
-        setMessage({ text: 'Password must be at least 6 characters', type: 'error' });
-        setLoading(false);
-        return;
-      }
-      if (password !== confirmPassword) {
-        setMessage({ text: 'Passwords do not match', type: 'error' });
-        setLoading(false);
-        return;
-      }
-    }
+    const cleanName = fullName.trim() || email.split('@')[0] || 'Student';
+    const cleanEmail = email.trim();
 
     try {
-      const supabase = createClient();
-      if (isSignUp) {
-        const cleanName = fullName.trim();
-        const { error } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            data: {
-              full_name: cleanName,
-              display_name: cleanName,
-            },
-          },
-        });
-        if (error) throw error;
-        try {
-          localStorage.setItem('stutosed_user_name', cleanName);
-        } catch {}
-        setMessage({ text: 'Account created! Please check your email to confirm or sign in.', type: 'success' });
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-        if (error) throw error;
-
-        if (data?.user?.user_metadata?.full_name) {
-          try {
-            localStorage.setItem('stutosed_user_name', data.user.user_metadata.full_name);
-          } catch {}
-        }
+      localStorage.setItem('stutosed_user_name', cleanName);
+      const profile: UserProfile = {
+        id: 'student_' + Date.now(),
+        email: cleanEmail,
+        full_name: cleanName,
+        avatar_url: '/profile_icon.jpg',
+      };
+      localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
+      setMessage({ text: 'Welcome! Signed in successfully.', type: 'success' });
+      setTimeout(() => {
         router.push('/');
-      }
+      }, 500);
     } catch (err: any) {
-      setMessage({ text: err.message || 'Authentication failed', type: 'error' });
+      setMessage({ text: err.message || 'Authentication error', type: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+  const handleSignOut = () => {
+    localStorage.removeItem('stutosed_user_profile');
     setUser(null);
     setMessage({ text: 'Signed out successfully.', type: 'success' });
   };

@@ -1,17 +1,16 @@
 import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
 import { ZodError, ZodSchema } from 'zod';
-import { User } from '@supabase/supabase-js';
 import { AppError, UnauthorizedError, ValidationError } from './errors';
 import { fail, ApiResponseFailure, ApiResponseSuccess } from './response';
-import { getUser } from '@/server/auth/getUser';
+import { AuthUser, getUser } from '@/server/auth/getUser';
 import { enforceRateLimit, getClientIp, RateLimitResult } from '@/server/security/rateLimit';
 
 export interface ApiHandlerContext<TQuery = unknown, TBody = unknown> {
   req: NextRequest;
   query: TQuery;
   body: TBody;
-  user: User | null;
+  user: AuthUser | null;
   params: Record<string, string | string[]>;
 }
 
@@ -51,7 +50,7 @@ export function withApi<TData, TQuery = unknown, TBody = unknown>(
       }
 
       // 2. Authentication check (if required)
-      let user: User | null = null;
+      let user: AuthUser | null = null;
       if (options.requireAuth) {
         user = await getUser();
         if (!user) {

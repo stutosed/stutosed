@@ -1,7 +1,7 @@
 /**
  * Cloudflare Worker Smart Proxy Configuration
- * Offloads heavy media and PDF streaming bandwidth from Vercel Serverless to Cloudflare Workers,
- * preserving 0 Egress Bandwidth costs and 100% free operation on stutosed.vercel.app.
+ * Offloads heavy media and PDF streaming bandwidth to Cloudflare Workers,
+ * preserving 0 Egress Bandwidth costs and 100% free operation.
  */
 
 export const CLOUDFLARE_WORKER_URL =

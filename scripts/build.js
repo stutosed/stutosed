@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 const { execSync } = require('child_process');
 
-if (process.env.VERCEL) {
-  console.log('[build.js] Detected Vercel environment -> executing next build');
-  execSync('npm run build:next', { stdio: 'inherit' });
+// On Windows, OpenNext requires WSL or Linux. For local Windows builds, run next build directly.
+if (process.platform === 'win32') {
+  console.log('[build.js] Local Windows environment detected -> executing next build');
+  execSync('npx next build', { stdio: 'inherit' });
 } else {
-  console.log('[build.js] Detected Cloudflare / Worker environment -> executing opennextjs-cloudflare build');
+  console.log('[build.js] Cloudflare / Linux environment detected -> executing opennextjs-cloudflare build');
   execSync('npx @opennextjs/cloudflare build', { stdio: 'inherit' });
 }

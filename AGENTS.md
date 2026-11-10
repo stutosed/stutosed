@@ -45,7 +45,7 @@ src/
 │   └── embed.schema.ts
 ├── server/                          # Server-only backend layer (import 'server-only')
 │   ├── auth/
-│   │   └── getUser.ts               # Reads authenticated user via supabase.auth.getUser()
+│   │   └── getUser.ts               # Reads authenticated user (pluggable auth layer)
 │   ├── http/
 │   │   ├── errors.ts                # AppError, UnauthorizedError, ValidationError, etc.
 │   │   ├── response.ts              # ok() and fail() JSON response formatters
@@ -60,8 +60,7 @@ src/
 │   │   ├── thumbnail.service.ts
 │   │   ├── hls-proxy.service.ts
 │   │   └── embed.service.ts
-│   └── repositories/                # Database/Supabase queries
-│       ├── user-progress.repo.ts    # Watch history, bookmarks, saved videos, progress
+│   └── repositories/                # Database/Storage queries
 │       └── course.repo.ts           # Course data access
 ├── lib/
 │   ├── env.ts                       # Zod-validated environment variables

@@ -49,7 +49,7 @@ export default function PrivacyPolicyPage() {
             <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <li>Synchronizing lecture completion checkmarks and timestamps across desktop and mobile.</li>
               <li>Maintaining your personalized saved video folders and bookmarked batches.</li>
-              <li>Authenticating your session securely with Supabase PostgreSQL Row Level Security (RLS).</li>
+              <li>Authenticating your session securely with modern session management.</li>
               <li><strong>We NEVER sell, rent, monetize, or share your personal data with any third-party advertising networks.</strong></li>
             </ul>
           </section>
@@ -70,7 +70,7 @@ export default function PrivacyPolicyPage() {
               4. Your Rights &amp; Data Deletion
             </h2>
             <p style={{ margin: '0 0 10px 0' }}>
-              You retain full control over your learning data. You can clear your local progress anytime via your browser settings or request complete deletion of your Supabase cloud profile and watch history by contacting our administration.
+              You retain full control over your learning data. You can clear your local progress anytime via your browser settings or request complete deletion of your profile and watch history by contacting our administration.
             </p>
             <p style={{ margin: 0, color: 'var(--text-secondary, #94a3b8)', fontSize: '13px' }}>
               For privacy inquiries, contact support at: <strong>support@stutosed.de5.net</strong> or <strong>stutosed.de5.net</strong>

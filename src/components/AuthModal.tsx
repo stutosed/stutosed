@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo } from 'react';
 import { X, Mail, Lock, User, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
 import { UserProfile } from '@/types';
 
 interface AuthModalProps {
@@ -46,22 +45,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   if (!isOpen) return null;
 
   const handleGoogleLogin = async () => {
-    try {
-      const supabase = createClient();
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-        },
-      });
-
-      if (error) {
-        setMessage({ text: error.message || 'Google Auth failed', type: 'error' });
-      }
-    } catch (e: any) {
-      setMessage({ text: e?.message || 'Authentication error', type: 'error' });
-    }
+    setMessage({ text: 'Cloud authentication is currently transitioning. Please continue using student profile below.', type: 'error' });
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -69,61 +53,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(true);
     setMessage(null);
 
-    // Validation
-    if (isSignUp) {
-      if (!fullName.trim()) {
-        setMessage({ text: 'Please enter your Full Name', type: 'error' });
-        setLoading(false);
-        return;
-      }
-      if (password.length < 8) {
-        setMessage({ text: 'Password must be at least 8 characters', type: 'error' });
-        setLoading(false);
-        return;
-      }
-      if (password !== confirmPassword) {
-        setMessage({ text: 'Passwords do not match', type: 'error' });
-        setLoading(false);
-        return;
-      }
-    }
+    const cleanName = (fullName.trim() || email.split('@')[0]) || 'Student';
+    const cleanEmail = email.trim();
 
     try {
-      const supabase = createClient();
-      if (isSignUp) {
-        const cleanName = fullName.trim();
-        const { error } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            data: {
-              full_name: cleanName,
-              display_name: cleanName,
-            },
-          },
-        });
-        if (error) throw error;
-        try {
-          localStorage.setItem('stutosed_user_name', cleanName);
-        } catch {}
-        setMessage({ text: 'Account created! Please check your email to confirm or sign in.', type: 'success' });
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-        if (error) throw error;
-
-        if (data?.user?.user_metadata?.full_name) {
-          try {
-            localStorage.setItem('stutosed_user_name', data.user.user_metadata.full_name);
-          } catch {}
-        }
-        setMessage({ text: 'Welcome back! Signed in successfully.', type: 'success' });
-        setTimeout(() => onClose(), 600);
-      }
+      localStorage.setItem('stutosed_user_name', cleanName);
+      const profile: UserProfile = {
+        id: 'student_' + Date.now(),
+        email: cleanEmail,
+        full_name: cleanName,
+        avatar_url: undefined,
+      };
+      localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
+      setMessage({ text: 'Welcome! Student profile updated.', type: 'success' });
+      setTimeout(() => {
+        onClose();
+        if (typeof window !== 'undefined') window.location.reload();
+      }, 500);
     } catch (err: any) {
-      setMessage({ text: err.message || 'Authentication failed. Please try again.', type: 'error' });
+      setMessage({ text: err.message || 'Error updating profile.', type: 'error' });
     } finally {
       setLoading(false);
     }
