@@ -16,6 +16,23 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false,
   },
+  socialProviders: {
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? {
+          google: {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            accessType: 'offline',
+            prompt: 'select_account',
+          },
+        }
+      : {}),
+  },
+  advanced: {
+    database: {
+      joins: true,
+    },
+  },
   plugins: [
     nextCookies(),
   ],

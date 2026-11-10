@@ -49,12 +49,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     try {
       setLoading(true);
       setMessage(null);
-      await authClient.signIn.social({
+      const res = await authClient.signIn.social({
         provider: 'google',
         callbackURL: window.location.origin,
       });
+      if (res?.error) {
+        setMessage({ text: res.error.message || 'Google authentication not configured or failed.', type: 'error' });
+      }
     } catch (err: any) {
       setMessage({ text: err.message || 'Google authentication failed.', type: 'error' });
+    } finally {
       setLoading(false);
     }
   };
