@@ -1,5 +1,5 @@
 /**
- * Hardened Cloudflare Worker Proxy for stutosed (stutosed.vercel.app)
+ * Hardened Cloudflare Worker Proxy for stutosed (course.stutosed.in)
  *
  * Features & Security:
  * 1. Closes Open Proxy Abuse: Only proxies requests to allowlisted upstream domains.
@@ -119,7 +119,6 @@ const ALLOWED_ORIGINS = [
   'stutosed.de5.net',
   'course.stutosed.in',
   'stutosed.in',
-  'stutosed.vercel.app',
   'localhost',
   '127.0.0.1',
 ];

@@ -99,7 +99,7 @@ export async function proxyHlsRequest(
     providerParam === 'hranker' ||
     decoded.includes('hranker.com');
 
-  // If NOT Vidmoly, Earnvids, or Hranker, offload directly to Cloudflare Worker (0 Vercel bandwidth)
+  // If NOT Vidmoly, Earnvids, or Hranker, offload directly to Cloudflare Worker (0 server bandwidth)
   if (!isVidmoly && !isEarnvids && !isHranker) {
     const workerUrl = getWorkerProxyUrl(targetUrl, 'hls');
     return NextResponse.redirect(workerUrl, 302);

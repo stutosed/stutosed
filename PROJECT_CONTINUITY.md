@@ -1,6 +1,6 @@
 # PROJECT CONTINUITY & CONTEXT HANDOFF GUIDE
-**Project:** Stutosed (`course.stutosed.in` / `stutosed.vercel.app`)  
-**Repository:** [github.com/shikshiten/stutosed](https://github.com/shikshiten/stutosed)  
+**Project:** Stutosed (`course.stutosed.in`)  
+**Repository:** [github.com/stutosed/stutosed](https://github.com/stutosed/stutosed)  
 **Last Updated:** October 9, 2026  
 **Status:** Main branch clean, all layered REST API changes pushed (`0c49112`).
 
@@ -55,7 +55,7 @@ The user wants to upload new video lectures from Telegram to multiple video stre
      - **Target Platforms Checkboxes** (`[x] Vidmoly`, `[x] Earnvids`, `[x] StreamP2P`, `[x] YouTube`)
      - Trigger button that dispatches a GitHub Actions workflow dispatch job.
    - **Confidentiality**: All API keys (Vidmoly, Earnvids, YouTube OAuth, Telegram MTProto API ID/Hash) live in GitHub Secrets / server `.env`. Team members never see any API keys or credentials.
-4. **Domain Decision**: The user does NOT need to buy a domain immediately. Development and deployment continue on `stutosed.vercel.app` or localhost without any code rework needed when a domain is attached later.
+4. **Domain Decision**: The application is deployed at `course.stutosed.in`.
 
 ---
 

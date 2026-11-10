@@ -65,7 +65,7 @@ export function checkRateLimitMemory(
 }
 
 /**
- * Upstash Redis / Vercel KV REST-based rate limiting.
+ * Upstash Redis REST-based rate limiting.
  * Executes atomic INCR + EXPIRE via HTTP pipeline without extra dependencies.
  */
 async function checkRateLimitUpstash(
@@ -121,7 +121,7 @@ async function checkRateLimitUpstash(
 
 /**
  * Universal rate limit checker:
- * 1. Checks for Upstash / Vercel KV REST credentials.
+ * 1. Checks for Upstash Redis REST credentials.
  * 2. If present, calls Redis atomically over HTTPS.
  * 3. Gracefully falls back to in-memory sliding window on missing config or network failure.
  */
