@@ -178,47 +178,11 @@ Frontend Framework:  Next.js 15.1 (Turbopack, React 19, App Router)
 Language:            TypeScript 5.0 (Strict Type Checking)
 Styling & Design:    Tailwind CSS 4.0 · Custom CSS Variables · Plus Jakarta Sans
 Hosting Platform:    Cloudflare Workers (via @opennextjs/cloudflare)
+Database & Auth:     Turso (libSQL Edge SQLite) · Better Auth
 Media Streaming:     Abyss Player (Iframe) · HLS.js (Adaptive Bitrate)
 Smart Proxy:         Cloudflare Workers (0 Egress Media Forwarder)
 Icons:               Lucide React
-Data Management:     Static Manifests · Offline LocalStorage Sync
-```
-
----
-
-## ⚡ Quick Start
-
-### 1 · Clone the repository
-```bash
-git clone https://github.com/stutosed/stutosed.git
-cd stutosed
-```
-
-### 2 · Configure Environment Variables
-Create a `.env.local` file in the root directory:
-
-```env
-ABYSS_API_KEY=your_abyss_api_key_here
-NEXT_PUBLIC_STREAM_PROXY_URL=https://seiryu.stutosed.workers.dev
-```
-
-### 3 · Install & Run Locally
-```bash
-# Install dependencies
-npm install
-
-# Run local development server
-npm run dev
-```
-Open [`http://localhost:3000`](http://localhost:3000) in your browser.
-
-### 4 · Deploy to Cloudflare Workers
-```bash
-# Build for Cloudflare OpenNext
-npm run build:cf
-
-# Deploy directly via Wrangler
-npx wrangler deploy
+Data Management:     Turso Cloud Sync · Offline LocalStorage
 ```
 
 ---
