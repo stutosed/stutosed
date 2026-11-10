@@ -6,1183 +6,12 @@
   "subject": "Banking",
   "category": "gov-exams",
   "thumb": "https://files.catbox.moe/97ydfl.jpg",
-  "desc": "Complete Banking Quantitative Aptitude curriculum by Aashish Arora Sir. Video lectures streamed via custom StreamP2P player on stutosed.strp2p.site with high-yield PDF notes & practice sheets directly accessible without login.",
+  "desc": "Complete Banking Quantitative Aptitude curriculum by Aashish Arora Sir. Video lectures streamed via high-speed native Abyss player with topic-wise syllabus.",
   "isFolderMode": true,
   "tabs": [
     {
-      "id": "speed-maths",
-      "label": "01. Speed Maths & Vedic Maths",
-      "subname": "13 items (4 Videos & 9 Practice Sheets)",
-      "thumb": "https://files.catbox.moe/97ydfl.jpg",
-      "items": [
-        {
-          "id": "paxide",
-          "label": "Speed Math-Vedic Math - Part I",
-          "url": "https://stutosed.strp2p.site/#paxide",
-          "type": "streamp2p",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "duration": 8369,
-          "category": "videos",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#paxide",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-003",
-          "label": "Speed Math-Vedic Math - Part I (Notes 1)",
-          "url": "https://files.catbox.moe/zodex3.pdf",
-          "downloadUrl": "https://files.catbox.moe/zodex3.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths"
-        },
-        {
-          "id": "pdf-004",
-          "label": "Speed Math-Vedic Math - Part I (Notes 2)",
-          "url": "https://files.catbox.moe/ctbqtp.pdf",
-          "downloadUrl": "https://files.catbox.moe/ctbqtp.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths"
-        },
-        {
-          "id": "pdf-005",
-          "label": "Speed Maths Class 1 Practice Sheet (330 Questions)",
-          "url": "https://files.catbox.moe/1snl83.pdf",
-          "downloadUrl": "https://files.catbox.moe/1snl83.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths"
-        },
-        {
-          "id": "tubslx",
-          "label": "Speed Math-Vedic Math - Part II",
-          "url": "https://stutosed.strp2p.site/#tubslx",
-          "type": "streamp2p",
-          "thumb": "https://stutosed.strp2p.site/xKYSvgkQ-VGnroOCVpNWXQ/unl/krnvuoui/59agaw/poster.png",
-          "duration": 7452,
-          "category": "videos",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#tubslx",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-007",
-          "label": "Speed Math-Vedic Math - Part II (Notes 1)",
-          "url": "https://files.catbox.moe/y41rvn.pdf",
-          "downloadUrl": "https://files.catbox.moe/y41rvn.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths"
-        },
-        {
-          "id": "pdf-008",
-          "label": "Speed Math-Vedic Math - Part II (Notes 2)",
-          "url": "https://files.catbox.moe/1t32ey.pdf",
-          "downloadUrl": "https://files.catbox.moe/1t32ey.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths"
-        },
-        {
-          "id": "ebwqom",
-          "label": "Base Method of Multiplication Percentage to Fraction",
-          "url": "https://stutosed.strp2p.site/#ebwqom",
-          "type": "streamp2p",
-          "thumb": "https://stutosed.strp2p.site/spMOyt1_b88BVDC-EczeAQ/meb/krnvuoui/oxrvrh/poster.png",
-          "duration": 5113,
-          "category": "videos",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#ebwqom",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-010",
-          "label": "Base Method of Multiplication Percentage to Fraction (Notes)",
-          "url": "https://files.catbox.moe/brplnp.pdf",
-          "downloadUrl": "https://files.catbox.moe/brplnp.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths"
-        },
-        {
-          "id": "yjtee8",
-          "label": "Speed Math-Vedic Math - Part III",
-          "url": "https://stutosed.strp2p.site/#yjtee8",
-          "type": "streamp2p",
-          "thumb": "https://stutosed.strp2p.site/jdqQNJ6ViXspb3f2kEiVEQ/qtd/xieomrse/i5hqvy/poster.png",
-          "duration": 5148,
-          "category": "videos",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#yjtee8",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-012",
-          "label": "Speed Math-Vedic Math - Part III (Notes)",
-          "url": "https://files.catbox.moe/fvmnxy.pdf",
-          "downloadUrl": "https://files.catbox.moe/fvmnxy.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths"
-        },
-        {
-          "id": "pdf-013",
-          "label": "Speed Maths Class 2 Practice Sheet (460 Questions)",
-          "url": "https://files.catbox.moe/9nlra9.pdf",
-          "downloadUrl": "https://files.catbox.moe/9nlra9.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths"
-        },
-        {
-          "id": "pdf-014",
-          "label": "Speed Maths Class 3 Practice Sheet (300 Questions)",
-          "url": "https://files.catbox.moe/lpsuf0.pdf",
-          "downloadUrl": "https://files.catbox.moe/lpsuf0.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Speed Maths",
-          "folderName": "Speed Maths"
-        }
-      ]
-    },
-    {
-      "id": "simplification",
-      "label": "02. Simplification & Approximation",
-      "subname": "27 items (7 Videos & 20 Practice Sheets)",
-      "thumb": "https://asset.syncp2p.com/7OaeboLAYtfDhZ7DC5aX6g/qtd/krnvuoui/l1knbz/poster.png",
-      "items": [
-        {
-          "id": "pdf-015",
-          "label": "Simplification Approximation Part - 1 (Notes 1)",
-          "url": "https://files.catbox.moe/gn42rj.pdf",
-          "downloadUrl": "https://files.catbox.moe/gn42rj.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-016",
-          "label": "Simplification Approximation Part - 1 (Notes 2)",
-          "url": "https://files.catbox.moe/zyw1xq.pdf",
-          "downloadUrl": "https://files.catbox.moe/zyw1xq.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-017",
-          "label": "Simplification-Approximation Class 1 Practice Sheet",
-          "url": "https://files.catbox.moe/ou6osj.pdf",
-          "downloadUrl": "https://files.catbox.moe/ou6osj.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "ung16w",
-          "label": "Simplification Approximation Part - 2",
-          "url": "https://stutosed.strp2p.site/#ung16w",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/7OaeboLAYtfDhZ7DC5aX6g/qtd/krnvuoui/l1knbz/poster.png",
-          "preview": "https://asset.syncp2p.com/5x0wRtvfODtdKdDyhbrSQg/qtd/krnvuoui/l1knbz/preview.webp",
-          "duration": 4775,
-          "category": "videos",
-          "subject": "Simplification",
-          "folderName": "Simplification",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#ung16w",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-019",
-          "label": "Simplification Approximation Part - 2 (Notes 1)",
-          "url": "https://files.catbox.moe/ajpp8s.pdf",
-          "downloadUrl": "https://files.catbox.moe/ajpp8s.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-020",
-          "label": "Simplification Approximation Part - 2 (Notes 2)",
-          "url": "https://files.catbox.moe/rt33y2.pdf",
-          "downloadUrl": "https://files.catbox.moe/rt33y2.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-021",
-          "label": "Maths Hero Simplification 2 Practice Sheet",
-          "url": "https://files.catbox.moe/0c29mt.pdf",
-          "downloadUrl": "https://files.catbox.moe/0c29mt.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "asqeun",
-          "label": "Simplification Approximation Part - 3",
-          "url": "https://stutosed.strp2p.site/#asqeun",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/SwHWj2-mvcZZat-n4mzj_A/unl/krnvuoui/x8gpjt/poster.png",
-          "preview": "https://asset.syncp2p.com/Xwo5Spm_zLpqQc4AszYcRg/unl/krnvuoui/x8gpjt/preview.webp",
-          "duration": 7012,
-          "category": "videos",
-          "subject": "Simplification",
-          "folderName": "Simplification",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#asqeun",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-023",
-          "label": "Simplification Approximation Part - 3 (Notes 1)",
-          "url": "https://files.catbox.moe/j1k0n3.pdf",
-          "downloadUrl": "https://files.catbox.moe/j1k0n3.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-024",
-          "label": "Simplification Approximation Part - 3 (Notes 2)",
-          "url": "https://files.catbox.moe/hw8pf4.pdf",
-          "downloadUrl": "https://files.catbox.moe/hw8pf4.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-025",
-          "label": "Maths Hero Simplification Practice Sheet 3",
-          "url": "https://files.catbox.moe/331h8p.pdf",
-          "downloadUrl": "https://files.catbox.moe/331h8p.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "3pmsgc",
-          "label": "Simplification Approximation Part - 4",
-          "url": "https://stutosed.strp2p.site/#3pmsgc",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/5ynMxh77KQj4iEeUzpJ9-A/unl/krnvuoui/hapdwp/poster.png",
-          "preview": "https://asset.syncp2p.com/DFaj8ebOeP8-tiXDvZxJbg/unl/krnvuoui/hapdwp/preview.webp",
-          "duration": 6079,
-          "category": "videos",
-          "subject": "Simplification",
-          "folderName": "Simplification",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#3pmsgc",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-027",
-          "label": "Simplification Approximation Part - 4 (Notes 1)",
-          "url": "https://files.catbox.moe/ecmxav.pdf",
-          "downloadUrl": "https://files.catbox.moe/ecmxav.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-028",
-          "label": "Simplification Approximation Part - 4 (Notes 2)",
-          "url": "https://files.catbox.moe/9ut7ms.pdf",
-          "downloadUrl": "https://files.catbox.moe/9ut7ms.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "8ckudr",
-          "label": "Simplification Approximation Part - 5",
-          "url": "https://stutosed.strp2p.site/#8ckudr",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/hkPfp9i-mHLjROrAItpIhA/unl/krnvuoui/x8gp5n/poster.png",
-          "preview": "https://asset.syncp2p.com/8R4MaoCGzC9h5Or_uaneAw/unl/krnvuoui/x8gp5n/preview.webp",
-          "duration": 6486,
-          "category": "videos",
-          "subject": "Simplification",
-          "folderName": "Simplification",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#8ckudr",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-030",
-          "label": "Simplification Approximation Part - 5 (Notes 1)",
-          "url": "https://files.catbox.moe/gtam6m.pdf",
-          "downloadUrl": "https://files.catbox.moe/gtam6m.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-031",
-          "label": "Simplification Approximation Part - 5 (Notes 2)",
-          "url": "https://files.catbox.moe/uzxzuh.pdf",
-          "downloadUrl": "https://files.catbox.moe/uzxzuh.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "5o9haw",
-          "label": "Simplification Approximation Part - 6",
-          "url": "https://stutosed.strp2p.site/#5o9haw",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/w2oHNMOuVQ6Obbacf4NaaQ/qtd/krnvuoui/59ab5z/poster.png",
-          "preview": "https://asset.syncp2p.com/93su0dMDEPwoazeVKO5pQA/qtd/krnvuoui/59ab5z/preview.webp",
-          "duration": 4700,
-          "category": "videos",
-          "subject": "Simplification",
-          "folderName": "Simplification",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#5o9haw",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-033",
-          "label": "Simplification Approximation Part - 6 (Notes 1)",
-          "url": "https://files.catbox.moe/4ovyuu.pdf",
-          "downloadUrl": "https://files.catbox.moe/4ovyuu.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-034",
-          "label": "Simplification Approximation Part - 6 (Notes 2)",
-          "url": "https://files.catbox.moe/bn8kff.pdf",
-          "downloadUrl": "https://files.catbox.moe/bn8kff.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "sk5mkc",
-          "label": "Simplification Approximation Part - 7",
-          "url": "https://stutosed.strp2p.site/#sk5mkc",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/c4StMXXU2c-Uf_SgUF3jFw/qtd/krnvuoui/evsdl3/poster.png",
-          "preview": "https://asset.syncp2p.com/2wNXK3Y0yHikJGUZBkHzsg/qtd/krnvuoui/evsdl3/preview.webp",
-          "duration": 6483,
-          "category": "videos",
-          "subject": "Simplification",
-          "folderName": "Simplification",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#sk5mkc",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-036",
-          "label": "Simplification Approximation Part - 7 (Notes 1)",
-          "url": "https://files.catbox.moe/aaz42c.pdf",
-          "downloadUrl": "https://files.catbox.moe/aaz42c.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-037",
-          "label": "Simplification Approximation Part - 7 (Notes 2)",
-          "url": "https://files.catbox.moe/4y1jdq.pdf",
-          "downloadUrl": "https://files.catbox.moe/4y1jdq.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "f1pbkw",
-          "label": "Simplification Approximation Part - 8",
-          "url": "https://stutosed.strp2p.site/#f1pbkw",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/tqRUxoAAcXJi79K-bDs3Xg/unl/krnvuoui/mc69sl/poster.png",
-          "preview": "https://asset.syncp2p.com/gb7lIBhLft5jHsM00RN24Q/unl/krnvuoui/mc69sl/preview.webp",
-          "duration": 3857,
-          "category": "videos",
-          "subject": "Simplification",
-          "folderName": "Simplification",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#f1pbkw",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-039",
-          "label": "Simplification Approximation Part - 8 (Notes 1)",
-          "url": "https://files.catbox.moe/4yg71h.pdf",
-          "downloadUrl": "https://files.catbox.moe/4yg71h.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-040",
-          "label": "Simplification Approximation Part - 8 (Notes 2)",
-          "url": "https://files.catbox.moe/q8n3yg.pdf",
-          "downloadUrl": "https://files.catbox.moe/q8n3yg.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        },
-        {
-          "id": "pdf-041",
-          "label": "Maths Hero Simplification Practice Sheet 4",
-          "url": "https://files.catbox.moe/jt1i8s.pdf",
-          "downloadUrl": "https://files.catbox.moe/jt1i8s.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Simplification",
-          "folderName": "Simplification"
-        }
-      ]
-    },
-    {
-      "id": "number-series",
-      "label": "03. Number Series (Missing & Wrong)",
-      "subname": "23 items (7 Videos & 16 Practice Sheets)",
-      "thumb": "https://asset.syncp2p.com/4aO74BovVqWvD3e8G_V-tw/qtd/krnvuoui/lq452z/poster.png",
-      "items": [
-        {
-          "id": "vhnziy",
-          "label": "Number Series Basic and Types",
-          "url": "https://stutosed.strp2p.site/#vhnziy",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/3IgM9GOXedkyTTkXsZM3Tw/nc9/krnvuoui/i5hlwc/poster.png",
-          "preview": "https://asset.syncp2p.com/xSY2l4z8OQryOjkP_R4YPQ/nc9/krnvuoui/i5hlwc/preview.webp",
-          "duration": 6160,
-          "category": "videos",
-          "subject": "Number Series",
-          "folderName": "Number Series",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#vhnziy",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-043",
-          "label": "Number Series Basic and Types (Notes)",
-          "url": "https://files.catbox.moe/19i148.pdf",
-          "downloadUrl": "https://files.catbox.moe/19i148.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "3pmspu",
-          "label": "Number Series Basics Types 02",
-          "url": "https://stutosed.strp2p.site/#3pmspu",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/BWlW5fkduML2TMRZn-fzaA/qtd/krnvuoui/pz9ob8/poster.png",
-          "preview": "https://asset.syncp2p.com/PA7KmDY-75zdF1ETb5y5Gg/qtd/krnvuoui/pz9ob8/preview.webp",
-          "duration": 3235,
-          "category": "videos",
-          "subject": "Number Series",
-          "folderName": "Number Series",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#3pmspu",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-045",
-          "label": "Number Series Basics Types 02 (Notes)",
-          "url": "https://files.catbox.moe/0g0i85.pdf",
-          "downloadUrl": "https://files.catbox.moe/0g0i85.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "asqesk",
-          "label": "Missing Number Series Part-1",
-          "url": "https://stutosed.strp2p.site/#asqesk",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/zs1vYXuvHl5ZAgynwH4HXQ/6sy/krnvuoui/pz9ox9/poster.png",
-          "preview": "https://asset.syncp2p.com/7Zhc8NgJ5535spwF0Q0NmQ/6sy/krnvuoui/pz9ox9/preview.webp",
-          "duration": 5486,
-          "category": "videos",
-          "subject": "Number Series",
-          "folderName": "Number Series",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#asqesk",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-047",
-          "label": "Missing Number Series Part-1 (Notes 1)",
-          "url": "https://files.catbox.moe/5vobx6.pdf",
-          "downloadUrl": "https://files.catbox.moe/5vobx6.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "pdf-048",
-          "label": "Missing Number Series Part-1 (Notes 2)",
-          "url": "https://files.catbox.moe/jprvoz.pdf",
-          "downloadUrl": "https://files.catbox.moe/jprvoz.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "q5zw5l",
-          "label": "Missing Number Series Part-2",
-          "url": "https://stutosed.strp2p.site/#q5zw5l",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/G3I7JVigAiLPxJX6Mg4vrw/qtd/krnvuoui/59a1rt/poster.png",
-          "preview": "https://asset.syncp2p.com/RASYE0kkYRKNsN3Zwq0NnQ/qtd/krnvuoui/59a1rt/preview.webp",
-          "duration": 5719,
-          "category": "videos",
-          "subject": "Number Series",
-          "folderName": "Number Series",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#q5zw5l",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-050",
-          "label": "Missing Number Series Part-2 (Notes 1)",
-          "url": "https://files.catbox.moe/ksl7zv.pdf",
-          "downloadUrl": "https://files.catbox.moe/ksl7zv.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "pdf-051",
-          "label": "Missing Number Series Part-2 (Notes 2)",
-          "url": "https://files.catbox.moe/a4khvq.pdf",
-          "downloadUrl": "https://files.catbox.moe/a4khvq.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "paxkof",
-          "label": "Wrong Number Series Part-1",
-          "url": "https://stutosed.strp2p.site/#paxkof",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/VgAHx_LV3PLR7dsqqTbCaA/qtd/krnvuoui/8h3vd5/poster.png",
-          "preview": "https://asset.syncp2p.com/gfElvf7msDehyZtiAZ8LZA/qtd/krnvuoui/8h3vd5/preview.webp",
-          "duration": 5567,
-          "category": "videos",
-          "subject": "Number Series",
-          "folderName": "Number Series",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#paxkof",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-053",
-          "label": "Wrong Number Series Part-1 (Notes 1)",
-          "url": "https://files.catbox.moe/gul74q.pdf",
-          "downloadUrl": "https://files.catbox.moe/gul74q.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "pdf-054",
-          "label": "Wrong Number Series Part-1 (Notes 2)",
-          "url": "https://files.catbox.moe/7hjj3c.pdf",
-          "downloadUrl": "https://files.catbox.moe/7hjj3c.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "keogdo",
-          "label": "Wrong Number Series Part-2",
-          "url": "https://stutosed.strp2p.site/#keogdo",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/lpwg84joBNv8S8L2jW1OoA/qtd/krnvuoui/oxrq9s/poster.png",
-          "preview": "https://asset.syncp2p.com/cH89vnJ00QgtLo1MLZP7ow/qtd/krnvuoui/oxrq9s/preview.webp",
-          "duration": 4534,
-          "category": "videos",
-          "subject": "Number Series",
-          "folderName": "Number Series",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#keogdo",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-056",
-          "label": "Wrong Number Series Part-2 (Notes)",
-          "url": "https://files.catbox.moe/ibbny3.pdf",
-          "downloadUrl": "https://files.catbox.moe/ibbny3.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "rycva3",
-          "label": "Wrong Number Series Part-3",
-          "url": "https://stutosed.strp2p.site/#rycva3",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/AWC08Wu_Ud6idkm-EK13GA/meb/krnvuoui/rgj3t9/poster.png",
-          "preview": "https://asset.syncp2p.com/zpPeoCWaYLsJk7VUM95eXg/meb/krnvuoui/rgj3t9/preview.webp",
-          "duration": 5647,
-          "category": "videos",
-          "subject": "Number Series",
-          "folderName": "Number Series",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#rycva3",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-058",
-          "label": "Wrong Number Series Part-3 (Notes 1)",
-          "url": "https://files.catbox.moe/ugkfxy.pdf",
-          "downloadUrl": "https://files.catbox.moe/ugkfxy.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "pdf-059",
-          "label": "Wrong Number Series Part-3 (Notes 2)",
-          "url": "https://files.catbox.moe/67bim2.pdf",
-          "downloadUrl": "https://files.catbox.moe/67bim2.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "pdf-060",
-          "label": "Missing Series Practice Sheet 1",
-          "url": "https://files.catbox.moe/3yzz0u.pdf",
-          "downloadUrl": "https://files.catbox.moe/3yzz0u.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "pdf-061",
-          "label": "Missing Series Practice Sheet 2",
-          "url": "https://files.catbox.moe/kpkw66.pdf",
-          "downloadUrl": "https://files.catbox.moe/kpkw66.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "pdf-062",
-          "label": "Missing Series Practice Sheet 3",
-          "url": "https://files.catbox.moe/srb8et.pdf",
-          "downloadUrl": "https://files.catbox.moe/srb8et.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "pdf-063",
-          "label": "The Maths Hero Wrong Number Series Practice Sheet 1",
-          "url": "https://files.catbox.moe/7y3mcw.pdf",
-          "downloadUrl": "https://files.catbox.moe/7y3mcw.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        },
-        {
-          "id": "pdf-064",
-          "label": "The Maths Hero Wrong Number Series Practice Sheet 2",
-          "url": "https://files.catbox.moe/ilry90.pdf",
-          "downloadUrl": "https://files.catbox.moe/ilry90.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Number Series",
-          "folderName": "Number Series"
-        }
-      ]
-    },
-    {
-      "id": "quadratic-equations",
-      "label": "04. Quadratic & Cubic Equations",
-      "subname": "22 items (8 Videos & 14 Practice Sheets)",
-      "thumb": "https://asset.syncp2p.com/lM5tE4qR4rN5k12yBvR33w/qtd/krnvuoui/1p3zvd/poster.png",
-      "items": [
-        {
-          "id": "yjthdz",
-          "label": "Linear Quadratic and Cubic Equations Algebra Basics",
-          "url": "https://stutosed.strp2p.site/#yjthdz",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/6lsez7-HO7tsvX3jnM0qhA/6sy/krnvuoui/n6q5tt/poster.png",
-          "preview": "https://asset.syncp2p.com/ybpgsOvOH2sDvU2Y71L_BQ/6sy/krnvuoui/n6q5tt/preview.webp",
-          "duration": 5307,
-          "category": "videos",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#yjthdz",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-066",
-          "label": "Linear Quadratic and Cubic Equations Algebra Basics (Notes)",
-          "url": "https://files.catbox.moe/6ah3b4.pdf",
-          "downloadUrl": "https://files.catbox.moe/6ah3b4.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "6z1ryk",
-          "label": "Quadratic Equations (How to solve Fast Solution Tricks)",
-          "url": "https://stutosed.strp2p.site/#6z1ryk",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/sMW70kf2fC11ngx6Yu257Q/qtd/krnvuoui/hapory/poster.png",
-          "preview": "https://asset.syncp2p.com/JbxkazOptV33OVf4jFZYcQ/qtd/krnvuoui/hapory/preview.webp",
-          "duration": 5679,
-          "category": "videos",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#6z1ryk",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-068",
-          "label": "Quadratic Equations (How to solve Fast Solution Tricks) (Notes)",
-          "url": "https://files.catbox.moe/g1ngzz.pdf",
-          "downloadUrl": "https://files.catbox.moe/g1ngzz.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "1lac3c",
-          "label": "Quadratic Equations (Finding Roots How to Compare Roots)",
-          "url": "https://stutosed.strp2p.site/#1lac3c",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/-4m7NG3OAEpFfsS5wauJHw/qtd/krnvuoui/ubd85w/poster.png",
-          "preview": "https://asset.syncp2p.com/_R9BGPOx3I4NPYPITP1lRw/qtd/krnvuoui/ubd85w/preview.webp",
-          "duration": 5662,
-          "category": "videos",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#1lac3c",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-070",
-          "label": "Quadratic Equations (Finding Roots How to Compare Roots) (Notes)",
-          "url": "https://files.catbox.moe/uj87i7.pdf",
-          "downloadUrl": "https://files.catbox.moe/uj87i7.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "asqem1",
-          "label": "Quadratic Equations (Comparison of Roots Part-2)",
-          "url": "https://stutosed.strp2p.site/#asqem1",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/gImdE1gCth5tx2bKZjVxXg/qtd/krnvuoui/mc6pk1/poster.png",
-          "preview": "https://asset.syncp2p.com/rNBjmhE-gMy-LFOwf8mhlw/qtd/krnvuoui/mc6pk1/preview.webp",
-          "duration": 2752,
-          "category": "videos",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#asqem1",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-072",
-          "label": "Quadratic Equations (Comparison of Roots Part-2) (Notes)",
-          "url": "https://files.catbox.moe/3x4xg7.pdf",
-          "downloadUrl": "https://files.catbox.moe/3x4xg7.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "asqemx",
-          "label": "Quadratic Equations (Practice Questions)",
-          "url": "https://stutosed.strp2p.site/#asqemx",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/8MpzZUJbLolsIVCyt_1cWw/qtd/krnvuoui/bqmhkc/poster.png",
-          "preview": "https://asset.syncp2p.com/Jhu1X4QU1ebDTN4rXpr2Gg/qtd/krnvuoui/bqmhkc/preview.webp",
-          "duration": 6293,
-          "category": "videos",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#asqemx",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-074",
-          "label": "Quadratic Equations (Practice Questions) (Notes)",
-          "url": "https://files.catbox.moe/w7j6ld.pdf",
-          "downloadUrl": "https://files.catbox.moe/w7j6ld.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "nf3lbc",
-          "label": "Quadratic Equations (Practice Questions-2)",
-          "url": "https://stutosed.strp2p.site/#nf3lbc",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/0jrYpe8JTI2iREYxBM_MwA/qtd/krnvuoui/mc6poj/poster.png",
-          "preview": "https://asset.syncp2p.com/4hEoJVRlbFA26Us_DDLHTw/qtd/krnvuoui/mc6poj/preview.webp",
-          "duration": 2520,
-          "category": "videos",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#nf3lbc",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-076",
-          "label": "Quadratic Equations (Practice Questions-2) (Notes)",
-          "url": "https://files.catbox.moe/5n7w1n.pdf",
-          "downloadUrl": "https://files.catbox.moe/5n7w1n.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "dmvqn8",
-          "label": "Quadratic Equations (Practice Questions-3)",
-          "url": "https://stutosed.strp2p.site/#dmvqn8",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/M-3ojz9uRQpJjq-gsd93Dw/qtd/krnvuoui/vkwbp8/poster.png",
-          "preview": "https://asset.syncp2p.com/NBQfud4okljNK6KKUR7IsQ/qtd/krnvuoui/vkwbp8/preview.webp",
-          "duration": 6037,
-          "category": "videos",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#dmvqn8",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-078",
-          "label": "Quadratic Equations (Practice Questions-3) (Notes)",
-          "url": "https://files.catbox.moe/ef1tub.pdf",
-          "downloadUrl": "https://files.catbox.moe/ef1tub.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "keogr6",
-          "label": "Quadratic Equations (All Types of Square Root Questions)",
-          "url": "https://stutosed.strp2p.site/#keogr6",
-          "type": "streamp2p",
-          "thumb": "https://asset.syncp2p.com/8CNAA50vY1T40MOSfDF0rw/unl/krnvuoui/dmn3xa/poster.png",
-          "preview": "https://asset.syncp2p.com/K01zpQ15_3vgOz1ZR-Taug/unl/krnvuoui/dmn3xa/preview.webp",
-          "duration": 9067,
-          "category": "videos",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations",
-          "servers": [
-            {
-              "name": "StreamP2P Player",
-              "url": "https://stutosed.strp2p.site/#keogr6",
-              "type": "streamp2p"
-            }
-          ]
-        },
-        {
-          "id": "pdf-080",
-          "label": "Quadratic Equations (All Types of Square Root Questions) (Notes 1)",
-          "url": "https://files.catbox.moe/qwupoy.pdf",
-          "downloadUrl": "https://files.catbox.moe/qwupoy.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "pdf-081",
-          "label": "Quadratic Equations (All Types of Square Root Questions) (Notes 2)",
-          "url": "https://files.catbox.moe/e6hcm6.pdf",
-          "downloadUrl": "https://files.catbox.moe/e6hcm6.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "pdf-082",
-          "label": "The Maths Hero Quadratic Equations Practice Sheet-1",
-          "url": "https://files.catbox.moe/74fip1.pdf",
-          "downloadUrl": "https://files.catbox.moe/74fip1.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "pdf-083",
-          "label": "The Maths Hero Quadratic Equations Practice Sheet-2",
-          "url": "https://files.catbox.moe/8u1q7m.pdf",
-          "downloadUrl": "https://files.catbox.moe/8u1q7m.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "pdf-084",
-          "label": "The Maths Hero Quadratic Equations Practice Sheet-3",
-          "url": "https://files.catbox.moe/44s87f.pdf",
-          "downloadUrl": "https://files.catbox.moe/44s87f.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "pdf-085",
-          "label": "The Maths Hero Quadratic Equations Practice Sheet-4",
-          "url": "https://files.catbox.moe/v0p670.pdf",
-          "downloadUrl": "https://files.catbox.moe/v0p670.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        },
-        {
-          "id": "pdf-086",
-          "label": "The Maths Hero Quadratic Equations Practice Sheet-5",
-          "url": "https://files.catbox.moe/y3a1j3.pdf",
-          "downloadUrl": "https://files.catbox.moe/y3a1j3.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Quadratic Equations",
-          "folderName": "Quadratic Equations"
-        }
-      ]
-    },
-    {
-      "id": "percentage",
-      "label": "05. Percentage & Successive Change",
+      "id": "tab_01_percentage_successive_change",
+      "label": "01. Percentage & Successive Change",
       "subname": "13 items (10 Videos & 3 Practice Sheets)",
       "thumb": "https://asset.syncp2p.com/tqRUxoAAcXJi79K-bDs3Xg/unl/krnvuoui/mc69sl/poster.png",
       "items": [
@@ -1190,7 +19,7 @@
           "id": "Ogganl6Vt",
           "label": "Percentage to Fraction and Vice Versa (Basics)",
           "url": "https://player.abyssplayer.com/Ogganl6Vt",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://asset.syncp2p.com/zzl5shBdqYeYNO5Rrynktg/meb/krnvuoui/hapuqg/poster.png",
           "preview": "https://asset.syncp2p.com/2VQUm2R_YUvPXZpnS1T6Lw/meb/krnvuoui/hapuqg/preview.webp",
           "duration": 3973,
@@ -1203,24 +32,14 @@
               "url": "https://player.abyssplayer.com/Ogganl6Vt",
               "type": "abyss"
             }
-          ]
-        },
-        {
-          "id": "pdf-088",
-          "label": "Percentage to Fraction and Vice Versa (Basics) (Notes)",
-          "url": "https://files.catbox.moe/4n9c7b.pdf",
-          "downloadUrl": "https://files.catbox.moe/4n9c7b.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Percentage",
-          "folderName": "Percentage"
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "BZjWBHI1j",
           "label": "Basics of Percentage (Change Successive Change and Its Operations)",
           "url": "https://player.abyssplayer.com/BZjWBHI1j",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://asset.syncp2p.com/KAlNmmPFAt0OwOt7HwrNBQ/qtd/krnvuoui/bqmhm9/poster.png",
           "preview": "https://asset.syncp2p.com/Z-TMsphGkXBBxe10iEtG7w/qtd/krnvuoui/bqmhm9/preview.webp",
           "duration": 15835,
@@ -1233,13 +52,14 @@
               "url": "https://player.abyssplayer.com/BZjWBHI1j",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "ZKmvlKoDH",
           "label": "Successive Percentage Change Practice Other Important Questions",
           "url": "https://player.abyssplayer.com/ZKmvlKoDH",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://asset.syncp2p.com/zD0bLdeGVe4DuHm4V5Ih1g/qtd/krnvuoui/59ayzx/poster.png",
           "preview": "https://asset.syncp2p.com/xrZZVHgNnm1JZOgS9Rfx-Q/qtd/krnvuoui/59ayzx/preview.webp",
           "duration": 5342,
@@ -1252,35 +72,14 @@
               "url": "https://player.abyssplayer.com/ZKmvlKoDH",
               "type": "abyss"
             }
-          ]
-        },
-        {
-          "id": "pdf-091",
-          "label": "Successive Percentage Change Practice Other Important Questions (Notes 1)",
-          "url": "https://files.catbox.moe/g244d5.pdf",
-          "downloadUrl": "https://files.catbox.moe/g244d5.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Percentage",
-          "folderName": "Percentage"
-        },
-        {
-          "id": "pdf-092",
-          "label": "Successive Percentage Change Practice Other Important Questions (Notes 2)",
-          "url": "https://files.catbox.moe/0v210i.pdf",
-          "downloadUrl": "https://files.catbox.moe/0v210i.pdf",
-          "type": "pdf",
-          "thumb": "https://files.catbox.moe/97ydfl.jpg",
-          "category": "pdfs",
-          "subject": "Percentage",
-          "folderName": "Percentage"
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "1CnTONLmz",
           "label": "Applications of Percentage [Important Practice Questions]",
           "url": "https://player.abyssplayer.com/1CnTONLmz",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://asset.syncp2p.com/PD_1nL3d1DpUZN8F40vJug/qtd/krnvuoui/8h3wvb/poster.png",
           "preview": "https://asset.syncp2p.com/qCCgt5FjxS4ya2N-9-mYdw/qtd/krnvuoui/8h3wvb/preview.webp",
           "duration": 5405,
@@ -1293,13 +92,14 @@
               "url": "https://player.abyssplayer.com/1CnTONLmz",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "xg3sWYhBT",
           "label": "Concept of Voting and Practice Questions",
           "url": "https://player.abyssplayer.com/xg3sWYhBT",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/XNzCforsq4azyF3ClFhbUA/qtd/xieomrse/g3ijct/poster.png",
           "duration": 5666,
           "category": "videos",
@@ -1311,13 +111,14 @@
               "url": "https://player.abyssplayer.com/xg3sWYhBT",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "BN18CTA6b",
           "label": "Venn Diagram [Detailed Basic Concept]",
           "url": "https://player.abyssplayer.com/BN18CTA6b",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/j5HyQyRlP-NVpwYkpdL21A/qtd/xieomrse/oxr1bq/poster.png",
           "duration": 3792,
           "category": "videos",
@@ -1329,13 +130,14 @@
               "url": "https://player.abyssplayer.com/BN18CTA6b",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "cCpmF7_CC",
           "label": "Two Variables Venn Diagram Practice Questions",
           "url": "https://player.abyssplayer.com/cCpmF7_CC",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/jPgywmCRDW1CrIa0vNOC9g/qtd/xieomrse/mc6n8r/poster.png",
           "duration": 5759,
           "category": "videos",
@@ -1347,13 +149,14 @@
               "url": "https://player.abyssplayer.com/cCpmF7_CC",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "g33b5ux6y",
           "label": "Three Variables Venn Diagram Practice Questions - Marks Based Practice Questions",
           "url": "https://player.abyssplayer.com/g33b5ux6y",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/CF-9e62Y_-iWiLV51iVP0w/6sy/xieomrse/hap35y/poster.png",
           "duration": 5822,
           "category": "videos",
@@ -1365,13 +168,14 @@
               "url": "https://player.abyssplayer.com/g33b5ux6y",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "2Spkon06t",
           "label": "Pass-Fail - Marks Concepts and Questions",
           "url": "https://player.abyssplayer.com/2Spkon06t",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/LqrqqUJMOVFjUf35NSktpg/qtd/xieomrse/ubdzfv/poster.png",
           "duration": 3656,
           "category": "videos",
@@ -1383,13 +187,14 @@
               "url": "https://player.abyssplayer.com/2Spkon06t",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "TNM7D0xLH",
           "label": "Concept of Commission and Questions - Income-Exp-Savings Based Questions",
           "url": "https://player.abyssplayer.com/TNM7D0xLH",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/UL2noY59RlmMIf8gGelamQ/qtd/xieomrse/hap35u/poster.png",
           "duration": 4946,
           "category": "videos",
@@ -1401,13 +206,14 @@
               "url": "https://player.abyssplayer.com/TNM7D0xLH",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         }
       ]
     },
     {
-      "id": "ratio-proportion",
-      "label": "06. Ratio & Proportion",
+      "id": "tab_02_ratio_proportion",
+      "label": "02. Ratio & Proportion",
       "subname": "11 Video Lectures",
       "thumb": "https://stutosed.strp2p.site/46sYuDZYiSBvUMlzhwUSSA/qtd/xieomrse/dmnfbn/poster.png",
       "items": [
@@ -1415,7 +221,7 @@
           "id": "mxUNOMP5c",
           "label": "Ratio and Proportion Basics and Concepts",
           "url": "https://player.abyssplayer.com/mxUNOMP5c",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/46sYuDZYiSBvUMlzhwUSSA/qtd/xieomrse/dmnfbn/poster.png",
           "duration": 5597,
           "category": "videos",
@@ -1427,13 +233,14 @@
               "url": "https://player.abyssplayer.com/mxUNOMP5c",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "cOyRBKrbf",
           "label": "Ratio Basics and Concepts Part-2",
           "url": "https://player.abyssplayer.com/cOyRBKrbf",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/Bln1KXil5tQqtdAsbZJKDg/qtd/xieomrse/9fuawl/poster.png",
           "duration": 5500,
           "category": "videos",
@@ -1445,13 +252,14 @@
               "url": "https://player.abyssplayer.com/cOyRBKrbf",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "S9Ji3gxsR",
           "label": "Ratio and Proportion Class 3",
           "url": "https://player.abyssplayer.com/S9Ji3gxsR",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/TWLrsAlM_PaXgzBD2fu8gw/qtd/xieomrse/swlt5i/poster.png",
           "duration": 6106,
           "category": "videos",
@@ -1463,13 +271,14 @@
               "url": "https://player.abyssplayer.com/S9Ji3gxsR",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "mc7fWDr_B",
           "label": "Ratio and Proportion Class 4",
           "url": "https://player.abyssplayer.com/mc7fWDr_B",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/9dQArW1uXL5-m8f-1_4Ntg/qtd/xieomrse/rgjyb9/poster.png",
           "duration": 5573,
           "category": "videos",
@@ -1481,13 +290,14 @@
               "url": "https://player.abyssplayer.com/mc7fWDr_B",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "fDLSMRvlU",
           "label": "Ratio and Proportion Class 5",
           "url": "https://player.abyssplayer.com/fDLSMRvlU",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/VFb5HC-sXjsNIocM_IpDaA/qtd/xieomrse/pz95vg/poster.png",
           "duration": 5876,
           "category": "videos",
@@ -1499,13 +309,14 @@
               "url": "https://player.abyssplayer.com/fDLSMRvlU",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "ty857Tf7u",
           "label": "Ratio and Proportion Class 6",
           "url": "https://player.abyssplayer.com/ty857Tf7u",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/waQvrLylRCMRbOqrSjm5Lw/qtd/xieomrse/hap3tf/poster.png",
           "duration": 5557,
           "category": "videos",
@@ -1517,13 +328,14 @@
               "url": "https://player.abyssplayer.com/ty857Tf7u",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "GSjLTzdc0",
           "label": "Ratio and Proportion Class 7",
           "url": "https://player.abyssplayer.com/GSjLTzdc0",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/yVbBxjqp_SHERvdGLH4J_w/6sy/xieomrse/evsc3z/poster.png",
           "duration": 5607,
           "category": "videos",
@@ -1535,13 +347,14 @@
               "url": "https://player.abyssplayer.com/GSjLTzdc0",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "Hali4XHat",
           "label": "Ratio and Proportion Class 8",
           "url": "https://player.abyssplayer.com/Hali4XHat",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/em7n9AGIEIKcXzikMatF1A/6sy/xieomrse/g3ijqc/poster.png",
           "duration": 5499,
           "category": "videos",
@@ -1553,13 +366,14 @@
               "url": "https://player.abyssplayer.com/Hali4XHat",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "TThR3ZlQE",
           "label": "Ratio and Proportion Class 9",
           "url": "https://player.abyssplayer.com/TThR3ZlQE",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/-lF11QrvrVpzXMt8qvbhXQ/6sy/xieomrse/pz95vv/poster.png",
           "duration": 4744,
           "category": "videos",
@@ -1571,13 +385,14 @@
               "url": "https://player.abyssplayer.com/TThR3ZlQE",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "IxUMY8Blc",
           "label": "Ratio and Proportion Class 10",
           "url": "https://player.abyssplayer.com/IxUMY8Blc",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/CKTdcaik1otyhY5s08ebxA/6sy/xieomrse/8h3g6g/poster.png",
           "duration": 5827,
           "category": "videos",
@@ -1589,13 +404,14 @@
               "url": "https://player.abyssplayer.com/IxUMY8Blc",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "y5rcsRbhXO",
           "label": "Ratio and Proportion Class 11",
           "url": "https://player.abyssplayer.com/y5rcsRbhXO",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/lL1BNvu9Ikay5X1-sJ5IKg/6sy/xieomrse/mc6njo/poster.png",
           "duration": 4084,
           "category": "videos",
@@ -1607,13 +423,14 @@
               "url": "https://player.abyssplayer.com/y5rcsRbhXO",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         }
       ]
     },
     {
-      "id": "mixture-alligation",
-      "label": "07. Mixture & Alligation",
+      "id": "tab_03_mixture_alligation",
+      "label": "03. Mixture & Alligation",
       "subname": "6 Video Lectures",
       "thumb": "https://stutosed.strp2p.site/OxgL0aDtBjdDIp0Aqv5WGg/qtd/xieomrse/mc6n3y/poster.png",
       "items": [
@@ -1621,7 +438,7 @@
           "id": "WVSFEwuQt",
           "label": "Mixtures and Alligation Class 01",
           "url": "https://player.abyssplayer.com/WVSFEwuQt",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/OxgL0aDtBjdDIp0Aqv5WGg/qtd/xieomrse/mc6n3y/poster.png",
           "duration": 3965,
           "category": "videos",
@@ -1633,13 +450,14 @@
               "url": "https://player.abyssplayer.com/WVSFEwuQt",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "GaEMTHybs",
           "label": "Mixtures and Alligation Class 02",
           "url": "https://player.abyssplayer.com/GaEMTHybs",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/ag_2zeFM4AAtn0VEOpQ6pA/qtd/xieomrse/9fuabd/poster.png",
           "duration": 5552,
           "category": "videos",
@@ -1651,13 +469,14 @@
               "url": "https://player.abyssplayer.com/GaEMTHybs",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "HYNo5IG49",
           "label": "Mixtures and Alligation Class 03",
           "url": "https://player.abyssplayer.com/HYNo5IG49",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/ZYmeICYtPBpn5rguAS0qfA/qtd/xieomrse/oxr1g3/poster.png",
           "duration": 5517,
           "category": "videos",
@@ -1669,13 +488,14 @@
               "url": "https://player.abyssplayer.com/HYNo5IG49",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "TYlHPLIj5",
           "label": "Mixtures and Alligation Class 04",
           "url": "https://player.abyssplayer.com/TYlHPLIj5",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/3Cbt0Gi4lUCyceCmnA_Fzg/qtd/xieomrse/6teqvj/poster.png",
           "duration": 5694,
           "category": "videos",
@@ -1687,13 +507,14 @@
               "url": "https://player.abyssplayer.com/TYlHPLIj5",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "06lyki0ug",
           "label": "Mixtures and Alligation Class 05",
           "url": "https://player.abyssplayer.com/06lyki0ug",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/NjtVk8gNN9W9EmSYlzJZ7g/qtd/xieomrse/8h3gps/poster.png",
           "duration": 5732,
           "category": "videos",
@@ -1705,13 +526,14 @@
               "url": "https://player.abyssplayer.com/06lyki0ug",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "upCAQlc4o",
           "label": "Mixtures and Alligation Class 06",
           "url": "https://player.abyssplayer.com/upCAQlc4o",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/0HX_fHRP5JL3asTBfnknZQ/qtd/xieomrse/evscwx/poster.png",
           "duration": 5683,
           "category": "videos",
@@ -1723,13 +545,14 @@
               "url": "https://player.abyssplayer.com/upCAQlc4o",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         }
       ]
     },
     {
-      "id": "profit-loss-discount",
-      "label": "08. Profit, Loss & Discount",
+      "id": "tab_04_profit_loss_discount",
+      "label": "04. Profit, Loss & Discount",
       "subname": "7 Video Lectures",
       "thumb": "https://stutosed.strp2p.site/bXpmmPA0rGgbJH5fODw1Lw/qtd/xieomrse/l1kvb8/poster.png",
       "items": [
@@ -1737,7 +560,7 @@
           "id": "A0HjCIu2p",
           "label": "Profit Loss Discount [Foundation Class]",
           "url": "https://player.abyssplayer.com/A0HjCIu2p",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/bXpmmPA0rGgbJH5fODw1Lw/qtd/xieomrse/l1kvb8/poster.png",
           "duration": 6110,
           "category": "videos",
@@ -1749,13 +572,14 @@
               "url": "https://player.abyssplayer.com/A0HjCIu2p",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "lhSekCSwf",
           "label": "Profit Loss Discount Class 2",
           "url": "https://player.abyssplayer.com/lhSekCSwf",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/VtmM2tSzdRNvtGQCY9liLw/qtd/xieomrse/qecmpg/poster.png",
           "duration": 5723,
           "category": "videos",
@@ -1767,13 +591,14 @@
               "url": "https://player.abyssplayer.com/lhSekCSwf",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "mnwTYQWqy",
           "label": "Profit Loss Discount Class 3",
           "url": "https://player.abyssplayer.com/mnwTYQWqy",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/fk5zXrQ3SuY0H0nXQxpv0Q/qtd/xieomrse/6teqaf/poster.png",
           "duration": 4826,
           "category": "videos",
@@ -1785,13 +610,14 @@
               "url": "https://player.abyssplayer.com/mnwTYQWqy",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "Cr8VPTg7n9",
           "label": "Profit Loss Discount Class 4",
           "url": "https://player.abyssplayer.com/Cr8VPTg7n9",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/fBu9HkbJ_7LeLaUPD5FtWQ/qtd/xieomrse/pz95yp/poster.png",
           "duration": 5618,
           "category": "videos",
@@ -1803,13 +629,14 @@
               "url": "https://player.abyssplayer.com/Cr8VPTg7n9",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "4fIFZ6Dz9",
           "label": "Profit Loss Discount Class 5",
           "url": "https://player.abyssplayer.com/4fIFZ6Dz9",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/N21UPYUXytFQthIBvZGJYA/qtd/xieomrse/oxr1i5/poster.png",
           "duration": 5616,
           "category": "videos",
@@ -1821,13 +648,14 @@
               "url": "https://player.abyssplayer.com/4fIFZ6Dz9",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "IPO6Nbo_T",
           "label": "Profit Loss Discount (Dishonest Seller)",
           "url": "https://player.abyssplayer.com/IPO6Nbo_T",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/ecYYdLrRY4iCIxKJ8WGLfw/qtd/xieomrse/mc6nvc/poster.png",
           "duration": 5067,
           "category": "videos",
@@ -1839,13 +667,14 @@
               "url": "https://player.abyssplayer.com/IPO6Nbo_T",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "vDTuS7Z9a",
           "label": "Profit Loss Discount Class 6",
           "url": "https://player.abyssplayer.com/vDTuS7Z9a",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/p-ekpP3o86EIcxGcr_NN-g/qtd/xieomrse/bqmdt5/poster.png",
           "duration": 5042,
           "category": "videos",
@@ -1857,13 +686,14 @@
               "url": "https://player.abyssplayer.com/vDTuS7Z9a",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         }
       ]
     },
     {
-      "id": "progression-ap-gp-hp",
-      "label": "09. Progression (AP, GP, HP)",
+      "id": "tab_05_progression_ap_gp_hp_",
+      "label": "05. Progression (AP, GP, HP)",
       "subname": "2 Video Lectures",
       "thumb": "https://stutosed.strp2p.site/cgUKIC46XikQJ3XctDQbDQ/qtd/xieomrse/evsc1g/poster.png",
       "items": [
@@ -1871,7 +701,7 @@
           "id": "TR5x_X_-m",
           "label": "AP GP HP Class 01",
           "url": "https://player.abyssplayer.com/TR5x_X_-m",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/cgUKIC46XikQJ3XctDQbDQ/qtd/xieomrse/evsc1g/poster.png",
           "duration": 5838,
           "category": "videos",
@@ -1883,13 +713,14 @@
               "url": "https://player.abyssplayer.com/TR5x_X_-m",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "1NxjKRn-2",
           "label": "AP GP HP Class 02",
           "url": "https://player.abyssplayer.com/1NxjKRn-2",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/xmVfERsJdfyD-QCC9K9Spw/qtd/xieomrse/kyow6r/poster.png",
           "duration": 6003,
           "category": "videos",
@@ -1901,13 +732,14 @@
               "url": "https://player.abyssplayer.com/1NxjKRn-2",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         }
       ]
     },
     {
-      "id": "partnership",
-      "label": "10. Partnership",
+      "id": "tab_06_partnership",
+      "label": "06. Partnership",
       "subname": "5 Video Lectures",
       "thumb": "https://stutosed.strp2p.site/1HjMmfBSd0M9Bx2jmk-kqg/qtd/xieomrse/i5h8xn/poster.png",
       "items": [
@@ -1915,7 +747,7 @@
           "id": "Su7CFKmWD",
           "label": "Partnership Class 01",
           "url": "https://player.abyssplayer.com/Su7CFKmWD",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/1HjMmfBSd0M9Bx2jmk-kqg/qtd/xieomrse/i5h8xn/poster.png",
           "duration": 5058,
           "category": "videos",
@@ -1927,13 +759,14 @@
               "url": "https://player.abyssplayer.com/Su7CFKmWD",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "t9XJT6ivO",
           "label": "Partnership Class 02",
           "url": "https://player.abyssplayer.com/t9XJT6ivO",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/epxAdfV71HfdVNRvZ0PNWQ/qtd/xieomrse/x8gr1d/poster.png",
           "duration": 5266,
           "category": "videos",
@@ -1945,13 +778,14 @@
               "url": "https://player.abyssplayer.com/t9XJT6ivO",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "vdhmbA5f7",
           "label": "Partnership Class 03",
           "url": "https://player.abyssplayer.com/vdhmbA5f7",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/_AIP4A2Q1ENoN7xqVU45Qw/qtd/xieomrse/l1kvea/poster.png",
           "duration": 5282,
           "category": "videos",
@@ -1963,13 +797,14 @@
               "url": "https://player.abyssplayer.com/vdhmbA5f7",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "gIBQici7Z",
           "label": "Partnership Class 04",
           "url": "https://player.abyssplayer.com/gIBQici7Z",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/yg65gGNoG0Erx_QmYBceAg/qtd/xieomrse/6teqbv/poster.png",
           "duration": 4777,
           "category": "videos",
@@ -1981,13 +816,14 @@
               "url": "https://player.abyssplayer.com/gIBQici7Z",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "ZgpJexwNQ",
           "label": "Entry Method (from Basic)- Partnership",
           "url": "https://player.abyssplayer.com/ZgpJexwNQ",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/0Qeu9mRL7b9fAdwX-NlFyA/qtd/xieomrse/qecmdp/poster.png",
           "duration": 2140,
           "category": "videos",
@@ -1999,13 +835,14 @@
               "url": "https://player.abyssplayer.com/ZgpJexwNQ",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         }
       ]
     },
     {
-      "id": "average",
-      "label": "11. Average",
+      "id": "tab_07_average",
+      "label": "07. Average",
       "subname": "5 Video Lectures",
       "thumb": "https://stutosed.strp2p.site/qKKDuHZ5seecx7kE0kI01g/qtd/xieomrse/mc6nfa/poster.png",
       "items": [
@@ -2013,7 +850,7 @@
           "id": "JN_HpU472",
           "label": "Average 01",
           "url": "https://player.abyssplayer.com/JN_HpU472",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/qKKDuHZ5seecx7kE0kI01g/qtd/xieomrse/mc6nfa/poster.png",
           "duration": 4443,
           "category": "videos",
@@ -2025,13 +862,14 @@
               "url": "https://player.abyssplayer.com/JN_HpU472",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "b2VAOIO7t",
           "label": "Average 02",
           "url": "https://player.abyssplayer.com/b2VAOIO7t",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/HZa0PmLevnRzLnGGIQpK_g/qtd/xieomrse/8h3grd/poster.png",
           "duration": 5426,
           "category": "videos",
@@ -2043,13 +881,14 @@
               "url": "https://player.abyssplayer.com/b2VAOIO7t",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "EA1J7QdhK",
           "label": "Average 03 (Concept of Joining-Leaving)",
           "url": "https://player.abyssplayer.com/EA1J7QdhK",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/pQ2rNXwsHKjYufVvGYU7Jg/qtd/xieomrse/bqmdz1/poster.png",
           "duration": 4886,
           "category": "videos",
@@ -2061,13 +900,14 @@
               "url": "https://player.abyssplayer.com/EA1J7QdhK",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "-flSZO9Pq",
           "label": "Average 04",
           "url": "https://player.abyssplayer.com/-flSZO9Pq",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/fVAXr3AxbWvETqzBj-44dQ/qtd/xieomrse/hap369/poster.png",
           "duration": 5029,
           "category": "videos",
@@ -2079,13 +919,14 @@
               "url": "https://player.abyssplayer.com/-flSZO9Pq",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "VJLB-bP80H",
           "label": "Average 05",
           "url": "https://player.abyssplayer.com/VJLB-bP80H",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/2LZgOykeeh_mZPNjudUtiQ/qtd/xieomrse/pz95er/poster.png",
           "duration": 5574,
           "category": "videos",
@@ -2097,13 +938,14 @@
               "url": "https://player.abyssplayer.com/VJLB-bP80H",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         }
       ]
     },
     {
-      "id": "ages",
-      "label": "12. Problems on Ages",
+      "id": "tab_08_problems_on_ages",
+      "label": "08. Problems on Ages",
       "subname": "2 Video Lectures",
       "thumb": "https://stutosed.strp2p.site/gOVO3rSq4499LqmRbN6UMQ/qtd/xieomrse/9fuast/poster.png",
       "items": [
@@ -2111,7 +953,7 @@
           "id": "7aOKGR5sNe",
           "label": "Ages Class - 01",
           "url": "https://player.abyssplayer.com/7aOKGR5sNe",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/gOVO3rSq4499LqmRbN6UMQ/qtd/xieomrse/9fuast/poster.png",
           "duration": 5574,
           "category": "videos",
@@ -2123,13 +965,14 @@
               "url": "https://player.abyssplayer.com/7aOKGR5sNe",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "_hY9qC_vL",
           "label": "Ages Class 02",
           "url": "https://player.abyssplayer.com/_hY9qC_vL",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/2rtK4P5Gsh56W4fPWGhIyA/qtd/xieomrse/dmnfk1/poster.png",
           "duration": 4500,
           "category": "videos",
@@ -2141,13 +984,14 @@
               "url": "https://player.abyssplayer.com/_hY9qC_vL",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         }
       ]
     },
     {
-      "id": "simple-compound-interest",
-      "label": "13. Simple & Compound Interest (SI & CI)",
+      "id": "tab_09_simple_compound_interest_si_ci_",
+      "label": "09. Simple & Compound Interest (SI & CI)",
       "subname": "6 Video Lectures",
       "thumb": "https://stutosed.strp2p.site/maXyLJXWg1vPXy7tbxhSXw/qtd/xieomrse/l1kvhw/poster.png",
       "items": [
@@ -2155,7 +999,7 @@
           "id": "HZEX9PYen",
           "label": "SI CI Class 01 (Basics Concepts)",
           "url": "https://player.abyssplayer.com/HZEX9PYen",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/maXyLJXWg1vPXy7tbxhSXw/qtd/xieomrse/l1kvhw/poster.png",
           "duration": 6258,
           "category": "videos",
@@ -2167,13 +1011,14 @@
               "url": "https://player.abyssplayer.com/HZEX9PYen",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "t1rMaVVUz",
           "label": "SI CI Class 02",
           "url": "https://player.abyssplayer.com/t1rMaVVUz",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/PizHZABsBd_SpmO2e856xw/qtd/xieomrse/hap36v/poster.png",
           "duration": 5657,
           "category": "videos",
@@ -2185,13 +1030,14 @@
               "url": "https://player.abyssplayer.com/t1rMaVVUz",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "vBzutU29r",
           "label": "SI CI Class 03",
           "url": "https://player.abyssplayer.com/vBzutU29r",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/BqsAEV0lqCSLGOdUjAPmGg/qtd/xieomrse/n6qboe/poster.png",
           "duration": 5018,
           "category": "videos",
@@ -2203,13 +1049,14 @@
               "url": "https://player.abyssplayer.com/vBzutU29r",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "R9eewhBEC",
           "label": "SI CI Class 04",
           "url": "https://player.abyssplayer.com/R9eewhBEC",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/Hc8UuIO0ZIgudno-BQ5-9Q/qtd/xieomrse/qecmrl/poster.png",
           "duration": 5468,
           "category": "videos",
@@ -2221,13 +1068,14 @@
               "url": "https://player.abyssplayer.com/R9eewhBEC",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "xp-pfFjgV",
           "label": "SI CI Class 05",
           "url": "https://player.abyssplayer.com/xp-pfFjgV",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/xooPNH-hgpchB4P31Du4HA/qtd/xieomrse/59ahcj/poster.png",
           "duration": 5445,
           "category": "videos",
@@ -2239,13 +1087,14 @@
               "url": "https://player.abyssplayer.com/xp-pfFjgV",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         },
         {
           "id": "1ei28qKEX",
           "label": "SI CI Class 06",
           "url": "https://player.abyssplayer.com/1ei28qKEX",
-          "type": "abyss",
+          "type": "video",
           "thumb": "https://stutosed.strp2p.site/67BPGAFsufz2ZsUKMLvnTw/qtd/xieomrse/8h3gnr/poster.png",
           "duration": 4802,
           "category": "videos",
@@ -2257,7 +1106,8 @@
               "url": "https://player.abyssplayer.com/1ei28qKEX",
               "type": "abyss"
             }
-          ]
+          ],
+          "mediaType": "abyss"
         }
       ]
     }
