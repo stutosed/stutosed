@@ -2,7 +2,7 @@
 
 <br/>
 
-<img src="public/logo.svg" alt="stutosed logo" width="110" height="110" />
+<img src="https://raw.githubusercontent.com/stutosed/stutosed/main/public/logo.svg" alt="stutosed logo" width="115" height="115" />
 
 <br/>
 <br/>
@@ -13,20 +13,21 @@
 
 <br/>
 
-[![Launch App](https://img.shields.io/badge/⚡%20Launch%20App-stutosed.vercel.app-ff6b4a?style=for-the-badge&logoColor=white)](https://stutosed.vercel.app/)
-[![GitHub Repo](https://img.shields.io/badge/Source-shikshiten%2Fstutosed-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/shikshiten/stutosed)
+[![Launch App](https://img.shields.io/badge/⚡%20Launch%20App-course.stutosed.in-ff6b4a?style=for-the-badge&logoColor=white)](https://course.stutosed.in/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-stutosed%2Fstutosed-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/stutosed/stutosed)
 
 <br/>
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.1_App_Router-000000?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict_Mode-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Supabase](https://img.shields.io/badge/Supabase-Auth_%26_PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
-[![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=flat-square&logo=vercel&logoColor=white)](https://vercel.com)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-Pages_%26_Workers-F38020?style=flat-square&logo=cloudflare&logoColor=white)](https://workers.cloudflare.com)
+[![Video Engine](https://img.shields.io/badge/Streaming-Abyss_%26_HLS-6366f1?style=flat-square&logo=vlc&logoColor=white)](https://abyss.to)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS_4.0-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-red?style=flat-square)](LICENSE)
 
 <br/>
 
-> High-speed dual-engine video streaming · Crystal-clear PDF notes · Cloud study sync · Zero ads — engineered for students.
+> High-speed video streaming · Crystal-clear PDF notes · Offline study progress · 100% Free & Zero Ads — engineered for students.
 
 <br/>
 
@@ -34,31 +35,38 @@
 
 ---
 
+## 📖 About stutosed
+
+**stutosed** is an ad-free, open-access academic portal built to deliver university syllabus courses and premier competitive exam batches directly to students with zero friction, paywalls, or distracting algorithms.
+
+Organized into structured portals for **Bihar Engineering University (BEU) B.Tech**, **Government Exams (SSC, CGL, CHSL)**, and **GATE (ECE & Core Engineering)**, stutosed provides instant access to thousands of curated video lectures, topic-wise practice sheets, and verified handwritten notes.
+
+---
+
 ## ✨ Features
 
 | | Feature | Description |
 |---|---|---|
-| 📊 | **Study Dashboard** | Dynamic greeting banner, cloud progress sync, and last-played lecture resume memory |
-| 🚀 | **Dynamic Course Categories** | Centralized category architecture supporting Government Exams, BEU B.Tech & GATE engineering tracks |
-| 📱 | **Mobile Bottom Nav & Touch Player** | Pinned glassmorphism bottom navigation bar, native true fullscreen & double-tap seek (-10s / +10s) |
-| 🎬 | **Dual-Engine Video Player** | Stream HD lectures with instant toggle between **ALBA** (High-Speed Edge CDN) and **ESTE** (Failover Media Engine) |
-| ⚡ | **Speed Control Bridge** | Granular playback speed regulation from **0.5x to 3.0x** with cross-origin iframe synchronization |
-| 📑 | **Lossless PDF Reader** | Crystal-clear in-browser PDF notes previewer with native typography, full-screen mode & single-click downloads |
-| 🌐 | **Zero-Egress Cloudflare Proxy** | Offloads video and high-volume PDF bandwidth to Cloudflare Workers for 100% free, unlimited streaming |
-| 🤖 | **Smart Bot Link Resolver** | Runtime and static conversion of Telegram FileStream bots to direct, high-speed download endpoints |
-| 📱 | **Layered Back Navigation** | Smart state-driven browser history stack — mobile back gesture steps smoothly: *Player ➔ Folder ➔ Course ➔ Home* |
-| 🏛️ | **BEU Engineering Hub** | Organized semester modules for Civil, CSE, Mech, EEE/ECE, 1st Year (Math-II, Physics, Chemistry) |
-| 🎯 | **Govt Exams Archive** | Complete structured batches for SSC CGL/CHSL (Parmar GK 3.0 & 4.0, Pratham Foundation, Math, English, Reasoning) |
-| 👤 | **Open Guest Access** | Frictionless instant guest access without forced login walls, with optional Google/Email cloud sync |
-| 🔐 | **Zero-Storage PKCE Auth** | Google OAuth & Email authentication using secure HttpOnly, SameSite=Lax cookies with automatic session refresh |
-| 🌓 | **Adaptive Theme System** | Instant dark/light mode toggle with CSS variable transitions and zero page flicker |
-| 🛡️ | **Edge SSRF Security Layer** | Serverless proxy routes with strict upstream hostname whitelisting to block unauthorized proxying |
+| 📊 | **Study Dashboard** | Dynamic greeting banner, progress memory, and last-played lecture resume tracking |
+| 🚀 | **Dynamic Academic Portals** | Centralized category architecture supporting Government Exams, BEU B.Tech & GATE engineering |
+| 🎬 | **Native Video Streaming** | High-speed, lag-free lecture streaming powered by Abyss cloud infrastructure with HLS adaptive streaming |
+| ⚡ | **Speed Regulation & Controls** | Granular playback regulation from **0.5x to 3.0x** with keyboard navigation shortcuts |
+| 📑 | **Lossless PDF Reader** | Crystal-clear in-browser PDF notes viewer with native typography, full-screen mode & single-click downloads |
+| 🌐 | **Zero-Egress Cloudflare Proxy** | Smart worker proxies routing media and high-volume PDF bandwidth for unlimited, 100% free streaming |
+| 📱 | **Mobile Navigation & PWA** | Pinned glassmorphism bottom navigation, true fullscreen touch playback, and double-tap seek (-10s / +10s) |
+| 📁 | **Clean Title-Based Browsing** | Instant-load lecture lists and syllabus browsers optimized for speed with zero bandwidth waste |
+| 🏛️ | **BEU Engineering Hub** | Organized semester modules for Civil, CSE, Mech, EEE/ECE, and 1st Year (Math-II, Physics, Chemistry) |
+| 🎯 | **Govt Exams Archive** | Complete structured batches for SSC CGL/CHSL (Parmar GK 3.0 & 4.0, Foundation, Math, English, Reasoning) |
+| ⚙️ | **GATE Engineering Track** | Complete 36-lecture Signal & System series (Made Easy) with dedicated workspace and search filter |
+| 👤 | **Offline-First Guest Access** | Frictionless instant access without forced login walls; study progress persists reliably in local storage |
+| 🌓 | **Adaptive Theme System** | Instant dark/light mode toggle with smooth CSS variable transitions and zero page flicker |
+| 🛡️ | **Edge SSRF Security Layer** | High-performance proxy routes with strict upstream hostname whitelisting to block unauthorized proxying |
 
 ---
 
 ## 🎓 Academic Portals Tree View
 
-stutosed organizes course curriculum into dedicated, structured academic hubs:
+stutosed organizes curricula into dedicated, structured academic hubs:
 
 ```
 stutosed
@@ -69,26 +77,29 @@ stutosed
  │    ├── ⚙️ Mechanical Engineering (Fluid Mechanics, Thermodynamics, Machine Design)
  │    └── ⚡ EE / ECE / EEE Core Engineering Foundation
  │
- └── 🎯 Government Exams Portal
-      ├── 🧠 Parmar SSC GK 3.0 Complete Series (Topic-wise GK & PYQs)
-      ├── 🔬 Parmar Academy GK 4.0 (Biology, Economics, Static GK, History, Geography, Polity)
-      ├── 📖 Pratham Foundation Complete Subject Batch
-      ├── 🔢 Quantitative Aptitude (Gagan Pratap, Abhinay Sharma, Loki Special Batches)
-      ├── 🗣️ English Practice & Vocab Mastery (Turbo Practice & VOD Batches)
-      └── 🧩 Logical Reasoning Special (Piyush Varshney & Selection Batches)
+ ├── 🎯 Government Exams Portal
+ │    ├── 🧠 Parmar SSC GK 3.0 Complete Series (Topic-wise GK & PYQs)
+ │    ├── 🔬 Parmar Academy GK 4.0 (Biology, Economics, Static GK, History, Geography, Polity)
+ │    ├── 📖 Pratham Foundation Complete Subject Batch
+ │    ├── 🔢 Quantitative Aptitude (Gagan Pratap, Abhinay Sharma, Loki Special Batches)
+ │    ├── 🗣️ English Practice & Vocab Mastery (Turbo Practice & VOD Batches)
+ │    └── 🧩 Logical Reasoning Special (Piyush Varshney & Selection Batches)
+ │
+ └── ⚙️ GATE Engineering Portal
+      └── 📡 ECE Made Easy — Signal and System (Complete 36-Lecture Structured Course)
 ```
 
 ---
 
 ## ⚡ Core Engineering Breakdown
 
-### 1. Dual-Engine Video Streaming Pipeline
-- **ALBA Engine (Primary)**: Direct, low-latency CDN streaming via High-Speed Edge proxies for high-bitrate video playback with HTTP Range request support (`bytes=0-`).
-- **ESTE Engine (Failover)**: Fallback streaming bridge powered by distributed media servers to guarantee 100% video uptime.
-- **Granular Speed Bridge**: Custom speed regulation from `0.5x` to `3.0x` with cross-frame `postMessage` synchronization.
+### 1. Abyss Cloud Video Streaming Pipeline
+- **Abyss Native Player**: High-definition video playback hosted on resilient cloud infrastructure with HTTP Range support (`bytes=0-`).
+- **HLS Segment Bridge**: Adaptive bitrate playback via `hls.js` ensuring smooth playback on low-bandwidth mobile networks.
+- **Dedicated Watch Workspace**: Split-view player with interactive syllabus queue, lecture search filter, and instant next/previous controls.
 
 ### 2. Lossless Crystal-Clear PDF Reading
-- Direct in-browser viewing with native vector font rendering.
+- Direct in-browser viewing with native vector typography rendering.
 - Integrated download triggers with fallback proxied caching.
 - Zero blurry canvas rendering or broken print stylesheets.
 
@@ -97,18 +108,13 @@ Designed specifically for mobile ergonomics:
 $$\text{Player [Layer 4]} \xrightarrow{\text{Back}} \text{Subfolder [Layer 3]} \xrightarrow{\text{Back}} \text{Course [Layer 2]} \xrightarrow{\text{Back}} \text{Portal [Layer 1]} \xrightarrow{\text{Back}} \text{Home [Layer 0]}$$
 Pressing the Android back gesture or browser back arrow steps cleanly through each modal layer without exiting the application.
 
-### 4. Zero-Storage Client Auth (PKCE)
-- Supabase SSR authentication with **HttpOnly**, **Secure**, **SameSite=Lax** cookies.
-- Google OAuth with cryptographic code exchange (`/auth/callback`).
-- Serverless Session Proxy (`proxy.ts`) refreshes JWT sessions transparently on every request.
+### 4. Cloudflare Pages & Worker Smart Proxy
+- **Cloudflare Pages / OpenNext**: Next.js 15 App Router running on global edge network with sub-50ms latency worldwide.
+- **Worker Media Proxy**: Offloads heavy video streams and PDF bandwidth to Cloudflare Workers (`seiryu.stutosed.workers.dev`), maintaining 0 Egress Bandwidth costs and 100% free operation.
 
-### 5. Cloudflare Worker Smart Proxy & Zero-Egress Architecture
-- Offloads heavy video streams and high-resolution PDF bandwidth from Vercel to Cloudflare Workers (`seiryu.stutosed.workers.dev`).
-- Preserves 0 Egress Bandwidth costs and ensures 100% free, unmetered streaming across the platform.
-
-### 6. Smart Telegram Bot Link Resolution
-- Automatically resolves third-party Blogger redirect wrappers (`publicbotshub.blogspot.com?dl=...`) and legacy Heroku dynos to live, active high-speed endpoints.
-- Direct `attachment; filename="*.pdf"` header support guarantees immediate, one-click PDF downloads and seamless MKV/MP4 lecture streaming.
+### 5. Offline-First Student State
+- Watch completion checkmarks, resume timestamps (seconds), last-played courses, and bookmarks sync instantly to `localStorage`.
+- No forced account creation, cookies wall, or tracking telemetry.
 
 ---
 
@@ -117,15 +123,15 @@ Pressing the Android back gesture or browser back arrow steps cleanly through ea
 ```
                                  ┌────────────────────────┐
                                  │   Student Browser /    │
-                                 │  Mobile PWA (Client)   │
+                                 │  Mobile App (Client)   │
                                  └───────────┬────────────┘
                                              │
-                                  HTTPS + HttpOnly Cookies
+                                     HTTPS + Next.js SPA
                                              │
                                              ▼
                              ┌───────────────────────────────┐
-                             │  Next.js 15 App Router Edge   │
-                             │   (Vercel Serverless Infra)   │
+                             │    Cloudflare Pages Edge      │
+                             │  (OpenNext Next.js 15 Engine) │
                              └───────────────┬───────────────┘
                                              │
                 ┌────────────────────────────┼────────────────────────────┐
@@ -142,9 +148,9 @@ Pressing the Android back gesture or browser back arrow steps cleanly through ea
                 ▼                             ▼                             ▼
     ┌───────────────────────┐   ┌───────────────────────────┐   ┌───────────────────────┐
     │  Server Repositories  │   │  Server Services Logic    │   │  External Media CDNs  │
-    │  - user-progress.repo │   │  - stream.service         │   │  - ALBA / ESTE Clust. │
-    │  - course.repo        │   │  - pdf.service            │   │  - Cloud Storage      │
-    │  - Supabase DB & Auth │   │  - hls-proxy.service      │   │  - Dynamic Thumbnails │
+    │  - course.repo        │   │  - stream.service         │   │  - Abyss Video Player │
+    │  - coursesData json   │   │  - pdf.service            │   │  - Cloudflare Workers │
+    │  - Static Manifests   │   │  - hls-proxy.service      │   │  - Vidmoly / HLS      │
     └───────────────────────┘   └───────────────────────────┘   └───────────────────────┘
 ```
 
@@ -170,12 +176,12 @@ Pressing the Android back gesture or browser back arrow steps cleanly through ea
 ```yaml
 Frontend Framework:  Next.js 15.1 (Turbopack, React 19, App Router)
 Language:            TypeScript 5.0 (Strict Type Checking)
-Styling & Design:    Tailwind CSS 4.0 · Custom CSS Properties · Atyp Font Family
-Authentication:      Supabase Auth (@supabase/ssr, OAuth 2.0 PKCE, HttpOnly Cookies)
-Database:            Supabase PostgreSQL (Row Level Security & Triggers)
-Media Streaming:     HLS.js (Adaptive Bitrate) · Custom Reverse Proxies
+Styling & Design:    Tailwind CSS 4.0 · Custom CSS Variables · Plus Jakarta Sans
+Hosting & Edge:      Cloudflare Pages (via @opennextjs/cloudflare)
+Media Streaming:     Abyss Player (Iframe) · HLS.js (Adaptive Bitrate)
+Smart Proxy:         Cloudflare Workers (0 Egress Media Forwarder)
 Icons:               Lucide React
-Hosting & Edge:      Vercel Edge Network
+Data Management:     Static Manifests · Offline LocalStorage Sync
 ```
 
 ---
@@ -190,30 +196,24 @@ stutosed/
 │   │   └── feature_request.md         # Feature request template
 │   └── PULL_REQUEST_TEMPLATE.md       # Pull request contribution template
 ├── docs/
-│   ├── ARCHITECTURE.md                # System design, media streaming pipeline & auth flow
-│   └── SECURITY.md                    # Threat model, SSRF protection & cookie security
-├── database/
-│   └── schema.sql                     # Reference PostgreSQL schema, RLS policies & triggers
+│   ├── ARCHITECTURE.md                # System design & media streaming pipeline
+│   └── SECURITY.md                    # Threat model & SSRF protection
 ├── workers/
 │   └── cloudflare_worker_secure.js    # Edge streaming proxy worker code
 ├── public/
-│   ├── assets/                        # Portal banners and course graphics
-│   ├── fonts/atyp/                    # Complete Atyp typography family
-│   ├── thumbnails/                    # High-resolution batch thumbnails
+│   ├── assets/                        # Portal banners and graphics
 │   ├── favicon.svg                    # Vector brand spike logo
 │   └── favicon.ico                    # Browser favicon
 ├── src/
 │   ├── app/
 │   │   ├── api/
 │   │   │   ├── health/                # GET /api/health
-│   │   │   ├── v1/                    # Layered REST API endpoints
-│   │   │   │   ├── stream/            # GET /api/v1/stream
-│   │   │   │   ├── pdf/               # GET /api/v1/pdf
-│   │   │   │   ├── thumbnail/         # GET /api/v1/thumbnail
-│   │   │   │   ├── hls-proxy/         # GET /api/v1/hls-proxy
-│   │   │   │   └── embed/             # GET /api/v1/embed (410 Gone)
-│   │   ├── auth/callback/             # OAuth PKCE session code exchange
-│   │   ├── login/                     # Standalone dedicated login page
+│   │   │   └── v1/                    # Layered REST API endpoints
+│   │   │       ├── stream/            # GET /api/v1/stream
+│   │   │       ├── pdf/               # GET /api/v1/pdf
+│   │   │       ├── thumbnail/         # GET /api/v1/thumbnail
+│   │   │       └── hls-proxy/         # GET /api/v1/hls-proxy
+│   │   ├── login/                     # Student account profile page
 │   │   ├── watch/                     # Dedicated lecture watch portal
 │   │   ├── globals.css                # Design tokens, typography & animations
 │   │   ├── layout.tsx                 # Root layout & OpenGraph metadata
@@ -222,27 +222,25 @@ stutosed/
 │   │   ├── stream.schema.ts
 │   │   ├── pdf.schema.ts
 │   │   ├── thumbnail.schema.ts
-│   │   ├── hls-proxy.schema.ts
-│   │   └── embed.schema.ts
+│   │   └── hls-proxy.schema.ts
 │   ├── server/                        # Server-only backend layer (import 'server-only')
-│   │   ├── auth/                      # Server authentication (getUser via cookies)
+│   │   ├── auth/                      # Pluggable user authentication layer
 │   │   ├── http/                      # withApi wrapper, response envelopes, error classes
 │   │   ├── security/                  # SSRF allowlists and in-memory rate limiting
 │   │   ├── services/                  # Pure business logic (stream, pdf, hls-proxy)
-│   │   └── repositories/              # Supabase DB & course data repositories
+│   │   └── repositories/              # Course data repositories
 │   ├── components/
-│   │   ├── AuthModal.tsx              # Google & Email sign-in / sign-up modal
 │   │   ├── CourseGrid.tsx             # Interactive course card grid
-│   │   ├── CourseModal.tsx            # Folder/lecture explorer & search filter
-│   │   ├── MobileHeader.tsx           # Mobile navigation & account drawer
-│   │   ├── PdfViewerModal.tsx         # In-browser PDF reader
-│   │   ├── ProfileMenu.tsx            # User profile dropdown & theme toggle
-│   │   └── VideoPlayer.tsx            # Custom video player & speed controls
+│   │   ├── CourseModal.tsx            # Clean syllabus explorer & lecture list
+│   │   ├── GateEngineeringView.tsx    # GATE 36-lecture browser
+│   │   ├── GovernmentExamsView.tsx    # SSC / Govt exam discipline hubs
+│   │   ├── LibraryView.tsx            # Saved videos & bookmarked batches
+│   │   ├── VideoPlayer.tsx            # Video player & speed controls
+│   │   └── WatchClient.tsx            # Unified watch workspace
 │   ├── lib/
 │   │   ├── api-client.ts              # Typed client wrapper for frontend components
-│   │   ├── env.ts                     # Zod-validated environment variables
+│   │   ├── abyss.ts                   # Abyss video hosting API integration
 │   │   ├── coursesData.ts             # Course querying & progress helpers
-│   │   ├── coursesData.json           # Comprehensive course catalog data
 │   │   └── proxyConfig.ts             # Cloudflare Worker configuration
 │   └── types/                         # TypeScript interfaces
 ├── AGENTS.md                          # Architecture contract & LLM developer guide
@@ -256,34 +254,19 @@ stutosed/
 
 ### 1 · Clone the repository
 ```bash
-git clone https://github.com/shikshiten/stutosed.git
+git clone https://github.com/stutosed/stutosed.git
 cd stutosed
 ```
 
-### 2 · Set up Supabase
-1. Create a project at [supabase.com](https://supabase.com/).
-2. Open the **SQL Editor** and run [`database/schema.sql`](database/schema.sql) to create `profiles`, `user_progress`, `user_last_played` tables, RLS policies, and user triggers.
-3. Copy your **Project URL** and **anon key** from **Settings → API**.
-4. Go to **Authentication → URL Configuration**:
-   - Set **Site URL**: `https://stutosed.vercel.app` (or `http://localhost:3000` for local testing).
-   - Add to **Redirect URLs**:
-     ```
-     https://stutosed.vercel.app/**
-     https://stutosed.vercel.app/auth/callback
-     http://localhost:3000/**
-     http://localhost:3000/auth/callback
-     ```
+### 2 · Configure Environment Variables
+Create a `.env.local` file in the root directory:
 
-### 3 · Configure Environment Variables
-Credentials are never hardcoded in source code. Create a `.env.local` file in the root directory:
+```env
+ABYSS_API_KEY=your_abyss_api_key_here
+NEXT_PUBLIC_STREAM_PROXY_URL=https://seiryu.stutosed.workers.dev
+```
 
-| Variable | Value | Description |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://your-project.supabase.co` | Supabase project API URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `your-supabase-anon-key` | Supabase public anonymous key |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | `your-google-client-id.apps.googleusercontent.com` | Google OAuth Client ID |
-| `NEXT_PUBLIC_STREAM_PROXY_URL` | `https://seiryu.stutosed.workers.dev` | Cloudflare Worker smart stream proxy |
-
+### 3 · Install & Run Locally
 ```bash
 # Install dependencies
 npm install
@@ -293,25 +276,21 @@ npm run dev
 ```
 Open [`http://localhost:3000`](http://localhost:3000) in your browser.
 
-### 4 · Deploy to Vercel
+### 4 · Deploy to Cloudflare Pages
 1. Push your repository to GitHub:
    ```bash
    git push origin main
    ```
-2. Go to [vercel.com](https://vercel.com/) → **Add New Project**.
-3. Import your `stutosed` repository.
-4. Add the Environment Variables in **Settings → Environment Variables**:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
-5. Click **Deploy** ✅
-
-### 5 · Verify Edge Streaming & Proxies
-Once deployed, Vercel automatically deploys the serverless edge proxies:
-- `/api/stream` — Resolves and proxies ALBA/ESTE video streams with Range headers.
-- `/api/hls-proxy` — Rewrites and serves M3U8 indices and TS video segments.
-- `/api/pdf` — Proxies high-resolution PDF course notes.
-- `/api/embed` — Speed bridge iframe controller.
+2. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Compute (Workers & Pages)** → **Create application** → **Pages** → **Connect to Git**.
+3. Select the `stutosed/stutosed` repository.
+4. Set Build Settings:
+   - **Framework preset**: `None` (or `Next.js`)
+   - **Build command**: `npm run build:cf`
+   - **Output directory**: `.worker-next`
+5. Under **Environment variables**, add:
+   - `NODE_VERSION`: `20` (or `22`)
+   - `ABYSS_API_KEY`: *(your api key)*
+6. Click **Save and Deploy** ✅
 
 ---
 
