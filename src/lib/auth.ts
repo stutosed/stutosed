@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { LibsqlDialect } from '@libsql/kysely-libsql';
 import { nextCookies } from 'better-auth/next-js';
+import { dash } from '@better-auth/infra';
 
 export const auth = betterAuth({
   database: {
@@ -34,6 +35,9 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    dash({
+      apiKey: process.env.BETTER_AUTH_API_KEY,
+    }),
     nextCookies(),
   ],
 });
