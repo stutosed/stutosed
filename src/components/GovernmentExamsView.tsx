@@ -3,7 +3,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Course } from '@/types';
 import { countCourseStats } from '@/lib/coursesData';
-import { getSubjectThumbnail } from '@/lib/subjectThumbnails';
 import {
   getGovtFolderActivity,
   recordGovtFolderOpen,
@@ -1000,7 +999,6 @@ const CourseCardItem: React.FC<CourseCardItemProps> = ({
   isCombinedHighlight = false,
 }) => {
   const stats = countCourseStats(course);
-  const thumbUrl = getSubjectThumbnail(course.subject || course.name, course.thumb, course.id, theme);
 
   return (
     <div
@@ -1024,7 +1022,6 @@ const CourseCardItem: React.FC<CourseCardItemProps> = ({
       {/* Course Banner Header */}
       <div
         style={{
-          position: 'relative',
           width: '100%',
           padding: '18px 20px 14px',
           background: 'linear-gradient(135deg, rgba(204, 120, 92, 0.14) 0%, rgba(204, 120, 92, 0.03) 100%)',
@@ -1050,60 +1047,42 @@ const CourseCardItem: React.FC<CourseCardItemProps> = ({
         >
           <BookOpen width={18} height={18} />
         </div>
-        <span
-          style={{
-            fontSize: '11px',
-            fontWeight: 700,
-            color: 'var(--accent)',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            padding: '3px 8px',
-            borderRadius: 'var(--r-pill)',
-          }}
-        >
-          {stats.videos} Lectures
-        </span>
 
-        {/* Top-Right Tag */}
-        {isCombinedHighlight && (
-          <div
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Top-Right Tag */}
+          {isCombinedHighlight && (
+            <div
+              style={{
+                padding: '3px 8px',
+                borderRadius: 'var(--r-pill)',
+                background: 'rgba(15, 23, 42, 0.75)',
+                backdropFilter: 'blur(6px)',
+                color: '#ffffff',
+                fontSize: '10px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <Sparkles width={10} height={10} style={{ color: '#f59e0b' }} />
+              <span>All-In-One</span>
+            </div>
+          )}
+
+          <span
             style={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
+              fontSize: '11px',
+              fontWeight: 700,
+              color: 'var(--accent)',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
               padding: '3px 8px',
               borderRadius: 'var(--r-pill)',
-              background: 'rgba(15, 23, 42, 0.75)',
-              backdropFilter: 'blur(6px)',
-              color: '#ffffff',
-              fontSize: '10px',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
             }}
           >
-            <Sparkles width={10} height={10} style={{ color: '#f59e0b' }} />
-            <span>All-In-One</span>
-          </div>
-        )}
-
-        {/* Subject Pill overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '10px',
-            left: '10px',
-            padding: '3px 9px',
-            borderRadius: 'var(--r-pill)',
-            background: 'rgba(15, 23, 42, 0.8)',
-            backdropFilter: 'blur(6px)',
-            color: disciplineColor || '#ffffff',
-            fontSize: '10.5px',
-            fontWeight: 700,
-          }}
-        >
-          {course.subject || 'Govt Exam'}
+            {stats.videos} Lectures
+          </span>
         </div>
       </div>
 
@@ -1194,7 +1173,6 @@ const CourseListItem: React.FC<CourseListItemProps> = ({
   disciplineColor,
 }) => {
   const stats = countCourseStats(course);
-  const thumbUrl = getSubjectThumbnail(course.subject || course.name, course.thumb, course.id, theme);
 
   return (
     <div
