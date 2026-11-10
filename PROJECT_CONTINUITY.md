@@ -7,7 +7,7 @@
 ---
 
 ## 1. Project Overview & Current State
-Stutosed is a Next.js 15 (App Router, React 19, TypeScript) educational portal with Supabase authentication, dynamic SVG thumbnails, in-browser PDF reader, and dual-engine streaming video player (ALBA / ESTE) designed for SSC, Competitive Exam & BEU B.Tech students.
+Stutosed is a Next.js 15 (App Router, React 19, TypeScript) educational portal with Turso (libSQL) Edge SQLite database, dynamic SVG thumbnails, in-browser PDF reader, and dual-engine streaming video player (ALBA / ESTE) designed for SSC, Competitive Exam & BEU B.Tech students.
 
 ### Latest Completed Milestones
 1. **Layered Backend Architecture (`/api/v1/`)**:
@@ -75,7 +75,7 @@ Build Python or Node script with:
 ### Step 2: GitHub Actions Cloud Runner Workflow (`.github/workflows/bulk-uploader.yml`)
 - Accepts `workflow_dispatch` inputs: `start_url`, `end_url`, `course_id`, `subject_id`, `platforms`.
 - Runs on `ubuntu-latest` with secrets for all platforms.
-- Automatically commits updated lecture JSON or saves to Supabase database.
+- Automatically commits updated lecture JSON or saves to Turso database.
 
 ### Step 3: Web Admin Panel (`/admin`) on Stutosed
 - Role-based protected route (`src/app/admin/page.tsx`).
@@ -97,8 +97,8 @@ Build Python or Node script with:
 3. **Environment Setup (`.env.local`):**
    Ensure `.env.local` has:
    ```env
-   NEXT_PUBLIC_SUPABASE_URL=https://hofbtbutvuomeofmhkyu.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon_key>
+   TURSO_DATABASE_URL=libsql://stutosed-7atva.aws-ap-south-1.turso.io
+   TURSO_AUTH_TOKEN=<turso_jwt_auth_token>
    NEXT_PUBLIC_STREAM_PROXY_URL=https://seiryu.stutosed.workers.dev
    ```
 4. **Run build check:**

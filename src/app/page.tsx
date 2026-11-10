@@ -19,7 +19,7 @@ import { INITIAL_COURSES, getTotalStats, getCourseById, getCoursesByCategory, lo
 import { getSubjectThumbnail, getDynamicThumbnailUrl } from '@/lib/subjectThumbnails';
 import { Course, LectureItem, UserProfile } from '@/types';
 import { getWorkerProxyUrl, resolveDirectMediaUrl } from '@/lib/proxyConfig';
-import { pullCloudUserData, syncLectureWatched } from '@/lib/supabaseSync';
+import { pullCloudUserData, syncLectureWatched } from '@/lib/progressSync';
 import {
   BookOpen,
   BookmarkCheck,
@@ -718,7 +718,7 @@ export default function HomePage() {
   const selectedCourseRef = useRef(selectedCourse);
   selectedCourseRef.current = selectedCourse;
 
-  // Mark URL as watched (Local + Supabase Cloud) - Memoized with guard against redundant renders
+  // Mark URL as watched (Local + Database Cloud) - Memoized with guard against redundant renders
   const handleMarkWatched = useCallback((url: string, courseId?: string, label?: string) => {
     if (!url) return;
     setWatchedUrls((prev) => {

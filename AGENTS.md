@@ -77,7 +77,7 @@ src/
 When adding an endpoint:
 1. Define the input validation schema in `src/schemas/<resource>.schema.ts`.
 2. Implement business logic inside `src/server/services/<resource>.service.ts`.
-3. If database or Supabase access is required, place queries inside `src/server/repositories/<resource>.repo.ts`.
+3. If database or storage access is required, place queries inside `src/server/repositories/<resource>.repo.ts`.
 4. Create the route handler in `src/app/api/v1/<resource>/route.ts` using `withApi`:
    ```typescript
    import { withApi } from '@/server/http/withApi';

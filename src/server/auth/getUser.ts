@@ -7,6 +7,6 @@ export interface AuthUser {
 }
 
 export async function getUser(): Promise<AuthUser | null> {
-  // Supabase auth removed. Ready for new auth provider.
+  // Auth provider placeholder. Ready for pluggable auth.
   return null;
 }

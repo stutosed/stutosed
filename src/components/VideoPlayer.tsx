@@ -15,7 +15,7 @@ import {
   syncLectureWatched,
   syncCourseMemory,
   syncVideoProgress,
-} from '@/lib/supabaseSync';
+} from '@/lib/progressSync';
 import {
   Bookmark,
   BookmarkCheck,

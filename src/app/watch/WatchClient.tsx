@@ -17,7 +17,7 @@ import {
   syncLectureWatched,
   syncCourseMemory,
   syncVideoProgress,
-} from '@/lib/supabaseSync';
+} from '@/lib/progressSync';
 import {
   Bookmark,
   BookmarkCheck,
@@ -429,7 +429,7 @@ export default function WatchClient() {
     }
   }, [currentItem]);
 
-  // Mark watched & remember last played (Local + Supabase Cloud)
+  // Mark watched & remember last played (Local + Database Cloud)
   useEffect(() => {
     if (!currentItem?.url) return;
 

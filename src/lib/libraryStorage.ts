@@ -46,7 +46,7 @@ export function isCourseBookmarked(courseId: string): boolean {
   return getBookmarkedCourseIds().includes(courseId);
 }
 
-import { syncBookmark, syncSavedVideo } from '@/lib/supabaseSync';
+import { syncBookmark, syncSavedVideo } from '@/lib/progressSync';
 
 export function toggleCourseBookmark(courseId: string): boolean {
   if (typeof window === 'undefined') return false;
