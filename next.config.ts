@@ -28,6 +28,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['@libsql/client', '@libsql/kysely-libsql'],
   devIndicators: false,
   eslint: {
     ignoreDuringBuilds: true,

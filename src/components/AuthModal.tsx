@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { X, Mail, Lock, User, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { UserProfile } from '@/types';
+import { authClient } from '@/lib/auth-client';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -45,7 +46,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   if (!isOpen) return null;
 
   const handleGoogleLogin = async () => {
-    setMessage({ text: 'Cloud authentication is currently transitioning. Please continue using student profile below.', type: 'error' });
+    try {
+      setLoading(true);
+      setMessage(null);
+      await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: window.location.origin,
+      });
+    } catch (err: any) {
+      setMessage({ text: err.message || 'Google authentication failed.', type: 'error' });
+      setLoading(false);
+    }
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -56,22 +67,78 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     const cleanName = (fullName.trim() || email.split('@')[0]) || 'Student';
     const cleanEmail = email.trim();
 
+    if (!cleanEmail || !password) {
+      setMessage({ text: 'Please fill in all required fields.', type: 'error' });
+      setLoading(false);
+      return;
+    }
+
     try {
-      localStorage.setItem('stutosed_user_name', cleanName);
-      const profile: UserProfile = {
-        id: 'student_' + Date.now(),
-        email: cleanEmail,
-        full_name: cleanName,
-        avatar_url: undefined,
-      };
-      localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
-      setMessage({ text: 'Welcome! Student profile updated.', type: 'success' });
-      setTimeout(() => {
-        onClose();
-        if (typeof window !== 'undefined') window.location.reload();
-      }, 500);
+      if (isSignUp) {
+        if (password !== confirmPassword) {
+          setMessage({ text: 'Passwords do not match.', type: 'error' });
+          setLoading(false);
+          return;
+        }
+        if (password.length < 8) {
+          setMessage({ text: 'Password must be at least 8 characters long.', type: 'error' });
+          setLoading(false);
+          return;
+        }
+
+        const res = await authClient.signUp.email({
+          email: cleanEmail,
+          password,
+          name: cleanName,
+        });
+
+        if (res.error) {
+          setMessage({ text: res.error.message || 'Registration failed.', type: 'error' });
+          setLoading(false);
+          return;
+        }
+
+        const profile: UserProfile = {
+          id: res.data?.user?.id || 'std_' + Date.now(),
+          email: cleanEmail,
+          full_name: cleanName,
+          avatar_url: res.data?.user?.image || undefined,
+        };
+        localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
+        localStorage.setItem('stutosed_user_name', cleanName);
+        setMessage({ text: 'Account created successfully! Welcome to Stutosed.', type: 'success' });
+        setTimeout(() => {
+          onClose();
+          if (typeof window !== 'undefined') window.location.reload();
+        }, 600);
+      } else {
+        const res = await authClient.signIn.email({
+          email: cleanEmail,
+          password,
+        });
+
+        if (res.error) {
+          setMessage({ text: res.error.message || 'Invalid email or password.', type: 'error' });
+          setLoading(false);
+          return;
+        }
+
+        const profile: UserProfile = {
+          id: res.data?.user?.id || 'std_' + Date.now(),
+          email: res.data?.user?.email || cleanEmail,
+          full_name: res.data?.user?.name || cleanName,
+          avatar_url: res.data?.user?.image || undefined,
+        };
+        localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
+        localStorage.setItem('stutosed_user_name', profile.full_name || 'Student');
+        setMessage({ text: 'Signed in successfully! Welcome back.', type: 'success' });
+        setTimeout(() => {
+          onClose();
+          if (typeof window !== 'undefined') window.location.reload();
+        }, 600);
+      }
     } catch (err: any) {
-      setMessage({ text: err.message || 'Error updating profile.', type: 'error' });
+      setMessage({ text: err.message || 'Authentication error occurred.', type: 'error' });
     } finally {
       setLoading(false);
     }

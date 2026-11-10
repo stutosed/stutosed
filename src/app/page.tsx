@@ -20,6 +20,7 @@ import { getSubjectThumbnail, getDynamicThumbnailUrl } from '@/lib/subjectThumbn
 import { Course, LectureItem, UserProfile } from '@/types';
 import { getWorkerProxyUrl, resolveDirectMediaUrl } from '@/lib/proxyConfig';
 import { pullCloudUserData, syncLectureWatched } from '@/lib/progressSync';
+import { authClient } from '@/lib/auth-client';
 import {
   BookOpen,
   BookmarkCheck,
@@ -484,7 +485,7 @@ export default function HomePage() {
     } catch {}
   }, []);
 
-  // Student Profile loader (Local State & Offline-First)
+  // Student Profile loader (Local State & Offline-First backed by Better Auth)
   useEffect(() => {
     try {
       const savedName = localStorage.getItem('stutosed_user_name') || 'Advik';
@@ -502,6 +503,22 @@ export default function HomePage() {
           avatar_url: undefined,
         });
       }
+
+      // Check live Better Auth session
+      authClient.getSession().then((sessionRes) => {
+        if (sessionRes?.data?.user) {
+          const u = sessionRes.data.user;
+          const profile: UserProfile = {
+            id: u.id,
+            email: u.email,
+            full_name: u.name || 'Student',
+            avatar_url: u.image || undefined,
+          };
+          setUser(profile);
+          setUserName(profile.full_name || 'Student');
+          localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
+        }
+      }).catch(() => {});
 
       pullCloudUserData()
         .then(() => {
@@ -1006,6 +1023,7 @@ export default function HomePage() {
           onToggleTheme={handleToggleTheme}
           onSelectView={(v) => handleViewChange(v)}
           onSignOut={() => {
+            authClient.signOut().catch(() => {});
             localStorage.removeItem('stutosed_user_profile');
             setUser(null);
             setUserName('Advik');

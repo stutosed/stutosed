@@ -7,7 +7,7 @@
 ---
 
 ## 1. Project Overview & Current State
-Stutosed is a Next.js 15 (App Router, React 19, TypeScript) educational portal with Turso (libSQL) Edge SQLite database, dynamic SVG thumbnails, in-browser PDF reader, and dual-engine streaming video player (ALBA / ESTE) designed for SSC, Competitive Exam & BEU B.Tech students.
+Stutosed is a Next.js 15 (App Router, React 19, TypeScript) educational portal with Better Auth & Turso (libSQL) Edge SQLite database, dynamic SVG thumbnails, in-browser PDF reader, and dual-engine streaming video player (ALBA / ESTE) designed for SSC, Competitive Exam & BEU B.Tech students.
 
 ### Latest Completed Milestones
 1. **Layered Backend Architecture (`/api/v1/`)**:

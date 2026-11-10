@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { UserProfile } from '@/types';
 import { User, Mail, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react';
 import { getAvatarGradient, getInitials } from '@/components/ProfileMenu';
+import { authClient } from '@/lib/auth-client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,24 +36,47 @@ export default function LoginPage() {
   }, [password]);
 
   useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem('stutosed_user_profile');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
-      } else {
-        const name = localStorage.getItem('stutosed_user_name') || 'Advik';
-        setUser({
-          id: 'student_' + Date.now(),
-          email: 'student@stutosed.in',
-          full_name: name,
-          avatar_url: '/profile_icon.jpg',
-        });
+    authClient.getSession().then((sessionRes) => {
+      if (sessionRes?.data?.user) {
+        const u = sessionRes.data.user;
+        const profile: UserProfile = {
+          id: u.id,
+          email: u.email,
+          full_name: u.name || 'Student',
+          avatar_url: u.image || '/profile_icon.jpg',
+        };
+        setUser(profile);
+        localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
+        return;
       }
-    } catch {}
+      try {
+        const savedUser = localStorage.getItem('stutosed_user_profile');
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
+        }
+      } catch {}
+    }).catch(() => {
+      try {
+        const savedUser = localStorage.getItem('stutosed_user_profile');
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
+        }
+      } catch {}
+    });
   }, []);
 
   const handleGoogleLogin = async () => {
-    setMessage({ text: 'Cloud authentication is currently transitioning. Please sign in below.', type: 'error' });
+    try {
+      setLoading(true);
+      setMessage(null);
+      await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: window.location.origin,
+      });
+    } catch (err: any) {
+      setMessage({ text: err.message || 'Google authentication failed.', type: 'error' });
+      setLoading(false);
+    }
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -63,19 +87,76 @@ export default function LoginPage() {
     const cleanName = fullName.trim() || email.split('@')[0] || 'Student';
     const cleanEmail = email.trim();
 
+    if (!cleanEmail || !password) {
+      setMessage({ text: 'Please fill in all required fields.', type: 'error' });
+      setLoading(false);
+      return;
+    }
+
     try {
-      localStorage.setItem('stutosed_user_name', cleanName);
-      const profile: UserProfile = {
-        id: 'student_' + Date.now(),
-        email: cleanEmail,
-        full_name: cleanName,
-        avatar_url: '/profile_icon.jpg',
-      };
-      localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
-      setMessage({ text: 'Welcome! Signed in successfully.', type: 'success' });
-      setTimeout(() => {
-        router.push('/');
-      }, 500);
+      if (isSignUp) {
+        if (password !== confirmPassword) {
+          setMessage({ text: 'Passwords do not match.', type: 'error' });
+          setLoading(false);
+          return;
+        }
+        if (password.length < 8) {
+          setMessage({ text: 'Password must be at least 8 characters long.', type: 'error' });
+          setLoading(false);
+          return;
+        }
+
+        const res = await authClient.signUp.email({
+          email: cleanEmail,
+          password,
+          name: cleanName,
+        });
+
+        if (res.error) {
+          setMessage({ text: res.error.message || 'Registration failed.', type: 'error' });
+          setLoading(false);
+          return;
+        }
+
+        const profile: UserProfile = {
+          id: res.data?.user?.id || 'std_' + Date.now(),
+          email: cleanEmail,
+          full_name: cleanName,
+          avatar_url: res.data?.user?.image || '/profile_icon.jpg',
+        };
+        localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
+        localStorage.setItem('stutosed_user_name', cleanName);
+        setUser(profile);
+        setMessage({ text: 'Welcome! Account created successfully.', type: 'success' });
+        setTimeout(() => {
+          router.push('/');
+        }, 600);
+      } else {
+        const res = await authClient.signIn.email({
+          email: cleanEmail,
+          password,
+        });
+
+        if (res.error) {
+          setMessage({ text: res.error.message || 'Invalid email or password.', type: 'error' });
+          setLoading(false);
+          return;
+        }
+
+        const profile: UserProfile = {
+          id: res.data?.user?.id || 'std_' + Date.now(),
+          email: res.data?.user?.email || cleanEmail,
+          full_name: res.data?.user?.name || cleanName,
+          avatar_url: res.data?.user?.image || '/profile_icon.jpg',
+        };
+        localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
+        localStorage.setItem('stutosed_user_name', profile.full_name || 'Student');
+        setUser(profile);
+        setMessage({ text: 'Welcome back! Signed in successfully.', type: 'success' });
+        setTimeout(() => {
+          router.push('/');
+        }, 600);
+      }
     } catch (err: any) {
       setMessage({ text: err.message || 'Authentication error', type: 'error' });
     } finally {
@@ -83,7 +164,10 @@ export default function LoginPage() {
     }
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    try {
+      await authClient.signOut();
+    } catch {}
     localStorage.removeItem('stutosed_user_profile');
     setUser(null);
     setMessage({ text: 'Signed out successfully.', type: 'success' });
