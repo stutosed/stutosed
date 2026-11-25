@@ -24,7 +24,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [viewerMode, setViewerMode] = useState<'proxy' | 'google' | 'direct'>('proxy');
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<any>(null);
 
   const servers: ServerOption[] = item.servers && item.servers.length > 0 ? item.servers : [];
 

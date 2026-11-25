@@ -91,8 +91,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const controlsTimeoutRef = useRef<any>(null);
+  const clickTimeoutRef = useRef<any>(null);
 
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isBuffering, setIsBuffering] = useState<boolean>(false);
@@ -120,8 +120,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [accumulatedSkip, setAccumulatedSkip] = useState<number>(0);
   const lastTapTimeRef = useRef<number>(0);
   const lastTapSideRef = useRef<'left' | 'right' | 'center' | null>(null);
-  const singleTapTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const skipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const singleTapTimerRef = useRef<any>(null);
+  const skipTimeoutRef = useRef<any>(null);
   const lastTouchTimeRef = useRef<number>(0);
 
   const [resolvedStreamUrl, setResolvedStreamUrl] = useState<string | null>(null);

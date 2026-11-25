@@ -1,0 +1,94 @@
+export type MediaURLType = 'hls' | 'youtube' | 'pdf' | 'external' | 'streamp2p' | 'abyss' | 'unknown';
+
+export interface ServerOption {
+  name: string;
+  url: string;
+  downloadUrl?: string;
+  streamUrl?: string;
+  type?: MediaURLType;
+}
+
+export interface LectureItem {
+  id?: string;
+  label: string;
+  url: string;
+  downloadUrl?: string;
+  type: MediaURLType;
+  thumb?: string;
+  preview?: string;
+  duration?: number;
+  subject?: string;
+  topic?: string;
+  folderName?: string;
+  category?: 'videos' | 'pdfs';
+  attachmentLinks?: Record<string, string>;
+  links?: Record<string, string>;
+  servers?: ServerOption[];
+}
+
+export interface CourseTab {
+  id: string;
+  label: string;
+  thumb?: string;
+  subname?: string;
+  items: LectureItem[];
+}
+
+export interface ParmarLecture {
+  title: string;
+  links: Record<string, string>;
+}
+
+export interface ParmarSubjectData {
+  lectures: ParmarLecture[];
+}
+
+export interface Course {
+  id: string;
+  name: string;
+  subname: string;
+  teacher: string;
+  subject: string;
+  thumb: string;
+  category?: string;
+  desc?: string;
+  isFolderMode?: boolean;
+  tabs?: CourseTab[];
+  isParmar?: boolean;
+  parmarData?: Record<string, ParmarSubjectData>;
+  isPratham?: boolean;
+  prathamBySubject?: Record<string, LectureItem[]>;
+  stats?: {
+    videos: number;
+    resources: number;
+  };
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  full_name?: string;
+  avatar_url?: string;
+}
+
+export type RootStackParamList = {
+  MainTabs: undefined;
+  CourseDetail: { courseId: string; title: string };
+  Watch: {
+    lecture: LectureItem;
+    courseId: string;
+    courseTitle: string;
+  };
+  PdfViewer: {
+    url: string;
+    title: string;
+  };
+};
+
+export type BottomTabParamList = {
+  HomeTab: undefined;
+  GovtTab: undefined;
+  BeuTab: undefined;
+  GateTab: undefined;
+  LibraryTab: undefined;
+};

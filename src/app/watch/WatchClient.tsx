@@ -178,7 +178,7 @@ export default function WatchClient() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const controlsTimeoutRef = useRef<any>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
@@ -204,8 +204,8 @@ export default function WatchClient() {
   const [accumulatedSkip, setAccumulatedSkip] = useState<number>(0);
   const lastTapTimeRef = useRef<number>(0);
   const lastTapSideRef = useRef<'left' | 'right' | 'center' | null>(null);
-  const singleTapTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const skipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const singleTapTimerRef = useRef<any>(null);
+  const skipTimeoutRef = useRef<any>(null);
   const lastTouchTimeRef = useRef<number>(0);
   const [resolvedStreamUrl, setResolvedStreamUrl] = useState<string | null>(null);
   const selectedServerIndexState = useState(0);
@@ -255,7 +255,7 @@ export default function WatchClient() {
     }, 700);
   };
 
-  const embedTapTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const embedTapTimerRef = useRef<any>(null);
   const lastEmbedTapTimeRef = useRef<number>(0);
   const lastEmbedTapDeltaRef = useRef<number>(0);
 
