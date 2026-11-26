@@ -27,12 +27,14 @@
   "devDependencies": {
     "@expo/ngrok": "^4.1.3",
     "@types/react": "~19.3.0",
+    "cloudflared": "^0.7.3",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
-    "tunnel": "expo start --tunnel ngrok",
-    "tunnel:clear": "expo start --tunnel ngrok -c",
+    "tunnel": "node scripts/start-tunnel.js",
+    "tunnel:clear": "node scripts/start-tunnel.js -c",
+    "tunnel:ngrok": "expo start --tunnel ngrok -c",
     "lan": "expo start --lan -c",
     "android": "expo run:android",
     "ios": "expo run:ios",
