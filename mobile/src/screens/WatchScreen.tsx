@@ -87,30 +87,6 @@ export const WatchScreen: React.FC = () => {
       };
     }
 
-    const isStreamP2P =
-      lowerUrl.includes('streamp2p.com') ||
-      lowerUrl.includes('strp2p.site') ||
-      lecture.type === 'streamp2p' ||
-      firstServerType === 'streamp2p';
-
-    if (isStreamP2P) {
-      let resolved = rawUrl;
-      const m = rawUrl.match(
-        /(?:streamp2p\.com\/e\/|strp2p\.site\/#|strp2p\.site\/|streamp2p\.com\/api\/v1\/video\/manage\/|id=)([a-zA-Z0-9]+)/
-      );
-      const id = m?.[1] || (lecture.id && /^[a-zA-Z0-9]{5,10}$/.test(lecture.id) ? lecture.id : '');
-      if (id && !id.startsWith('pending')) {
-        resolved = `https://stutosed.strp2p.site/#${id}&api=all`;
-      } else if (rawUrl && !rawUrl.includes('&api=')) {
-        resolved = `${rawUrl}&api=all`;
-      }
-      return {
-        rawUrl,
-        resolvedUrl: resolved,
-        useIframeWrapper: true,
-      };
-    }
-
     const ytId = extractYouTubeId(rawUrl);
     if (ytId) {
       return {
@@ -175,7 +151,7 @@ export const WatchScreen: React.FC = () => {
       if (reqUrl === 'about:blank' || reqUrl.startsWith(API_BASE_URL.toLowerCase())) {
         return true;
       }
-      // Keep the wrapper page as the top frame so Abyss/StreamP2P cannot redirect to their home website
+      // Keep the wrapper page as the top frame so Abyss cannot redirect to its home website
       if (request.isTopFrame) {
         return false;
       }
