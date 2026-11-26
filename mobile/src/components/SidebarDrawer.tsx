@@ -19,7 +19,7 @@ import { spacing, radii } from '../theme/spacing';
 import {
   Home,
   Landmark,
-  GraduationCap,
+  Layers,
   Cpu,
   BookmarkCheck,
   User,
@@ -39,20 +39,20 @@ function getInitials(name: string): string {
 
 export const SidebarDrawer: React.FC = () => {
   const { isOpen, closeDrawer } = useDrawer();
-  const { theme, isDark, colors, toggleTheme } = useTheme();
+  const { theme, colors, toggleTheme } = useTheme();
   const { user } = useAuth();
 
   const userName = user?.full_name || user?.email?.split('@')[0] || 'Student';
   const initials = getInitials(userName);
 
-  const navigateTab = (tabName: 'HomeTab' | 'GovtTab' | 'BeuTab' | 'LibraryTab' | 'ProfileTab') => {
+  const navigateTab = (tabName: 'HomeTab' | 'CoursesTab' | 'LibraryTab' | 'ProfileTab') => {
     closeDrawer();
     if (navigationRef.isReady()) {
       (navigationRef as any).navigate('MainTabs', { screen: tabName });
     }
   };
 
-  const navigateScreen = (screenName: 'Gate' | 'Help' | 'Auth') => {
+  const navigateScreen = (screenName: 'GovtExams' | 'Gate' | 'Help' | 'Auth') => {
     closeDrawer();
     if (navigationRef.isReady()) {
       (navigationRef as any).navigate(screenName);
@@ -109,20 +109,20 @@ export const SidebarDrawer: React.FC = () => {
 
             <TouchableOpacity
               style={styles.navItem}
-              onPress={() => navigateTab('GovtTab')}
+              onPress={() => navigateTab('CoursesTab')}
               activeOpacity={0.7}
             >
-              <Landmark size={18} color={colors.govtIndigo} />
-              <Text style={[styles.navLabel, { color: colors.text }]}>Govt Exams</Text>
+              <Layers size={18} color={colors.accent} />
+              <Text style={[styles.navLabel, { color: colors.text }]}>All Courses</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.navItem}
-              onPress={() => navigateTab('BeuTab')}
+              onPress={() => navigateScreen('GovtExams')}
               activeOpacity={0.7}
             >
-              <GraduationCap size={18} color={colors.beuBlue} />
-              <Text style={[styles.navLabel, { color: colors.text }]}>BEU Engineering</Text>
+              <Landmark size={18} color={colors.govtIndigo} />
+              <Text style={[styles.navLabel, { color: colors.text }]}>Govt Exams</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -134,7 +134,7 @@ export const SidebarDrawer: React.FC = () => {
               <View style={styles.navLabelRow}>
                 <Text style={[styles.navLabel, { color: colors.text }]}>GATE Engineering</Text>
                 <View style={[styles.catBadge, { backgroundColor: `${colors.orange}18` }]}>
-                  <Text style={[styles.catBadgeText, { color: colors.orange }]}>1 Subject</Text>
+                  <Text style={[styles.catBadgeText, { color: colors.orange }]}>ECE Ready</Text>
                 </View>
               </View>
             </TouchableOpacity>

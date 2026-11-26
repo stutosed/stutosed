@@ -5,11 +5,10 @@ import { BottomTabParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { HomeScreen } from '../screens/HomeScreen';
-import { GovtExamsScreen } from '../screens/GovtExamsScreen';
-import { BeuScreen } from '../screens/BeuScreen';
+import { CoursesScreen } from '../screens/CoursesScreen';
 import { LibraryScreen } from '../screens/LibraryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
-import { Home, Landmark, GraduationCap, BookOpen, User } from 'lucide-react-native';
+import { Home, Layers, BookOpen, User } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
@@ -52,19 +51,11 @@ export const BottomTabNavigator: React.FC = () => {
         }}
       />
       <Tab.Screen
-        name="GovtTab"
-        component={GovtExamsScreen}
+        name="CoursesTab"
+        component={CoursesScreen}
         options={{
-          tabBarLabel: 'Govt',
-          tabBarIcon: ({ focused, color }) => renderIcon(focused, Landmark, color),
-        }}
-      />
-      <Tab.Screen
-        name="BeuTab"
-        component={BeuScreen}
-        options={{
-          tabBarLabel: 'B.Tech',
-          tabBarIcon: ({ focused, color }) => renderIcon(focused, GraduationCap, color),
+          tabBarLabel: 'Courses',
+          tabBarIcon: ({ focused, color }) => renderIcon(focused, Layers, color),
         }}
       />
       <Tab.Screen

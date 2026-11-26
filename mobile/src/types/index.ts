@@ -91,6 +91,7 @@ export type RootStackParamList = {
     courseTitle: string;
     tabId?: string;
   };
+  GovtExams: undefined;
   Gate: undefined;
   Help: undefined;
   Auth: { mode?: 'signin' | 'signup' } | undefined;
@@ -98,8 +99,7 @@ export type RootStackParamList = {
 
 export type BottomTabParamList = {
   HomeTab: undefined;
-  GovtTab: undefined;
-  BeuTab: undefined;
+  CoursesTab: undefined;
   LibraryTab: undefined;
   ProfileTab: undefined;
 };

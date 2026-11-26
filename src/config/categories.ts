@@ -22,23 +22,14 @@ export const COURSE_CATEGORIES: CategoryConfig[] = [
     badge: 'Popular',
   },
   {
-    id: 'beu',
-    label: 'BEU Engineering',
-    shortLabel: 'BEU B.Tech',
-    description: 'Syllabus-aligned B.Tech engineering semester courses, subject modules, and technical science lectures.',
-    iconName: 'GraduationCap',
-    accentColor: '#2563eb',
-    accentDim: 'rgba(37, 99, 235, 0.12)',
-    badge: '1st Year',
-  },
-  {
     id: 'gate',
     label: 'GATE Engineering',
-    shortLabel: 'GATE',
-    description: 'Graduate Aptitude Test in Engineering preparation for CS, Mechanical, Electrical, Civil & ECE branches.',
+    shortLabel: 'GATE Engineering',
+    description: 'Graduate Aptitude Test in Engineering preparation for ECE and core technical engineering subjects.',
     iconName: 'Cpu',
     accentColor: '#f59e0b',
     accentDim: 'rgba(245, 158, 11, 0.12)',
+    badge: 'ECE Ready',
   },
 ];
 

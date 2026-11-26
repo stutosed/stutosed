@@ -4,8 +4,10 @@ import manifestData from '@/data/courses-manifest.json';
 // In-memory cache for on-demand lazy loaded course details
 const courseDetailsCache = new Map<string, Course>();
 
-// Lightweight manifest list of all courses (~10 KB total) for dashboard, filters, and cards
-export const INITIAL_COURSES: Course[] = (manifestData as unknown as Course[]) || [];
+// Lightweight manifest list of active courses (BEU removed)
+export const INITIAL_COURSES: Course[] = ((manifestData as unknown as Course[]) || []).filter(
+  (c) => c.id !== 'beu-1st-year' && (c.category || '').toLowerCase() !== 'beu'
+);
 
 export function getCourseById(id: string): Course | undefined {
   if (!id) return undefined;

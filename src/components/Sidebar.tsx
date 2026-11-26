@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Home, BookOpen, Moon, Sun, User, HelpCircle, GraduationCap, Landmark, Sparkles, CheckCircle2, ShieldCheck, BookmarkCheck, Atom, Cpu } from 'lucide-react';
+import { Home, BookOpen, Moon, Sun, User, HelpCircle, GraduationCap, Landmark, Sparkles, BookmarkCheck, Atom, Cpu, Layers } from 'lucide-react';
 import { UserProfile } from '@/types';
 import { getInitials, getAvatarGradient } from '@/components/ProfileMenu';
 import { COURSE_CATEGORIES } from '@/config/categories';
 
-export type AppView = 'home' | 'gov-exams' | 'beu-engineering' | 'library' | 'profile' | 'help' | `cat-${string}`;
+export type AppView = 'home' | 'courses' | 'gov-exams' | 'library' | 'profile' | 'help' | `cat-${string}`;
 
 interface SidebarProps {
   isOpen: boolean;
@@ -109,6 +109,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
 
           <button
+            onClick={() => handleNav('courses')}
+            className={`nav-link ${activeView === 'courses' ? 'active' : ''}`}
+          >
+            <Layers width={18} height={18} strokeWidth={2} style={{ color: activeView === 'courses' ? 'var(--accent)' : 'inherit' }} />
+            <span>All Courses</span>
+          </button>
+
+          <button
             onClick={() => handleNav('gov-exams')}
             className={`nav-link ${activeView === 'gov-exams' ? 'active' : ''}`}
           >
@@ -116,16 +124,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>Govt Exams</span>
           </button>
 
-          <button
-            onClick={() => handleNav('beu-engineering')}
-            className={`nav-link ${activeView === 'beu-engineering' ? 'active' : ''}`}
-          >
-            <GraduationCap width={18} height={18} strokeWidth={2} style={{ color: activeView === 'beu-engineering' ? 'var(--accent)' : 'var(--beu-blue)' }} />
-            <span>BEU Engineering</span>
-          </button>
-
-          {/* Dynamic Categories (e.g. JEE, GATE, UPSC) */}
-          {COURSE_CATEGORIES.filter((c) => c.id !== 'government' && c.id !== 'beu').map((cat) => (
+          {/* Dynamic Categories (e.g. GATE) */}
+          {COURSE_CATEGORIES.filter((c) => c.id !== 'government').map((cat) => (
             <button
               key={cat.id}
               onClick={() => handleNav(`cat-${cat.id}` as AppView)}

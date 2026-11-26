@@ -233,7 +233,7 @@ export const LibraryScreen: React.FC = () => {
                 </Text>
                 <TouchableOpacity
                   style={[styles.actionBtn, { backgroundColor: colors.accent }]}
-                  onPress={() => (navigation as any).navigate('MainTabs', { screen: 'GovtTab' })}
+                  onPress={() => (navigation as any).navigate('MainTabs', { screen: 'CoursesTab' })}
                   activeOpacity={0.85}
                 >
                   <BookOpen size={15} color="#ffffff" />

@@ -3,13 +3,14 @@ import manifestData from './courses-manifest.json';
 
 const courseDetailsCache = new Map<string, Course>();
 
-export const INITIAL_COURSES: Course[] = (manifestData as unknown as Course[]) || [];
+export const INITIAL_COURSES: Course[] = ((manifestData as unknown as Course[]) || []).filter(
+  (c) => c.id !== 'beu-1st-year' && (c.category || '').toLowerCase() !== 'beu'
+);
 
 // Static course registry matching exact filenames in ./courses/ for Metro bundler
 const COURSE_MODULES: Record<string, () => Promise<{ default: Course }>> = {
   'aarambh-batch-100hr-sw': () => import('./courses/aarambh-batch-100hr-sw.json') as any,
   'banking-quant-hero': () => import('./courses/banking-quant-hero.json') as any,
-  'beu-1st-year': () => import('./courses/beu-1st-year.json') as any,
   'computer': () => import('./courses/computer.json') as any,
   'eng-practice-31': () => import('./courses/eng-practice-31.json') as any,
   'english-practice': () => import('./courses/english-practice.json') as any,

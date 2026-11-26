@@ -33,12 +33,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const portalPages: MetadataRoute.Sitemap = [
     {
-      url: `${baseUrl}/?view=beu-engineering`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
       url: `${baseUrl}/?view=gov-exams`,
       lastModified: new Date(),
       changeFrequency: 'daily',
@@ -46,6 +40,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/?view=courses`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/gate`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,

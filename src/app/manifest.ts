@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'stutosed — Study Portal',
     short_name: 'stutosed',
-    description: 'Complete study portal for BEU B.Tech engineering & competitive exams.',
+    description: 'Complete study portal for competitive exams and GATE engineering.',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

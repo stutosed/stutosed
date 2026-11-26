@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { BottomTabNavigator } from './BottomTabNavigator';
 import { CourseDetailScreen } from '../screens/CourseDetailScreen';
 import { WatchScreen } from '../screens/WatchScreen';
+import { GovtExamsScreen } from '../screens/GovtExamsScreen';
 import { GateScreen } from '../screens/GateScreen';
 import { HelpScreen } from '../screens/HelpScreen';
 import { AuthScreen } from '../screens/AuthScreen';
@@ -25,6 +26,7 @@ export const RootNavigator: React.FC = () => {
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
       <Stack.Screen name="Watch" component={WatchScreen} />
+      <Stack.Screen name="GovtExams" component={GovtExamsScreen} />
       <Stack.Screen name="Gate" component={GateScreen} />
       <Stack.Screen name="Help" component={HelpScreen} />
       <Stack.Screen

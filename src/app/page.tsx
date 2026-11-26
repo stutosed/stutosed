@@ -356,7 +356,7 @@ export default function HomePage() {
       if (typeof window !== 'undefined') {
         const urlParams = new URLSearchParams(window.location.search);
         const storedSessionView = sessionStorage.getItem('stutosed_active_view') as AppView | null;
-        const validViews = ['beu-engineering', 'gov-exams', 'library', 'profile', 'help', 'home'];
+        const validViews = ['courses', 'gov-exams', 'library', 'profile', 'help', 'home'];
 
         let viewParam = (urlParams.get('view') as AppView) || storedSessionView || 'home';
 
@@ -1081,7 +1081,7 @@ export default function HomePage() {
                   Score <span className="hero-accent">Higher.</span>
                 </h1>
                 <p className="hero-lead">
-                  All your SSC, Competitive Exams & BEU B.Tech lectures, notes and resources — organized in one clean, ad-free portal.
+                  All your SSC, Competitive Exams &amp; GATE Engineering lectures, notes and resources — organized in one clean, ad-free portal.
                 </p>
 
                 <div className="hero-actions">
@@ -1372,7 +1372,7 @@ export default function HomePage() {
                     Ready to Start Learning?
                   </h3>
                   <p style={{ fontSize: '14px', color: 'var(--text-muted)', maxWidth: '440px', margin: '0 auto 20px', lineHeight: 1.5 }}>
-                    Select a Government Exam batch or BEU B.Tech 1st Year course below to begin watching lectures and track your progress.
+                    Select a Government Exam batch or GATE Engineering track below to begin watching lectures and track your progress.
                   </p>
                   <button
                     className="btn-primary"
@@ -1481,10 +1481,10 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Domain Card 2: Bihar Engineering University (BEU) */}
+                {/* Domain Card 2: GATE Engineering */}
                 <div
                   onClick={() => {
-                    handleViewChange('beu-engineering');
+                    handleViewChange('cat-gate');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   className="domain-portal-card"
@@ -1501,7 +1501,7 @@ export default function HomePage() {
                   }}
                 >
                   <div style={{ position: 'absolute', right: '-15px', top: '-15px', opacity: 0.04, pointerEvents: 'none' }}>
-                    <GraduationCap width={160} height={160} />
+                    <Cpu width={160} height={160} />
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -1510,93 +1510,49 @@ export default function HomePage() {
                         width: '52px',
                         height: '52px',
                         borderRadius: 'var(--r-lg)',
-                        background: 'var(--beu-dim)',
-                        color: 'var(--beu-blue)',
+                        background: 'rgba(245, 158, 11, 0.12)',
+                        color: '#f59e0b',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <GraduationCap width={26} height={26} strokeWidth={2} />
+                      <Cpu width={26} height={26} strokeWidth={2} />
                     </div>
                     <span
                       style={{
-                        background: 'var(--beu-dim)',
-                        color: 'var(--beu-blue)',
+                        background: 'rgba(245, 158, 11, 0.12)',
+                        color: '#d97706',
                         fontSize: '11px',
                         fontWeight: 700,
                         padding: '5px 12px',
                         borderRadius: 'var(--r-pill)',
-                        border: '1px solid rgba(37,99,235,0.2)',
+                        border: '1px solid rgba(245,158,11,0.22)',
                       }}
                     >
-                      1st Year • 329 Classes & Notes
+                      ECE • 36 Lectures
                     </span>
                   </div>
 
                   <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '21px', fontWeight: 700, color: 'var(--text)', margin: '0 0 8px' }}>
-                    Bihar Engineering University (BEU)
+                    GATE Engineering Section
                   </h3>
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.55, margin: '0 0 20px' }}>
-                    Curriculum-aligned B.Tech 1st Year courses featuring EE/ECE/EEE, Engineering Chemistry, Mechanical Engineering (UMEED) & resources.
+                    Structured GATE ECE preparation featuring Made Easy Signals &amp; Systems full video series, Fourier, Laplace &amp; Z-Transform.
                   </p>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: 'var(--r-pill)', background: 'var(--beu-dim)', border: '1px solid rgba(37,99,235,0.18)', color: 'var(--beu-blue)', fontWeight: 600 }}>B.Tech</span>
-                      <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: 'var(--r-pill)', background: 'var(--beu-dim)', border: '1px solid rgba(37,99,235,0.18)', color: 'var(--beu-blue)', fontWeight: 600 }}>1st Year</span>
-                      <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: 'var(--r-pill)', background: 'var(--beu-dim)', border: '1px solid rgba(37,99,235,0.18)', color: 'var(--beu-blue)', fontWeight: 600 }}>Engineering</span>
+                      <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: 'var(--r-pill)', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245,158,11,0.2)', color: '#d97706', fontWeight: 600 }}>GATE ECE</span>
+                      <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: 'var(--r-pill)', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245,158,11,0.2)', color: '#d97706', fontWeight: 600 }}>Made Easy</span>
+                      <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: 'var(--r-pill)', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245,158,11,0.2)', color: '#d97706', fontWeight: 600 }}>Signals</span>
                     </div>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 700, color: 'var(--beu-blue)' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 700, color: '#d97706' }}>
                       <span>Explore</span>
                       <ArrowRight width={14} height={14} />
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Dynamic Categories Quick Strip (e.g. JEE, GATE) */}
-              <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                  Future Tracks:
-                </span>
-                {COURSE_CATEGORIES.filter((c) => c.id !== 'government' && c.id !== 'beu').map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => handleViewChange(`cat-${cat.id}` as AppView)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '7px 14px',
-                      borderRadius: 'var(--r-pill)',
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text)',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: cat.accentColor }} />
-                    <span>{cat.label}</span>
-                    {cat.badge && (
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontWeight: 700,
-                          padding: '1px 6px',
-                          borderRadius: 'var(--r-pill)',
-                          background: cat.accentDim,
-                          color: cat.accentColor,
-                        }}
-                      >
-                        {cat.badge}
-                      </span>
-                    )}
-                  </button>
-                ))}
               </div>
             </div>
 
@@ -1735,12 +1691,12 @@ export default function HomePage() {
         )}
 
         {/* ============================================================
-            VIEW 2B: BIHAR ENGINEERING UNIVERSITY (BEU) VIEW (Dedicated Domain)
+            VIEW 2B: UNIFIED COURSES HUB (GOVERNMENT EXAMS + GATE)
             ============================================================ */}
-        {activeView === 'beu-engineering' && (
-          <div className="animate-fade-in" style={{ padding: '12px 0 36px' }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px 8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+        {activeView === 'courses' && (
+          <div className="animate-fade-in" style={{ padding: '20px 0 48px' }}>
+            <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                 <button
                   onClick={() => handleViewChange('home')}
                   style={{
@@ -1759,40 +1715,160 @@ export default function HomePage() {
                   ← Home
                 </button>
                 <span style={{ color: 'var(--text-muted)' }}>/</span>
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>BEU Engineering</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>Courses</span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
                 <div
                   style={{
-                    width: '36px',
-                    height: '36px',
+                    width: '40px',
+                    height: '40px',
                     borderRadius: 'var(--r-md)',
-                    background: 'var(--beu-dim)',
-                    color: 'var(--beu-blue)',
+                    background: 'rgba(204,120,92,0.12)',
+                    color: 'var(--accent)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
                   }}
                 >
-                  <GraduationCap width={20} height={20} strokeWidth={2} />
+                  <Layers width={20} height={20} strokeWidth={2} />
                 </div>
-                <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
-                  Bihar Engineering University (BEU)
-                </h1>
+                <div>
+                  <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+                    Explore All Courses
+                  </h1>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0' }}>
+                    Choose Government Exam batches or GATE Engineering preparation tracks below.
+                  </p>
+                </div>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                Syllabus-aligned B.Tech engineering semester courses, subject folders, and technical science lectures.
-              </p>
-            </div>
 
-            <CourseGrid
-              courses={INITIAL_COURSES.filter((c) => c.id === 'beu-1st-year')}
-              onSelectCourse={(course) => handleOpenCourse(course)}
-              searchInputRef={searchInputRef}
-              theme={theme}
-            />
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                  gap: '20px',
+                  marginTop: '20px',
+                }}
+              >
+                {/* Portal 1: Government Exam Section */}
+                <div
+                  onClick={() => {
+                    handleViewChange('gov-exams');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="domain-portal-card"
+                  style={{
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--r-xl)',
+                    padding: '26px',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: 'var(--sh-card)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '14px' }}>
+                    <div
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: 'var(--r-lg)',
+                        background: 'var(--govt-dim)',
+                        color: 'var(--govt-indigo)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Landmark width={24} height={24} strokeWidth={2} />
+                    </div>
+                    <span
+                      style={{
+                        background: 'var(--govt-dim)',
+                        color: 'var(--govt-indigo)',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        padding: '5px 12px',
+                        borderRadius: 'var(--r-pill)',
+                      }}
+                    >
+                      9 Batches • 1,400+ Classes
+                    </span>
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: '0 0 8px' }}>
+                    Government Exams
+                  </h2>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.55, margin: '0 0 18px' }}>
+                    SSC CGL, CHSL, MTS, Railway &amp; Banking batches — Maths, Reasoning, English, GK/GS &amp; Computer folders.
+                  </p>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '13px', fontWeight: 700, color: 'var(--govt-indigo)' }}>
+                    <span>Open Government Section</span>
+                    <ArrowRight width={14} height={14} />
+                  </div>
+                </div>
+
+                {/* Portal 2: GATE Engineering */}
+                <div
+                  onClick={() => {
+                    handleViewChange('cat-gate');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="domain-portal-card"
+                  style={{
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--r-xl)',
+                    padding: '26px',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: 'var(--sh-card)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '14px' }}>
+                    <div
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: 'var(--r-lg)',
+                        background: 'rgba(245, 158, 11, 0.12)',
+                        color: '#f59e0b',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Cpu width={24} height={24} strokeWidth={2} />
+                    </div>
+                    <span
+                      style={{
+                        background: 'rgba(245, 158, 11, 0.12)',
+                        color: '#d97706',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        padding: '5px 12px',
+                        borderRadius: 'var(--r-pill)',
+                      }}
+                    >
+                      ECE • 36 Lectures
+                    </span>
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 700, color: 'var(--text)', margin: '0 0 8px' }}>
+                    GATE Engineering
+                  </h2>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.55, margin: '0 0 18px' }}>
+                    GATE ECE premier Made Easy track — Signals &amp; Systems complete video lectures and syllabus modules.
+                  </p>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '13px', fontWeight: 700, color: '#d97706' }}>
+                    <span>Open GATE Section</span>
+                    <ArrowRight width={14} height={14} />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -2465,9 +2541,9 @@ export default function HomePage() {
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => handleViewChange('beu-engineering')} className="footer-link-btn">
-                      <GraduationCap width={14} height={14} style={{ color: 'var(--beu-blue)', flexShrink: 0 }} />
-                      <span>BEU B.Tech 1st Year Courses</span>
+                    <button onClick={() => handleViewChange('cat-gate')} className="footer-link-btn">
+                      <Cpu width={14} height={14} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                      <span>GATE Engineering (ECE Made Easy)</span>
                     </button>
                   </li>
                   <li>

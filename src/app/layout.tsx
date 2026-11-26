@@ -12,7 +12,7 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   metadataBase: new URL('https://stutosed.de5.net'),
   title: 'stutosed',
-  description: 'Your complete study portal for SSC, Competitive Exams and Bihar Engineering University (BEU) B.Tech courses, lectures, notes, and PDF resources.',
+  description: 'Your complete study portal for SSC, Banking, Competitive Exams and GATE Engineering courses, lectures, notes, and PDF resources.',
   icons: {
     icon: [
       { url: '/favicon.svg?v=stutosed-white', type: 'image/svg+xml' },

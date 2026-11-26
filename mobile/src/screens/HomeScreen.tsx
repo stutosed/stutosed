@@ -32,7 +32,7 @@ import {
   Play,
   Compass,
   Landmark,
-  GraduationCap,
+  Cpu,
   ArrowRight,
   Send,
   MessageSquare,
@@ -145,7 +145,7 @@ export const HomeScreen: React.FC = () => {
 
           {/* Hero Lead */}
           <Text style={[styles.heroLead, { color: colors.textMuted }]}>
-            All your SSC, Competitive Exams &amp; BEU B.Tech lectures, notes and resources —
+            All your SSC, Competitive Exams &amp; GATE Engineering lectures, notes and resources —
             organized in one clean, ad-free portal.
           </Text>
 
@@ -307,7 +307,7 @@ export const HomeScreen: React.FC = () => {
                 Ready to Start Learning?
               </Text>
               <Text style={[styles.emptyCardBody, { color: colors.textMuted }]}>
-                Select any Government Exam or B.Tech Engineering track below to track your lectures
+                Select any Government Exam or GATE Engineering track below to track your lectures
                 automatically.
               </Text>
               <TouchableOpacity
@@ -339,8 +339,7 @@ export const HomeScreen: React.FC = () => {
               Curated Learning Tracks
             </Text>
             <Text style={[styles.tracksSub, { color: colors.textMuted }]}>
-              Select a specialized portal for government exams or B.Tech engineering semester
-              courses.
+              Select a specialized portal for government exams or GATE engineering courses.
             </Text>
           </View>
 
@@ -350,7 +349,7 @@ export const HomeScreen: React.FC = () => {
               styles.portalCard,
               { backgroundColor: colors.bgCard, borderColor: colors.border },
             ]}
-            onPress={() => (navigation as any).navigate('MainTabs', { screen: 'GovtTab' })}
+            onPress={() => navigation.navigate('GovtExams')}
             activeOpacity={0.85}
           >
             <View style={styles.portalTop}>
@@ -395,37 +394,37 @@ export const HomeScreen: React.FC = () => {
             </View>
           </TouchableOpacity>
 
-          {/* Portal Card 2: Bihar Engineering University (BEU) */}
+          {/* Portal Card 2: GATE Engineering Section */}
           <TouchableOpacity
             style={[
               styles.portalCard,
               { backgroundColor: colors.bgCard, borderColor: colors.border },
             ]}
-            onPress={() => (navigation as any).navigate('MainTabs', { screen: 'BeuTab' })}
+            onPress={() => navigation.navigate('Gate')}
             activeOpacity={0.85}
           >
             <View style={styles.portalTop}>
-              <View style={[styles.portalIconBox, { backgroundColor: colors.beuDim }]}>
-                <GraduationCap size={24} color={colors.beuBlue} />
+              <View style={[styles.portalIconBox, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
+                <Cpu size={24} color="#f59e0b" />
               </View>
-              <View style={[styles.portalBadge, { backgroundColor: colors.beuDim }]}>
-                <Text style={[styles.portalBadgeText, { color: colors.beuBlue }]}>
-                  1st Year • 329 Classes &amp; Notes
+              <View style={[styles.portalBadge, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
+                <Text style={[styles.portalBadgeText, { color: '#d97706' }]}>
+                  ECE • 36 Lectures
                 </Text>
               </View>
             </View>
 
             <Text style={[styles.portalTitle, { color: colors.text }]}>
-              Bihar Engineering University (BEU)
+              GATE Engineering Section
             </Text>
             <Text style={[styles.portalDesc, { color: colors.textMuted }]}>
-              Curriculum-aligned 1st Year engineering courses featuring EE/ECE/EEE, Chemistry &amp;
-              UMEED Mechanical batches.
+              Structured GATE ECE preparation featuring Made Easy Signals &amp; Systems full video
+              series, Fourier, Laplace &amp; Z-Transform.
             </Text>
 
             <View style={styles.portalFooter}>
               <View style={styles.portalTags}>
-                {['B.Tech', '1st Year', 'Engineering'].map((t) => (
+                {['GATE ECE', 'Made Easy', 'Signals'].map((t) => (
                   <View
                     key={t}
                     style={[
@@ -438,29 +437,11 @@ export const HomeScreen: React.FC = () => {
                 ))}
               </View>
               <View style={styles.portalExplore}>
-                <Text style={[styles.portalExploreText, { color: colors.beuBlue }]}>Explore</Text>
-                <ArrowRight size={15} color={colors.beuBlue} />
+                <Text style={[styles.portalExploreText, { color: '#d97706' }]}>Explore</Text>
+                <ArrowRight size={15} color="#d97706" />
               </View>
             </View>
           </TouchableOpacity>
-
-          {/* FUTURE TRACKS PILL ROW */}
-          <View style={styles.futureTracksRow}>
-            <Text style={[styles.futureLabel, { color: colors.textDim }]}>FUTURE TRACKS:</Text>
-            <TouchableOpacity
-              style={[
-                styles.futureChip,
-                { backgroundColor: colors.bgCard, borderColor: colors.border },
-              ]}
-              onPress={() => navigation.navigate('Gate')}
-              activeOpacity={0.75}
-            >
-              <View style={[styles.futureDot, { backgroundColor: '#f59e0b' }]} />
-              <Text style={[styles.futureChipText, { color: colors.text }]}>
-                GATE Engineering
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* 5. HELP & COMMUNITY BOX */}
@@ -533,7 +514,7 @@ export const HomeScreen: React.FC = () => {
             </View>
             <Text style={[styles.footerTagline, { color: colors.textMuted }]}>
               Free, ad-free study portal providing structured lectures, curated video series, and
-              verified PDF notes for competitive exams &amp; B.Tech curricula.
+              verified PDF notes for competitive exams &amp; GATE preparation.
             </Text>
             <View style={styles.footerBadgeRow}>
               <ShieldCheck size={14} color={colors.green} />
@@ -550,7 +531,7 @@ export const HomeScreen: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={styles.footerLinkBtn}
-              onPress={() => (navigation as any).navigate('MainTabs', { screen: 'GovtTab' })}
+              onPress={() => navigation.navigate('GovtExams')}
             >
               <Landmark size={14} color={colors.govtIndigo} />
               <Text style={[styles.footerLinkText, { color: colors.textMuted }]}>
@@ -559,11 +540,11 @@ export const HomeScreen: React.FC = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.footerLinkBtn}
-              onPress={() => (navigation as any).navigate('MainTabs', { screen: 'BeuTab' })}
+              onPress={() => navigation.navigate('Gate')}
             >
-              <GraduationCap size={14} color={colors.beuBlue} />
+              <Cpu size={14} color="#f59e0b" />
               <Text style={[styles.footerLinkText, { color: colors.textMuted }]}>
-                BEU B.Tech 1st Year Courses
+                GATE Engineering (ECE Made Easy)
               </Text>
             </TouchableOpacity>
             <TouchableOpacity

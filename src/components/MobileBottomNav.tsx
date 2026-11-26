@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Home, Landmark, GraduationCap, BookOpen, User } from 'lucide-react';
+import { Home, Layers, BookOpen, User } from 'lucide-react';
 import { AppView } from '@/components/Sidebar';
 import { UserProfile } from '@/types';
 
@@ -27,14 +27,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       icon: Home,
     },
     {
-      id: 'gov-exams' as AppView,
-      label: 'Govt',
-      icon: Landmark,
-    },
-    {
-      id: 'beu-engineering' as AppView,
-      label: 'B.Tech',
-      icon: GraduationCap,
+      id: 'courses' as AppView,
+      label: 'Courses',
+      icon: Layers,
     },
     {
       id: 'library' as AppView,
@@ -66,7 +61,12 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     >
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = activeView === item.id;
+        const isActive =
+          item.id === 'courses'
+            ? activeView === 'courses' ||
+              activeView === 'gov-exams' ||
+              (typeof activeView === 'string' && activeView.startsWith('cat-'))
+            : activeView === item.id;
 
         return (
           <button
