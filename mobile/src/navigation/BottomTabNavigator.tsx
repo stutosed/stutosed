@@ -31,6 +31,7 @@ export const BottomTabNavigator: React.FC = () => {
 
   return (
     <Tab.Navigator
+      backBehavior="history"
       screenOptions={{
         headerShown: false,
         tabBarStyle: [

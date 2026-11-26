@@ -20,7 +20,9 @@ export const RootNavigator: React.FC = () => {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.bg },
-        animation: 'slide_from_right',
+        animation: 'ios_from_right',
+        animationDuration: 260,
+        gestureEnabled: true,
       }}
     >
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />

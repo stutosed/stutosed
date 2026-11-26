@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Animated,
+  Easing,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, Course } from '../types';
 import { useTheme } from '../context/ThemeContext';
@@ -169,6 +172,68 @@ export const GovtExamsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTeacher, setSelectedTeacher] = useState<string>('All');
 
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const layerSlideX = useRef(new Animated.Value(0)).current;
+  const layerOpacity = useRef(new Animated.Value(1)).current;
+
+  const animateLayerTransition = useCallback(
+    (direction: 'forward' | 'back') => {
+      const startX = direction === 'forward' ? 28 : -28;
+      layerSlideX.setValue(startX);
+      layerOpacity.setValue(0.35);
+      Animated.parallel([
+        Animated.timing(layerSlideX, {
+          toValue: 0,
+          duration: 240,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(layerOpacity, {
+          toValue: 1,
+          duration: 220,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
+    },
+    [layerSlideX, layerOpacity]
+  );
+
+  const openDiscipline = (id: GovtDisciplineId) => {
+    setSelectedDiscipline(id);
+    setSelectedTeacher('All');
+    setSearchQuery('');
+    animateLayerTransition('forward');
+  };
+
+  const stepBackToDisciplines = useCallback(() => {
+    setSelectedDiscipline(null);
+    setSelectedTeacher('All');
+    setSearchQuery('');
+    animateLayerTransition('back');
+  }, [animateLayerTransition]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (selectedDiscipline !== null) {
+          stepBackToDisciplines();
+          return true;
+        }
+        if (searchQuery.trim().length > 0) {
+          setSearchQuery('');
+          animateLayerTransition('back');
+          return true;
+        }
+        return false;
+      };
+
+      const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => sub.remove();
+    }, [selectedDiscipline, searchQuery, stepBackToDisciplines, animateLayerTransition])
+  );
+
   const govtCourses = useMemo(
     () => INITIAL_COURSES.filter((c) => isGovernmentCategory(c.category)),
     []
@@ -217,224 +282,229 @@ export const GovtExamsScreen: React.FC = () => {
       <Header />
 
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Breadcrumb Navigation */}
-        {activeDef ? (
-          <View style={styles.breadcrumbRow}>
+        <Animated.View
+          style={{
+            opacity: layerOpacity,
+            transform: [{ translateX: layerSlideX }],
+          }}
+        >
+          {/* Top Breadcrumb Navigation */}
+          {activeDef ? (
+            <View style={styles.breadcrumbRow}>
+              <TouchableOpacity style={styles.backLinkBtn} onPress={stepBackToDisciplines}>
+                <ArrowLeft size={14} color={colors.accent} />
+                <Text style={[styles.backLinkText, { color: colors.accent }]}>
+                  All Disciplines
+                </Text>
+              </TouchableOpacity>
+              <Text style={{ color: colors.textDim }}>/</Text>
+              <Text style={[styles.breadcrumbCurrent, { color: colors.textMuted }]} numberOfLines={1}>
+                {activeDef.shortTitle}
+              </Text>
+            </View>
+          ) : (
             <TouchableOpacity
               style={styles.backLinkBtn}
               onPress={() => {
-                setSelectedDiscipline(null);
-                setSelectedTeacher('All');
-                setSearchQuery('');
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                } else {
+                  (navigation as any).navigate('MainTabs', { screen: 'CoursesTab' });
+                }
               }}
             >
               <ArrowLeft size={14} color={colors.accent} />
-              <Text style={[styles.backLinkText, { color: colors.accent }]}>
-                All Disciplines
-              </Text>
-            </TouchableOpacity>
-            <Text style={{ color: colors.textDim }}>/</Text>
-            <Text style={[styles.breadcrumbCurrent, { color: colors.textMuted }]} numberOfLines={1}>
-              {activeDef.shortTitle}
-            </Text>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.backLinkBtn}
-            onPress={() => (navigation as any).navigate('MainTabs', { screen: 'HomeTab' })}
-          >
-            <ArrowLeft size={14} color={colors.accent} />
-            <Text style={[styles.backLinkText, { color: colors.accent }]}>
-              Return to Home Dashboard
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Section Header */}
-        <View style={styles.headerBlock}>
-          <View
-            style={[
-              styles.headerIconBox,
-              {
-                backgroundColor: activeDef ? activeDef.accentDim : colors.govtDim,
-              },
-            ]}
-          >
-            {activeDef ? (
-              <activeDef.icon size={22} color={activeDef.accentColor} />
-            ) : (
-              <Landmark size={22} color={colors.govtIndigo} />
-            )}
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.pageTitle, { color: colors.text }]}>
-              {activeDef ? activeDef.title : 'Government Exam Section'}
-            </Text>
-            <Text style={[styles.pageSub, { color: colors.textMuted }]}>
-              {activeDef
-                ? activeDef.description
-                : 'Select a subject folder or search across SSC CGL, CHSL, Railway & Banking batches.'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Search Input */}
-        <View
-          style={[
-            styles.searchWrap,
-            { backgroundColor: colors.bgCard, borderColor: colors.border },
-          ]}
-        >
-          <Search size={16} color={colors.textDim} />
-          <TextInput
-            style={[styles.searchInput, { color: colors.text }]}
-            placeholder={
-              activeDef
-                ? `Search inside ${activeDef.shortTitle}...`
-                : 'Search all govt batches, educators...'
-            }
-            placeholderTextColor={colors.textDim}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <X size={16} color={colors.textDim} />
+              <Text style={[styles.backLinkText, { color: colors.accent }]}>Back</Text>
             </TouchableOpacity>
           )}
-        </View>
 
-        {/* LEVEL 1: DISCIPLINE FOLDER HUB (when no folder selected & no global search active) */}
-        {!activeDef && searchQuery.trim().length === 0 ? (
-          <View style={styles.foldersList}>
-            {GOVT_DISCIPLINES.map((def) => {
-              const matching = govtCourses.filter((c) => matchCourseDiscipline(c, def));
-              const totalVids = matching.reduce((acc, c) => acc + countCourseStats(c).videos, 0);
-              const totalRes = matching.reduce((acc, c) => acc + countCourseStats(c).resources, 0);
-              const IconComp = def.icon;
+          {/* Section Header */}
+          <View style={styles.headerBlock}>
+            <View
+              style={[
+                styles.headerIconBox,
+                {
+                  backgroundColor: activeDef ? activeDef.accentDim : colors.govtDim,
+                },
+              ]}
+            >
+              {activeDef ? (
+                <activeDef.icon size={22} color={activeDef.accentColor} />
+              ) : (
+                <Landmark size={22} color={colors.govtIndigo} />
+              )}
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.pageTitle, { color: colors.text }]}>
+                {activeDef ? activeDef.title : 'Government Exam Section'}
+              </Text>
+              <Text style={[styles.pageSub, { color: colors.textMuted }]}>
+                {activeDef
+                  ? activeDef.description
+                  : 'Select a subject folder or search across SSC CGL, CHSL, Railway & Banking batches.'}
+              </Text>
+            </View>
+          </View>
 
-              return (
-                <TouchableOpacity
-                  key={def.id}
-                  style={[
-                    styles.folderCard,
-                    { backgroundColor: colors.bgCard, borderColor: colors.border },
-                  ]}
-                  onPress={() => setSelectedDiscipline(def.id)}
-                  activeOpacity={0.82}
-                >
-                  <View style={styles.folderTopRow}>
-                    <View style={[styles.folderIconBox, { backgroundColor: def.accentDim }]}>
-                      <IconComp size={22} color={def.accentColor} />
-                    </View>
-                    <View style={[styles.batchCountPill, { backgroundColor: def.accentDim }]}>
-                      <Layers size={12} color={def.accentColor} />
-                      <Text style={[styles.batchCountText, { color: def.accentColor }]}>
-                        {matching.length} {matching.length === 1 ? 'Batch' : 'Batches'}
-                      </Text>
-                    </View>
-                  </View>
+          {/* Search Input */}
+          <View
+            style={[
+              styles.searchWrap,
+              { backgroundColor: colors.bgCard, borderColor: colors.border },
+            ]}
+          >
+            <Search size={16} color={colors.textDim} />
+            <TextInput
+              style={[styles.searchInput, { color: colors.text }]}
+              placeholder={
+                activeDef
+                  ? `Search inside ${activeDef.shortTitle}...`
+                  : 'Search all govt batches, educators...'
+              }
+              placeholderTextColor={colors.textDim}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <X size={16} color={colors.textDim} />
+              </TouchableOpacity>
+            )}
+          </View>
 
-                  <Text style={[styles.folderTitle, { color: colors.text }]}>{def.title}</Text>
-                  <Text style={[styles.folderDesc, { color: colors.textMuted }]} numberOfLines={2}>
-                    {def.description}
-                  </Text>
+          {/* LEVEL 1: DISCIPLINE FOLDER HUB */}
+          {!activeDef && searchQuery.trim().length === 0 ? (
+            <View style={styles.foldersList}>
+              {GOVT_DISCIPLINES.map((def) => {
+                const matching = govtCourses.filter((c) => matchCourseDiscipline(c, def));
+                const totalVids = matching.reduce((acc, c) => acc + countCourseStats(c).videos, 0);
+                const totalRes = matching.reduce((acc, c) => acc + countCourseStats(c).resources, 0);
+                const IconComp = def.icon;
 
-                  <View style={[styles.folderFooter, { borderTopColor: colors.borderSubtle }]}>
-                    <View style={styles.folderStatsRow}>
-                      <View style={styles.folderStat}>
-                        <Video size={12} color={colors.textDim} />
-                        <Text style={[styles.folderStatText, { color: colors.textDim }]}>
-                          {totalVids} Videos
+                return (
+                  <TouchableOpacity
+                    key={def.id}
+                    style={[
+                      styles.folderCard,
+                      { backgroundColor: colors.bgCard, borderColor: colors.border },
+                    ]}
+                    onPress={() => openDiscipline(def.id)}
+                    activeOpacity={0.82}
+                  >
+                    <View style={styles.folderTopRow}>
+                      <View style={[styles.folderIconBox, { backgroundColor: def.accentDim }]}>
+                        <IconComp size={22} color={def.accentColor} />
+                      </View>
+                      <View style={[styles.batchCountPill, { backgroundColor: def.accentDim }]}>
+                        <Layers size={12} color={def.accentColor} />
+                        <Text style={[styles.batchCountText, { color: def.accentColor }]}>
+                          {matching.length} {matching.length === 1 ? 'Batch' : 'Batches'}
                         </Text>
                       </View>
-                      {totalRes > 0 && (
+                    </View>
+
+                    <Text style={[styles.folderTitle, { color: colors.text }]}>{def.title}</Text>
+                    <Text style={[styles.folderDesc, { color: colors.textMuted }]} numberOfLines={2}>
+                      {def.description}
+                    </Text>
+
+                    <View style={[styles.folderFooter, { borderTopColor: colors.borderSubtle }]}>
+                      <View style={styles.folderStatsRow}>
                         <View style={styles.folderStat}>
-                          <FileText size={12} color={colors.textDim} />
+                          <Video size={12} color={colors.textDim} />
                           <Text style={[styles.folderStatText, { color: colors.textDim }]}>
-                            {totalRes} PDFs
+                            {totalVids} Videos
                           </Text>
                         </View>
-                      )}
-                    </View>
+                        {totalRes > 0 && (
+                          <View style={styles.folderStat}>
+                            <FileText size={12} color={colors.textDim} />
+                            <Text style={[styles.folderStatText, { color: colors.textDim }]}>
+                              {totalRes} PDFs
+                            </Text>
+                          </View>
+                        )}
+                      </View>
 
-                    <View style={styles.folderExplore}>
-                      <Text style={[styles.folderExploreText, { color: def.accentColor }]}>
-                        Open Folder
-                      </Text>
-                      <ArrowRight size={14} color={def.accentColor} />
+                      <View style={styles.folderExplore}>
+                        <Text style={[styles.folderExploreText, { color: def.accentColor }]}>
+                          Open Folder
+                        </Text>
+                        <ArrowRight size={14} color={def.accentColor} />
+                      </View>
                     </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ) : (
-          /* LEVEL 2 OR SEARCH RESULTS: BATCH CARDS + FACULTY FILTER CHIPS */
-          <View>
-            {activeDef && facultyList.length > 2 && (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.facultyRow}
-              >
-                {facultyList.map((teacher) => {
-                  const active = selectedTeacher === teacher;
-                  return (
-                    <TouchableOpacity
-                      key={teacher}
-                      style={[
-                        styles.facultyChip,
-                        {
-                          backgroundColor: active ? activeDef.accentColor : colors.bgCard,
-                          borderColor: active ? activeDef.accentColor : colors.border,
-                        },
-                      ]}
-                      onPress={() => setSelectedTeacher(teacher)}
-                      activeOpacity={0.75}
-                    >
-                      <Text
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ) : (
+            /* LEVEL 2 OR SEARCH RESULTS: BATCH CARDS + FACULTY FILTER CHIPS */
+            <View>
+              {activeDef && facultyList.length > 2 && (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.facultyRow}
+                >
+                  {facultyList.map((teacher) => {
+                    const active = selectedTeacher === teacher;
+                    return (
+                      <TouchableOpacity
+                        key={teacher}
                         style={[
-                          styles.facultyChipText,
-                          { color: active ? '#ffffff' : colors.textMuted },
+                          styles.facultyChip,
+                          {
+                            backgroundColor: active ? activeDef.accentColor : colors.bgCard,
+                            borderColor: active ? activeDef.accentColor : colors.border,
+                          },
                         ]}
+                        onPress={() => setSelectedTeacher(teacher)}
+                        activeOpacity={0.75}
                       >
-                        {teacher}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            )}
+                        <Text
+                          style={[
+                            styles.facultyChipText,
+                            { color: active ? '#ffffff' : colors.textMuted },
+                          ]}
+                        >
+                          {teacher}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              )}
 
-            {visibleCourses.length > 0 ? (
-              visibleCourses.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  onPress={() => openCourse(course)}
-                />
-              ))
-            ) : (
-              <View
-                style={[
-                  styles.emptyBox,
-                  { backgroundColor: colors.bgCard, borderColor: colors.border },
-                ]}
-              >
-                <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-                  No batches found matching your filter.
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
+              {visibleCourses.length > 0 ? (
+                visibleCourses.map((course) => (
+                  <CourseCard
+                    key={course.id}
+                    course={course}
+                    onPress={() => openCourse(course)}
+                  />
+                ))
+              ) : (
+                <View
+                  style={[
+                    styles.emptyBox,
+                    { backgroundColor: colors.bgCard, borderColor: colors.border },
+                  ]}
+                >
+                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                    No batches found matching your filter.
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );

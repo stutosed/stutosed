@@ -595,7 +595,7 @@ export default function HomePage() {
 
   // Mobile & Desktop Layered Browser Back Button Management
   useEffect(() => {
-    const handlePopState = () => {
+    const handlePopState = (event: PopStateEvent) => {
       // Layer 1: If Mobile Sidebar is open, close it
       if (isSidebarOpen) {
         setIsSidebarOpen(false);
@@ -702,7 +702,25 @@ export default function HomePage() {
         return;
       }
 
-      // Layer 7: If in a sub-view (beu-engineering, gov-exams, profile, help), return to home
+      // Layer 7: Respect target view stored in browser history state before falling back to home
+      const targetHistoryView = event.state?.view as AppView | undefined;
+      if (targetHistoryView && targetHistoryView !== activeView) {
+        setActiveView(targetHistoryView);
+        setSelectedGovtDiscipline(
+          targetHistoryView === 'gov-exams' ? (event.state?.subjId || null) : null
+        );
+        return;
+      }
+
+      if (activeView === 'gov-exams' || (typeof activeView === 'string' && activeView.startsWith('cat-'))) {
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.get('view') === 'courses') {
+          setActiveView('courses');
+          setSelectedGovtDiscipline(null);
+          return;
+        }
+      }
+
       if (activeView !== 'home') {
         setActiveView('home');
         setSelectedGovtDiscipline(null);
