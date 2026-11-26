@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Course } from '../types';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { spacing, radii } from '../theme/spacing';
 import { countCourseStats } from '../data/coursesData';
-import { BookOpen, Video, User, ChevronRight } from 'lucide-react-native';
+import { BookOpen, Video, User, ChevronRight, Bookmark } from 'lucide-react-native';
 
 interface CourseCardProps {
   course: Course;
@@ -12,7 +13,10 @@ interface CourseCardProps {
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({ course, onPress }) => {
+  const { colors } = useTheme();
+  const { bookmarks, toggleCourseBookmark } = useAuth();
   const stats = countCourseStats(course);
+  const isBookmarked = bookmarks.includes(course.id);
 
   const getCategoryColor = () => {
     const cat = (course.category || '').toLowerCase();
@@ -25,12 +29,20 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onPress }) => {
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[
+        styles.card,
+        { backgroundColor: colors.bgCard, borderColor: colors.border },
+      ]}
       onPress={onPress}
       activeOpacity={0.75}
     >
       <View style={styles.topRow}>
-        <View style={[styles.badge, { borderColor: categoryColor, backgroundColor: `${categoryColor}15` }]}>
+        <View
+          style={[
+            styles.badge,
+            { borderColor: categoryColor, backgroundColor: `${categoryColor}15` },
+          ]}
+        >
           <Text style={[styles.badgeText, { color: categoryColor }]}>
             {(course.category || 'General').toUpperCase()}
           </Text>
@@ -39,37 +51,51 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onPress }) => {
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Video size={12} color={colors.textMuted} />
-            <Text style={styles.statText}>{stats.videos}</Text>
+            <Text style={[styles.statText, { color: colors.textMuted }]}>{stats.videos}</Text>
           </View>
           {stats.resources > 0 && (
             <View style={styles.statItem}>
               <BookOpen size={12} color={colors.textMuted} />
-              <Text style={styles.statText}>{stats.resources}</Text>
+              <Text style={[styles.statText, { color: colors.textMuted }]}>{stats.resources}</Text>
             </View>
           )}
+          <TouchableOpacity
+            onPress={(e) => {
+              e.stopPropagation?.();
+              toggleCourseBookmark(course.id);
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ marginLeft: 4 }}
+          >
+            <Bookmark
+              size={15}
+              color={isBookmarked ? colors.accent : colors.textDim}
+              fill={isBookmarked ? colors.accent : 'transparent'}
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
-      <Text style={styles.name} numberOfLines={2}>
+      <Text style={[styles.name, { color: colors.text }]} numberOfLines={2}>
         {course.name}
       </Text>
 
       {course.subname ? (
-        <Text style={styles.subname} numberOfLines={1}>
+        <Text style={[styles.subname, { color: colors.textMuted }]} numberOfLines={1}>
           {course.subname}
         </Text>
       ) : null}
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: colors.borderSubtle }]}>
         <View style={styles.teacherRow}>
           <User size={13} color={colors.accent} />
-          <Text style={styles.teacher} numberOfLines={1}>
+          <Text style={[styles.teacher, { color: colors.textMuted }]} numberOfLines={1}>
             {course.teacher || 'Verified Educator'}
           </Text>
         </View>
 
         <View style={styles.exploreBtn}>
-          <Text style={styles.exploreText}>View</Text>
+          <Text style={[styles.exploreText, { color: colors.accent }]}>Explore</Text>
           <ChevronRight size={14} color={colors.accent} />
         </View>
       </View>
@@ -79,9 +105,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onPress }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.bgCard,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: radii.lg,
     padding: spacing.base,
     marginBottom: spacing.md,
@@ -115,19 +139,16 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 11,
-    color: colors.textMuted,
     fontWeight: '500',
   },
   name: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.text,
     lineHeight: 21,
     marginBottom: 4,
   },
   subname: {
     fontSize: 12,
-    color: colors.textMuted,
     marginBottom: spacing.md,
   },
   footer: {
@@ -136,7 +157,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.borderSubtle,
   },
   teacherRow: {
     flexDirection: 'row',
@@ -147,7 +167,6 @@ const styles = StyleSheet.create({
   },
   teacher: {
     fontSize: 12,
-    color: colors.textMuted,
     fontWeight: '500',
   },
   exploreBtn: {
@@ -158,6 +177,5 @@ const styles = StyleSheet.create({
   exploreText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.accent,
   },
 });

@@ -4,52 +4,51 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   ActivityIndicator,
   Dimensions,
-  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { WebView } from 'react-native-webview';
 import { RootStackParamList } from '../types';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { spacing, radii } from '../theme/spacing';
-import { ArrowLeft, ExternalLink, RefreshCw } from 'lucide-react-native';
+import { ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react-native';
 
 type WatchRouteProp = RouteProp<RootStackParamList, 'Watch'>;
 
 export const WatchScreen: React.FC = () => {
   const route = useRoute<WatchRouteProp>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { lecture, courseTitle } = route.params;
+  const { colors } = useTheme();
+  const { watchedMap, toggleLectureWatched } = useAuth();
+  const { lecture, courseId, courseTitle } = route.params;
 
   const [loading, setLoading] = useState(true);
   const [webViewKey, setWebViewKey] = useState(0);
 
-  // Normalize media stream / embed URL
   const getEmbedUrl = (): string => {
     let rawUrl = lecture.url || '';
     if (lecture.links && lecture.links.url) {
       rawUrl = lecture.links.url;
     }
-
-    if (rawUrl.includes('abyssplayer.com') || rawUrl.includes('vidmoly.to')) {
-      return rawUrl;
-    }
-
-    // Direct link or web embed fallback
     return rawUrl;
   };
 
   const embedUrl = getEmbedUrl();
+  const isWatched = !!watchedMap[embedUrl || lecture.id || ''];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" />
-
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
       {/* Top Header */}
-      <View style={styles.topBar}>
+      <View
+        style={[
+          styles.topBar,
+          { backgroundColor: colors.bgCard, borderBottomColor: colors.borderSubtle },
+        ]}
+      >
         <TouchableOpacity
           style={styles.backBtn}
           onPress={() => navigation.goBack()}
@@ -58,10 +57,10 @@ export const WatchScreen: React.FC = () => {
           <ArrowLeft size={20} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerInfo}>
-          <Text style={styles.lectureTitle} numberOfLines={1}>
+          <Text style={[styles.lectureTitle, { color: colors.text }]} numberOfLines={1}>
             {lecture.label}
           </Text>
-          <Text style={styles.courseSubtitle} numberOfLines={1}>
+          <Text style={[styles.courseSubtitle, { color: colors.textDim }]} numberOfLines={1}>
             {courseTitle}
           </Text>
         </View>
@@ -79,7 +78,9 @@ export const WatchScreen: React.FC = () => {
         {loading && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={colors.accent} />
-            <Text style={styles.loadingText}>Connecting to High-Speed Stream...</Text>
+            <Text style={[styles.loadingText, { color: colors.textMuted }]}>
+              Connecting to High-Speed Stream...
+            </Text>
           </View>
         )}
 
@@ -100,20 +101,57 @@ export const WatchScreen: React.FC = () => {
 
       {/* Details Box */}
       <View style={styles.detailsContainer}>
-        <View style={styles.detailCard}>
-          <Text style={styles.cardHeading}>Now Playing</Text>
-          <Text style={styles.cardLectureLabel}>{lecture.label}</Text>
+        <View
+          style={[
+            styles.detailCard,
+            { backgroundColor: colors.bgCard, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.cardHeading, { color: colors.accent }]}>Now Playing</Text>
+          <Text style={[styles.cardLectureLabel, { color: colors.text }]}>{lecture.label}</Text>
           {lecture.subject ? (
-            <Text style={styles.cardSubject}>Subject: {lecture.subject}</Text>
+            <Text style={[styles.cardSubject, { color: colors.textMuted }]}>
+              Subject: {lecture.subject}
+            </Text>
           ) : null}
 
           <View style={styles.badgeRow}>
-            <View style={styles.badgePill}>
-              <Text style={styles.badgePillText}>Ad-Free Stream</Text>
+            <View
+              style={[
+                styles.badgePill,
+                { backgroundColor: colors.bgCardSubtle, borderColor: colors.borderSubtle },
+              ]}
+            >
+              <Text style={[styles.badgePillText, { color: colors.textMuted }]}>
+                Ad-Free Stream
+              </Text>
             </View>
-            <View style={styles.badgePill}>
-              <Text style={styles.badgePillText}>Hardware Accelerated</Text>
-            </View>
+            <TouchableOpacity
+              style={[
+                styles.badgePill,
+                {
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
+                  backgroundColor: isWatched ? `${colors.green}18` : colors.bgCardSubtle,
+                  borderColor: isWatched ? colors.green : colors.borderSubtle,
+                },
+              ]}
+              onPress={() => toggleLectureWatched(courseId, embedUrl || lecture.id || '')}
+            >
+              <CheckCircle2
+                size={13}
+                color={isWatched ? colors.green : colors.textDim}
+              />
+              <Text
+                style={[
+                  styles.badgePillText,
+                  { color: isWatched ? colors.green : colors.textMuted },
+                ]}
+              >
+                {isWatched ? 'Completed' : 'Mark Watched'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -127,16 +165,13 @@ const playerHeight = (width * 9) / 16;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.bg,
   },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.md,
-    backgroundColor: colors.bgCard,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderSubtle,
     gap: spacing.md,
   },
   backBtn: {
@@ -148,11 +183,9 @@ const styles = StyleSheet.create({
   lectureTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.text,
   },
   courseSubtitle: {
     fontSize: 11,
-    color: colors.textDim,
     marginTop: 2,
   },
   reloadBtn: {
@@ -182,23 +215,19 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 12,
-    color: colors.textMuted,
   },
   detailsContainer: {
     flex: 1,
     padding: spacing.base,
   },
   detailCard: {
-    backgroundColor: colors.bgCard,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: radii.lg,
     padding: spacing.base,
   },
   cardHeading: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.accent,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
@@ -206,13 +235,11 @@ const styles = StyleSheet.create({
   cardLectureLabel: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.text,
     lineHeight: 22,
     marginBottom: 6,
   },
   cardSubject: {
     fontSize: 12,
-    color: colors.textMuted,
     marginBottom: spacing.md,
   },
   badgeRow: {
@@ -220,16 +247,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   badgePill: {
-    backgroundColor: colors.bgCardSubtle,
     borderWidth: 1,
-    borderColor: colors.borderSubtle,
     borderRadius: radii.sm,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   badgePillText: {
     fontSize: 11,
-    color: colors.textMuted,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });

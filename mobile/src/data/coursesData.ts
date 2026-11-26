@@ -1,38 +1,37 @@
 import { Course } from '../types';
 import manifestData from './courses-manifest.json';
 
-// In-memory cache for loaded course details
 const courseDetailsCache = new Map<string, Course>();
 
-// Lightweight manifest list of all courses (~10 KB total) for dashboard, filters, and cards
 export const INITIAL_COURSES: Course[] = (manifestData as unknown as Course[]) || [];
 
-// Static course registry for bundle-safe loading in React Native
+// Static course registry matching exact filenames in ./courses/ for Metro bundler
 const COURSE_MODULES: Record<string, () => Promise<{ default: Course }>> = {
-  'beu-btech-1st-year': () => import('./courses/beu-btech-1st-year.json') as any,
-  'gate-ece-made-easy': () => import('./courses/gate-ece-made-easy.json') as any,
-  'parmar-ssc-complete': () => import('./courses/parmar-ssc-complete.json') as any,
-  'ssc-parmar-gk-batch-3': () => import('./courses/ssc-parmar-gk-batch-3.json') as any,
-  'ssc-parmar-gk-static-2': () => import('./courses/ssc-parmar-gk-static-2.json') as any,
-  'ssc-parmar-gk-static-batch-1': () => import('./courses/ssc-parmar-gk-static-batch-1.json') as any,
-  'ssc-parmar-science': () => import('./courses/ssc-parmar-science.json') as any,
-  'ssc-abhishek-reasoning': () => import('./courses/ssc-abhishek-reasoning.json') as any,
-  'ssc-abhishek-reasoning-chsl': () => import('./courses/ssc-abhishek-reasoning-chsl.json') as any,
-  'ssc-aditya-maths-v1': () => import('./courses/ssc-aditya-maths-v1.json') as any,
-  'ssc-aditya-maths-v2': () => import('./courses/ssc-aditya-maths-v2.json') as any,
-  'ssc-aman-english-v1': () => import('./courses/ssc-aman-english-v1.json') as any,
-  'ssc-aman-english-v2': () => import('./courses/ssc-aman-english-v2.json') as any,
-  'ssc-bhupendra-hindi': () => import('./courses/ssc-bhupendra-hindi.json') as any,
-  'ssc-careerwill-english': () => import('./courses/ssc-careerwill-english.json') as any,
-  'ssc-careerwill-maths': () => import('./courses/ssc-careerwill-maths.json') as any,
-  'ssc-careerwill-reasoning': () => import('./courses/ssc-careerwill-reasoning.json') as any,
-  'ssc-gagan-maths': () => import('./courses/ssc-gagan-maths.json') as any,
-  'ssc-jaideep-english': () => import('./courses/ssc-jaideep-english.json') as any,
-  'ssc-piyush-reasoning': () => import('./courses/ssc-piyush-reasoning.json') as any,
-  'ssc-rakesh-maths': () => import('./courses/ssc-rakesh-maths.json') as any,
-  'ssc-ranjan-maths': () => import('./courses/ssc-ranjan-maths.json') as any,
-  'ssc-tarun-english': () => import('./courses/ssc-tarun-english.json') as any,
-  'ssc-vikram-reasoning': () => import('./courses/ssc-vikram-reasoning.json') as any,
+  'aarambh-batch-100hr-sw': () => import('./courses/aarambh-batch-100hr-sw.json') as any,
+  'banking-quant-hero': () => import('./courses/banking-quant-hero.json') as any,
+  'beu-1st-year': () => import('./courses/beu-1st-year.json') as any,
+  'computer': () => import('./courses/computer.json') as any,
+  'eng-practice-31': () => import('./courses/eng-practice-31.json') as any,
+  'english-practice': () => import('./courses/english-practice.json') as any,
+  'english-spl': () => import('./courses/english-spl.json') as any,
+  'gate-ece-made-easy-signal-system': () =>
+    import('./courses/gate-ece-made-easy-signal-system.json') as any,
+  'maths-b39': () => import('./courses/maths-b39.json') as any,
+  'maths-special-1': () => import('./courses/maths-special-1.json') as any,
+  'maths-special-vod-2': () => import('./courses/maths-special-vod-2.json') as any,
+  'maths-special-vod': () => import('./courses/maths-special-vod.json') as any,
+  'maths-spl-b42': () => import('./courses/maths-spl-b42.json') as any,
+  'maths-spl-b43': () => import('./courses/maths-spl-b43.json') as any,
+  'maths-spl38': () => import('./courses/maths-spl38.json') as any,
+  'parmar-gk-3-0': () => import('./courses/parmar-gk-3-0.json') as any,
+  'parmar': () => import('./courses/parmar.json') as any,
+  'pratham': () => import('./courses/pratham.json') as any,
+  'reasoning-spl-38': () => import('./courses/reasoning-spl-38.json') as any,
+  'reasoning-spl-58': () => import('./courses/reasoning-spl-58.json') as any,
+  'reasoning': () => import('./courses/reasoning.json') as any,
+  'selection-batch-1': () => import('./courses/selection-batch-1.json') as any,
+  'ssc-complete-vod': () => import('./courses/ssc-complete-vod.json') as any,
+  'vocab-mastery-vod': () => import('./courses/vocab-mastery-vod.json') as any,
 };
 
 export function getCourseById(id: string): Course | undefined {
@@ -40,9 +39,19 @@ export function getCourseById(id: string): Course | undefined {
   return courseDetailsCache.get(id) || INITIAL_COURSES.find((c) => c.id === id);
 }
 
+export function isGovernmentCategory(category?: string): boolean {
+  const c = (category || '').toLowerCase();
+  return c === 'government' || c === 'gov-exams';
+}
+
 export function getCoursesByCategory(categoryId: string): Course[] {
   if (!categoryId || categoryId === 'all') return INITIAL_COURSES;
-  return INITIAL_COURSES.filter((c) => (c.category || '').toLowerCase() === categoryId.toLowerCase());
+  if (categoryId.toLowerCase() === 'government') {
+    return INITIAL_COURSES.filter((c) => isGovernmentCategory(c.category));
+  }
+  return INITIAL_COURSES.filter(
+    (c) => (c.category || '').toLowerCase() === categoryId.toLowerCase()
+  );
 }
 
 export async function loadCourseDetails(courseId: string): Promise<Course | null> {
@@ -104,7 +113,11 @@ export function countCourseStats(course: Course): { videos: number; resources: n
   return { videos, resources };
 }
 
-export function getTotalStats(): { totalVideos: number; totalPDFs: number; totalCourses: number } {
+export function getTotalStats(): {
+  totalVideos: number;
+  totalPDFs: number;
+  totalCourses: number;
+} {
   let totalVideos = 0;
   let totalPDFs = 0;
   for (const c of INITIAL_COURSES) {

@@ -1,101 +1,127 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { spacing, radii } from '../theme/spacing';
-import { GraduationCap, BookOpen, Layers, ArrowRight } from 'lucide-react-native';
+import { GraduationCap, BookOpen, ArrowRight } from 'lucide-react-native';
 
 const MODULES = [
   {
     id: 'ee-ece',
     title: 'EE / ECE / EEE 1st Year',
     teacher: 'UMEED Batch (Engineers Ki Pathshala)',
-    lectures: '180+ Lectures',
+    lectures: 'Core Modules',
     badge: 'Core Branch',
   },
   {
     id: 'chemistry',
     title: 'Engineering Chemistry Group',
     teacher: 'UMEED Batch',
-    lectures: '85+ Lectures',
-    badge: 'Semester 1 & 2',
+    lectures: 'Semester 1 & 2',
+    badge: 'Science & Lab',
   },
   {
     id: 'mechanical',
     title: 'Mechanical Engineering (UMEED)',
     teacher: 'Specialized Faculty',
-    lectures: '60+ Lectures',
-    badge: 'Applied Mechanics',
+    lectures: 'Applied Mechanics',
+    badge: 'Engineering',
   },
 ];
 
 export const BeuScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { colors } = useTheme();
 
   const openBeuCourse = () => {
     navigation.navigate('CourseDetail', {
-      courseId: 'beu-btech-1st-year',
-      title: 'BEU B.Tech 1st Year Engineering',
+      courseId: 'beu-1st-year',
+      title: 'BEU B.Tech 1st Year',
     });
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <View style={styles.iconCircle}>
+          <View
+            style={[
+              styles.iconCircle,
+              { backgroundColor: `${colors.beuBlue}18`, borderColor: `${colors.beuBlue}40` },
+            ]}
+          >
             <GraduationCap size={22} color={colors.beuBlue} />
           </View>
           <View>
-            <Text style={styles.title}>Bihar Engineering University</Text>
-            <Text style={styles.subtitle}>BEU B.Tech 1st Year (UMEED Batch)</Text>
+            <Text style={[styles.title, { color: colors.text }]}>
+              Bihar Engineering University
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.textDim }]}>
+              BEU B.Tech 1st Year • 7 Core Branches
+            </Text>
           </View>
         </View>
 
         {/* Hero Card */}
         <TouchableOpacity
-          style={styles.heroCard}
+          style={[
+            styles.heroCard,
+            { backgroundColor: colors.bgCard, borderColor: colors.border },
+          ]}
           onPress={openBeuCourse}
           activeOpacity={0.8}
         >
-          <View style={styles.heroBadge}>
-            <Text style={styles.heroBadgeText}>OFFICIAL SYLLABUS</Text>
+          <View
+            style={[
+              styles.heroBadge,
+              { backgroundColor: `${colors.beuBlue}20`, borderColor: colors.beuBlue },
+            ]}
+          >
+            <Text style={[styles.heroBadgeText, { color: colors.beuBlue }]}>
+              OFFICIAL SYLLABUS
+            </Text>
           </View>
-          <Text style={styles.heroTitle}>BEU B.Tech 1st Year Engineering</Text>
-          <Text style={styles.heroDesc}>
+          <Text style={[styles.heroTitle, { color: colors.text }]}>BEU B.Tech 1st Year</Text>
+          <Text style={[styles.heroDesc, { color: colors.textMuted }]}>
             Curriculum-aligned 1st Year courses featuring EE/ECE/EEE, Engineering Chemistry,
-            Mechanical Engineering (UMEED) & resources.
+            Mechanical Engineering (UMEED) & PDF resources.
           </Text>
 
-          <View style={styles.heroFooter}>
+          <View style={[styles.heroFooter, { borderTopColor: colors.borderSubtle }]}>
             <View style={styles.metaRow}>
               <BookOpen size={14} color={colors.accent} />
-              <Text style={styles.metaText}>320+ Classes & Notes</Text>
+              <Text style={[styles.metaText, { color: colors.text }]}>
+                865 Classes & 86 Notes
+              </Text>
             </View>
-            <View style={styles.openBtn}>
+            <View style={[styles.openBtn, { backgroundColor: colors.accent }]}>
               <Text style={styles.openBtnText}>Open Syllabus</Text>
               <ArrowRight size={14} color="#ffffff" />
             </View>
           </View>
         </TouchableOpacity>
 
-        <Text style={styles.sectionHeading}>Included Modules</Text>
+        <Text style={[styles.sectionHeading, { color: colors.text }]}>Included Modules</Text>
 
         {MODULES.map((mod) => (
           <TouchableOpacity
             key={mod.id}
-            style={styles.moduleCard}
+            style={[
+              styles.moduleCard,
+              { backgroundColor: colors.bgCard, borderColor: colors.borderSubtle },
+            ]}
             onPress={openBeuCourse}
             activeOpacity={0.7}
           >
             <View style={styles.moduleTop}>
-              <Text style={styles.moduleBadge}>{mod.badge}</Text>
-              <Text style={styles.moduleLectures}>{mod.lectures}</Text>
+              <Text style={[styles.moduleBadge, { color: colors.accent }]}>{mod.badge}</Text>
+              <Text style={[styles.moduleLectures, { color: colors.textDim }]}>{mod.lectures}</Text>
             </View>
-            <Text style={styles.moduleTitle}>{mod.title}</Text>
-            <Text style={styles.moduleTeacher}>{mod.teacher}</Text>
+            <Text style={[styles.moduleTitle, { color: colors.text }]}>{mod.title}</Text>
+            <Text style={[styles.moduleTeacher, { color: colors.textMuted }]}>{mod.teacher}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -106,7 +132,6 @@ export const BeuScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.bg,
   },
   container: {
     padding: spacing.base,
@@ -121,35 +146,27 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radii.md,
-    backgroundColor: `${colors.beuBlue}18`,
     borderWidth: 1,
-    borderColor: `${colors.beuBlue}40`,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
   },
   subtitle: {
     fontSize: 12,
-    color: colors.textDim,
     marginTop: 2,
   },
   heroCard: {
-    backgroundColor: colors.bgCard,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: radii.xl,
     padding: spacing.lg,
     marginBottom: spacing.xl,
   },
   heroBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: `${colors.beuBlue}20`,
     borderWidth: 1,
-    borderColor: colors.beuBlue,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radii.sm,
@@ -158,18 +175,15 @@ const styles = StyleSheet.create({
   heroBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: colors.beuBlue,
     letterSpacing: 0.5,
   },
   heroTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: colors.text,
     marginBottom: 6,
   },
   heroDesc: {
     fontSize: 13,
-    color: colors.textMuted,
     lineHeight: 18,
     marginBottom: spacing.lg,
   },
@@ -179,7 +193,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.borderSubtle,
   },
   metaRow: {
     flexDirection: 'row',
@@ -188,14 +201,12 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: colors.text,
     fontWeight: '600',
   },
   openBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.accent,
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: radii.pill,
@@ -208,13 +219,10 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.text,
     marginBottom: spacing.md,
   },
   moduleCard: {
-    backgroundColor: colors.bgCard,
     borderWidth: 1,
-    borderColor: colors.borderSubtle,
     borderRadius: radii.lg,
     padding: spacing.base,
     marginBottom: spacing.md,
@@ -228,21 +236,17 @@ const styles = StyleSheet.create({
   moduleBadge: {
     fontSize: 10,
     fontWeight: '700',
-    color: colors.accent,
     textTransform: 'uppercase',
   },
   moduleLectures: {
     fontSize: 11,
-    color: colors.textDim,
   },
   moduleTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.text,
     marginBottom: 4,
   },
   moduleTeacher: {
     fontSize: 12,
-    color: colors.textMuted,
   },
 });

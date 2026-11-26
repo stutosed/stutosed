@@ -1,14 +1,18 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { BottomTabNavigator } from './BottomTabNavigator';
 import { CourseDetailScreen } from '../screens/CourseDetailScreen';
 import { WatchScreen } from '../screens/WatchScreen';
+import { GateScreen } from '../screens/GateScreen';
+import { AuthScreen } from '../screens/AuthScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator: React.FC = () => {
+  const { colors } = useTheme();
+
   return (
     <Stack.Navigator
       screenOptions={{
@@ -20,6 +24,12 @@ export const RootNavigator: React.FC = () => {
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
       <Stack.Screen name="Watch" component={WatchScreen} />
+      <Stack.Screen name="Gate" component={GateScreen} />
+      <Stack.Screen
+        name="Auth"
+        component={AuthScreen}
+        options={{ animation: 'slide_from_bottom' }}
+      />
     </Stack.Navigator>
   );
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LectureItem } from '../types';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { spacing, radii } from '../theme/spacing';
 import { Play, FileText, CheckCircle2 } from 'lucide-react-native';
 
@@ -20,19 +20,31 @@ export const LectureRow: React.FC<LectureRowProps> = ({
   onPress,
   onToggleWatched,
 }) => {
+  const { colors } = useTheme();
   const isPdf = item.type === 'pdf';
 
   return (
     <TouchableOpacity
-      style={[styles.row, isWatched && styles.watchedRow]}
+      style={[
+        styles.row,
+        {
+          backgroundColor: isWatched ? `${colors.green}08` : colors.bgCard,
+          borderColor: isWatched ? colors.greenDim : colors.borderSubtle,
+        },
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
     >
       <View style={styles.indexBox}>
-        <Text style={styles.indexText}>{index + 1}</Text>
+        <Text style={[styles.indexText, { color: colors.textDim }]}>{index + 1}</Text>
       </View>
 
-      <View style={[styles.typeBadge, isPdf ? styles.pdfBadge : styles.videoBadge]}>
+      <View
+        style={[
+          styles.typeBadge,
+          { backgroundColor: isPdf ? `${colors.orange}15` : `${colors.accent}15` },
+        ]}
+      >
         {isPdf ? (
           <FileText size={14} color={colors.orange} />
         ) : (
@@ -42,13 +54,16 @@ export const LectureRow: React.FC<LectureRowProps> = ({
 
       <View style={styles.info}>
         <Text
-          style={[styles.label, isWatched && styles.watchedLabel]}
+          style={[
+            styles.label,
+            { color: isWatched ? colors.textMuted : colors.text },
+          ]}
           numberOfLines={2}
         >
           {item.label}
         </Text>
         {item.subject ? (
-          <Text style={styles.subject} numberOfLines={1}>
+          <Text style={[styles.subject, { color: colors.textDim }]} numberOfLines={1}>
             {item.subject}
           </Text>
         ) : null}
@@ -78,15 +93,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.base,
-    backgroundColor: colors.bgCard,
     borderWidth: 1,
-    borderColor: colors.borderSubtle,
     borderRadius: radii.md,
     marginBottom: spacing.sm,
-  },
-  watchedRow: {
-    borderColor: colors.greenDim,
-    backgroundColor: `${colors.green}08`,
   },
   indexBox: {
     width: 24,
@@ -96,7 +105,6 @@ const styles = StyleSheet.create({
   indexText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textDim,
   },
   typeBadge: {
     width: 32,
@@ -106,12 +114,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: spacing.md,
   },
-  videoBadge: {
-    backgroundColor: `${colors.accent}15`,
-  },
-  pdfBadge: {
-    backgroundColor: `${colors.orange}15`,
-  },
   info: {
     flex: 1,
     marginRight: spacing.sm,
@@ -119,15 +121,10 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.text,
     lineHeight: 18,
-  },
-  watchedLabel: {
-    color: colors.textMuted,
   },
   subject: {
     fontSize: 11,
-    color: colors.textDim,
     marginTop: 2,
   },
   checkButton: {

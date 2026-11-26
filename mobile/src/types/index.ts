@@ -71,6 +71,17 @@ export interface UserProfile {
   avatar_url?: string;
 }
 
+export interface CourseMemory {
+  courseId: string;
+  courseName?: string;
+  lectureTitle?: string;
+  tabId: string;
+  url: string;
+  timestamp: number;
+}
+
+export type ThemeMode = 'light' | 'dark';
+
 export type RootStackParamList = {
   MainTabs: undefined;
   CourseDetail: { courseId: string; title: string };
@@ -78,17 +89,16 @@ export type RootStackParamList = {
     lecture: LectureItem;
     courseId: string;
     courseTitle: string;
+    tabId?: string;
   };
-  PdfViewer: {
-    url: string;
-    title: string;
-  };
+  Gate: undefined;
+  Auth: { mode?: 'signin' | 'signup' } | undefined;
 };
 
 export type BottomTabParamList = {
   HomeTab: undefined;
   GovtTab: undefined;
   BeuTab: undefined;
-  GateTab: undefined;
   LibraryTab: undefined;
+  ProfileTab: undefined;
 };

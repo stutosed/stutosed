@@ -2,6 +2,7 @@
   "expo": {
     "name": "stutosed",
     "slug": "stutosed",
+    "scheme": "stutosed",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -26,6 +27,9 @@
         "ACCESS_NETWORK_STATE"
       ]
     },
-    "plugins": []
+    "plugins": [
+      "expo-secure-store",
+      "expo-web-browser"
+    ]
   }
 }

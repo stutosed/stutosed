@@ -1,61 +1,134 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useMemo } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import { getCourseById } from '../data/coursesData';
+import { CourseCard } from '../components/CourseCard';
 import { spacing, radii } from '../theme/spacing';
-import { BookmarkCheck, Clock, BookOpen, ArrowRight } from 'lucide-react-native';
+import { BookmarkCheck, CheckCircle2, RefreshCw, ArrowRight, BookOpen } from 'lucide-react-native';
 
 export const LibraryScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { colors } = useTheme();
+  const {
+    user,
+    isSyncing,
+    watchedMap,
+    bookmarks,
+    refreshSessionAndSync,
+  } = useAuth();
+
+  const watchedCount = Object.keys(watchedMap).length;
+
+  const bookmarkedCourses = useMemo(() => {
+    return bookmarks
+      .map((id) => getCourseById(id))
+      .filter((c): c is NonNullable<typeof c> => Boolean(c));
+  }, [bookmarks]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <View style={styles.iconCircle}>
+          <View
+            style={[
+              styles.iconCircle,
+              { backgroundColor: `${colors.accent}18`, borderColor: `${colors.accent}40` },
+            ]}
+          >
             <BookmarkCheck size={22} color={colors.accent} />
           </View>
-          <View>
-            <Text style={styles.title}>My Library</Text>
-            <Text style={styles.subtitle}>Saved notes, lectures & history</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.title, { color: colors.text }]}>My Library</Text>
+            <Text style={[styles.subtitle, { color: colors.textDim }]}>
+              {user ? 'Synced with Turso Cloud' : 'Saved locally on device'}
+            </Text>
           </View>
-        </View>
-
-        {/* Quick Stats Banner */}
-        <View style={styles.statsBanner}>
-          <View style={styles.statBox}>
-            <Clock size={16} color={colors.accent} />
-            <Text style={styles.statValue}>Instant</Text>
-            <Text style={styles.statLabel}>Cloud Sync</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statBox}>
-            <BookOpen size={16} color={colors.green} />
-            <Text style={styles.statValue}>100%</Text>
-            <Text style={styles.statLabel}>Ad-Free</Text>
-          </View>
-        </View>
-
-        {/* Continue Learning Prompt */}
-        <View style={styles.emptyCard}>
-          <BookmarkCheck size={36} color={colors.accent} />
-          <Text style={styles.emptyTitle}>Ready to Study?</Text>
-          <Text style={styles.emptySubtitle}>
-            Your watched lectures, bookmarks, and completed syllabus modules will appear here
-            automatically.
-          </Text>
-
           <TouchableOpacity
-            style={styles.exploreBtn}
-            onPress={() => navigation.navigate('MainTabs')}
-            activeOpacity={0.8}
+            style={[
+              styles.syncBtn,
+              { backgroundColor: colors.bgCard, borderColor: colors.border },
+            ]}
+            onPress={refreshSessionAndSync}
+            disabled={isSyncing}
           >
-            <Text style={styles.exploreBtnText}>Browse Courses</Text>
-            <ArrowRight size={14} color="#ffffff" />
+            <RefreshCw size={14} color={colors.accent} />
           </TouchableOpacity>
         </View>
+
+        {/* Stats Banner */}
+        <View
+          style={[
+            styles.statsBanner,
+            { backgroundColor: colors.bgCard, borderColor: colors.border },
+          ]}
+        >
+          <View style={styles.statBox}>
+            <CheckCircle2 size={18} color={colors.green} />
+            <Text style={[styles.statValue, { color: colors.text }]}>{watchedCount}</Text>
+            <Text style={[styles.statLabel, { color: colors.textDim }]}>Watched Lectures</Text>
+          </View>
+          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.statBox}>
+            <BookmarkCheck size={18} color={colors.accent} />
+            <Text style={[styles.statValue, { color: colors.text }]}>
+              {bookmarkedCourses.length}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.textDim }]}>Saved Courses</Text>
+          </View>
+        </View>
+
+        {/* Bookmarked Courses */}
+        <Text style={[styles.sectionHeading, { color: colors.text }]}>Bookmarked Courses</Text>
+
+        {bookmarkedCourses.length > 0 ? (
+          bookmarkedCourses.map((course) => (
+            <CourseCard
+              key={course.id}
+              course={course}
+              onPress={() =>
+                navigation.navigate('CourseDetail', {
+                  courseId: course.id,
+                  title: course.name,
+                })
+              }
+            />
+          ))
+        ) : (
+          <View
+            style={[
+              styles.emptyCard,
+              { backgroundColor: colors.bgCard, borderColor: colors.border },
+            ]}
+          >
+            <BookOpen size={34} color={colors.accent} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+              No Bookmarked Courses Yet
+            </Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
+              Tap the bookmark icon on any course card to save it here for instant access.
+            </Text>
+
+            <TouchableOpacity
+              style={[styles.exploreBtn, { backgroundColor: colors.accent }]}
+              onPress={() => navigation.navigate('MainTabs')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.exploreBtnText}>Explore Courses</Text>
+              <ArrowRight size={14} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -64,7 +137,6 @@ export const LibraryScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.bg,
   },
   container: {
     padding: spacing.base,
@@ -79,29 +151,31 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radii.md,
-    backgroundColor: `${colors.accent}18`,
     borderWidth: 1,
-    borderColor: `${colors.accent}40`,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
   },
   subtitle: {
     fontSize: 12,
-    color: colors.textDim,
     marginTop: 2,
+  },
+  syncBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   statsBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bgCard,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     paddingVertical: spacing.md,
     marginBottom: spacing.xl,
   },
@@ -112,22 +186,22 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    height: 32,
-    backgroundColor: colors.border,
+    height: 36,
   },
   statValue: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.text,
+    fontSize: 18,
+    fontWeight: '800',
   },
   statLabel: {
     fontSize: 11,
-    color: colors.textDim,
+  },
+  sectionHeading: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: spacing.md,
   },
   emptyCard: {
-    backgroundColor: colors.bgCard,
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: radii.xl,
     padding: spacing.xl,
     alignItems: 'center',
@@ -135,13 +209,11 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
-    color: colors.text,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 18,
     maxWidth: 280,
@@ -150,7 +222,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: colors.accent,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: radii.pill,

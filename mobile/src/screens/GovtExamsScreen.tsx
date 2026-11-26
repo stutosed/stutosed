@@ -6,16 +6,16 @@ import {
   FlatList,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
-import { colors } from '../theme/colors';
+import { useTheme } from '../context/ThemeContext';
 import { spacing, radii } from '../theme/spacing';
 import { CourseCard } from '../components/CourseCard';
-import { INITIAL_COURSES } from '../data/coursesData';
-import { Landmark, Layers } from 'lucide-react-native';
+import { INITIAL_COURSES, isGovernmentCategory } from '../data/coursesData';
+import { Landmark } from 'lucide-react-native';
 
 const DISCIPLINES = [
   { id: 'all', label: 'All Govt' },
@@ -28,59 +28,79 @@ const DISCIPLINES = [
 
 export const GovtExamsScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { colors } = useTheme();
   const [selectedDiscipline, setSelectedDiscipline] = useState('all');
 
   const govtCourses = useMemo(() => {
-    const list = INITIAL_COURSES.filter(
-      (c) => (c.category || '').toLowerCase() === 'government'
-    );
+    const list = INITIAL_COURSES.filter((c) => isGovernmentCategory(c.category));
 
     if (selectedDiscipline === 'all') return list;
 
     return list.filter((c) => {
       const name = (c.name + ' ' + c.subname + ' ' + c.subject + ' ' + c.teacher).toLowerCase();
       if (selectedDiscipline === 'parmar') return name.includes('parmar');
-      if (selectedDiscipline === 'maths') return name.includes('math');
+      if (selectedDiscipline === 'maths') return name.includes('math') || name.includes('quant');
       if (selectedDiscipline === 'reasoning') return name.includes('reasoning');
-      if (selectedDiscipline === 'english') return name.includes('english');
-      if (selectedDiscipline === 'gs') return name.includes('gk') || name.includes('general') || name.includes('science');
+      if (selectedDiscipline === 'english') return name.includes('english') || name.includes('vocab');
+      if (selectedDiscipline === 'gs')
+        return name.includes('gk') || name.includes('general') || name.includes('computer');
       return true;
     });
   }, [selectedDiscipline]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
       <View style={styles.header}>
-        <View style={styles.iconCircle}>
+        <View
+          style={[
+            styles.iconCircle,
+            { backgroundColor: `${colors.govtIndigo}18`, borderColor: `${colors.govtIndigo}40` },
+          ]}
+        >
           <Landmark size={20} color={colors.govtIndigo} />
         </View>
         <View>
-          <Text style={styles.title}>Government Exams</Text>
-          <Text style={styles.subtitle}>SSC CGL, CHSL, MTS, Railway & State batches</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Government Exams</Text>
+          <Text style={[styles.subtitle, { color: colors.textDim }]}>
+            SSC CGL, CHSL, MTS, Railway & Banking batches
+          </Text>
         </View>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
-      >
-        {DISCIPLINES.map((d) => {
-          const isActive = selectedDiscipline === d.id;
-          return (
-            <TouchableOpacity
-              key={d.id}
-              style={[styles.pill, isActive && styles.pillActive]}
-              onPress={() => setSelectedDiscipline(d.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.pillText, isActive && styles.pillTextActive]}>
-                {d.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      <View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterRow}
+        >
+          {DISCIPLINES.map((d) => {
+            const isActive = selectedDiscipline === d.id;
+            return (
+              <TouchableOpacity
+                key={d.id}
+                style={[
+                  styles.pill,
+                  {
+                    backgroundColor: isActive ? colors.govtIndigo : colors.bgCard,
+                    borderColor: isActive ? colors.govtIndigo : colors.border,
+                  },
+                ]}
+                onPress={() => setSelectedDiscipline(d.id)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.pillText,
+                    { color: isActive ? '#ffffff' : colors.textMuted },
+                  ]}
+                >
+                  {d.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       <FlatList
         data={govtCourses}
@@ -105,7 +125,6 @@ export const GovtExamsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.bg,
   },
   header: {
     flexDirection: 'row',
@@ -119,20 +138,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radii.md,
-    backgroundColor: `${colors.govtIndigo}18`,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: `${colors.govtIndigo}40`,
   },
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
   },
   subtitle: {
     fontSize: 12,
-    color: colors.textDim,
     marginTop: 2,
   },
   filterRow: {
@@ -144,21 +159,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: radii.pill,
-    backgroundColor: colors.bgCard,
     borderWidth: 1,
-    borderColor: colors.border,
-  },
-  pillActive: {
-    backgroundColor: colors.govtIndigo,
-    borderColor: colors.govtIndigo,
   },
   pillText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textMuted,
-  },
-  pillTextActive: {
-    color: '#ffffff',
   },
   listContent: {
     paddingHorizontal: spacing.base,
