@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,20 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
+import * as SecureStore from 'expo-secure-store';
+import { getSetCookie, storageAdapter } from '@better-auth/expo/client';
 import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { authClient } from '../lib/auth-client';
+import { API_BASE_URL } from '../lib/config';
 import { spacing, radii } from '../theme/spacing';
 import {
   ArrowLeft,
@@ -33,6 +38,14 @@ import {
 } from 'lucide-react-native';
 
 type AuthRouteProp = RouteProp<RootStackParamList, 'Auth'>;
+
+const managedStorage = storageAdapter(SecureStore);
+const COOKIE_STORAGE_KEY = 'stutosed_cookie';
+
+function generateHandoffToken(): string {
+  const part = () => Math.random().toString(36).slice(2, 10);
+  return `mob_${Date.now().toString(36)}_${part()}${part()}`;
+}
 
 export const AuthScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -50,6 +63,22 @@ export const AuthScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'error' | 'success' } | null>(null);
 
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const activeTokenRef = useRef<string | null>(null);
+  const finalizedRef = useRef<boolean>(false);
+
+  const stopPolling = () => {
+    if (pollTimerRef.current) {
+      clearInterval(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+    activeTokenRef.current = null;
+  };
+
+  useEffect(() => {
+    return () => stopPolling();
+  }, []);
+
   const passwordStrength = useMemo(() => {
     if (!password) return { score: 0, label: '', color: 'transparent' };
     let score = 0;
@@ -63,33 +92,122 @@ export const AuthScreen: React.FC = () => {
     return { score: 3, label: 'Strong', color: colors.green };
   }, [password, colors]);
 
+  const checkHandoffAndFinalize = async (token: string): Promise<boolean> => {
+    if (finalizedRef.current) return true;
+    try {
+      const pollRes = await fetch(
+        `${API_BASE_URL}/api/v1/mobile-auth?action=poll&token=${encodeURIComponent(token)}`
+      );
+      if (!pollRes.ok) return false;
+      const json = await pollRes.json();
+      const payload = json?.data;
+
+      if (payload?.status === 'ready' && payload?.setCookie) {
+        finalizedRef.current = true;
+        stopPolling();
+        const prevCookie = await managedStorage.getItemAsync(COOKIE_STORAGE_KEY);
+        const mergedCookie = getSetCookie(payload.setCookie, prevCookie ?? undefined);
+        await managedStorage.setItemAsync(COOKIE_STORAGE_KEY, mergedCookie);
+
+        try {
+          if (Platform.OS !== 'android') {
+            WebBrowser.dismissBrowser();
+          }
+        } catch {}
+
+        setMessage({ text: 'Signed in! Syncing your study data...', type: 'success' });
+        await refreshSessionAndSync();
+        setLoading(false);
+        if (navigation.canGoBack()) navigation.goBack();
+        return true;
+      }
+    } catch {}
+    return false;
+  };
+
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
       setMessage(null);
-      const redirectUrl = Linking.createURL('/');
-      const res = await authClient.signIn.social({
-        provider: 'google',
-        callbackURL: redirectUrl,
+      stopPolling();
+      finalizedRef.current = false;
+
+      const token = generateHandoffToken();
+      activeTokenRef.current = token;
+      const appRedirect = Linking.createURL('/');
+      const bridgeCallbackURL = `${API_BASE_URL}/api/v1/mobile-auth?action=complete&token=${encodeURIComponent(
+        token
+      )}&redirect=${encodeURIComponent(appRedirect)}`;
+
+      const socialRes = await fetch(`${API_BASE_URL}/api/auth/sign-in/social`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: API_BASE_URL,
+        },
+        body: JSON.stringify({
+          provider: 'google',
+          callbackURL: bridgeCallbackURL,
+        }),
       });
-      if (res?.error) {
+
+      const socialJson = await socialRes.json().catch(() => null);
+      if (!socialRes.ok || !socialJson?.url) {
+        stopPolling();
         setMessage({
-          text: res.error.message || 'Google authentication failed.',
+          text: socialJson?.message || 'Could not start Google authentication.',
           type: 'error',
         });
-      } else {
-        await refreshSessionAndSync();
-        const latest = await authClient.getSession();
-        if (latest?.data?.user) {
-          if (navigation.canGoBack()) navigation.goBack();
-        } else {
-          setMessage({
-            text: 'Google sign-in was cancelled or could not complete.',
-            type: 'error',
-          });
+        setLoading(false);
+        return;
+      }
+
+      const proxyURL = `${API_BASE_URL}/api/auth/expo-authorization-proxy?authorizationURL=${encodeURIComponent(
+        socialJson.url
+      )}`;
+
+      // Start polling while Chrome Custom Tab completes Google OAuth
+      pollTimerRef.current = setInterval(() => {
+        if (activeTokenRef.current === token) {
+          checkHandoffAndFinalize(token);
         }
+      }, 1500);
+
+      const appStateSub = AppState.addEventListener('change', (state) => {
+        if (state === 'active' && activeTokenRef.current === token) {
+          checkHandoffAndFinalize(token);
+        }
+      });
+
+      try {
+        await WebBrowser.openAuthSessionAsync(proxyURL, appRedirect);
+      } finally {
+        appStateSub.remove();
+      }
+
+      // Final check right after browser closes / returns
+      if (!finalizedRef.current) {
+        const completed = await checkHandoffAndFinalize(token);
+        stopPolling();
+
+        if (!completed && !finalizedRef.current) {
+          const latest = await authClient.getSession();
+          if (latest?.data?.user) {
+            finalizedRef.current = true;
+            await refreshSessionAndSync();
+            if (navigation.canGoBack()) navigation.goBack();
+          } else {
+            setMessage({
+              text: 'Google sign-in was cancelled or not completed yet.',
+              type: 'error',
+            });
+          }
+        }
+      } else {
+        stopPolling();
       }
     } catch (err: any) {
+      stopPolling();
       setMessage({
         text: err?.message || 'Google authentication failed.',
         type: 'error',
@@ -140,7 +258,7 @@ export const AuthScreen: React.FC = () => {
         await refreshSessionAndSync();
         setTimeout(() => {
           if (navigation.canGoBack()) navigation.goBack();
-        }, 500);
+        }, 400);
       } else {
         const res = await authClient.signIn.email({
           email: cleanEmail,
@@ -160,7 +278,7 @@ export const AuthScreen: React.FC = () => {
         await refreshSessionAndSync();
         setTimeout(() => {
           if (navigation.canGoBack()) navigation.goBack();
-        }, 500);
+        }, 400);
       }
     } catch (err: any) {
       setMessage({ text: err?.message || 'Authentication error occurred.', type: 'error' });
