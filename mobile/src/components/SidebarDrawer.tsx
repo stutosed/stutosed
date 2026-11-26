@@ -10,6 +10,7 @@ import {
   Image,
   Animated,
   Easing,
+  PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
@@ -112,6 +113,41 @@ export const SidebarDrawer: React.FC = () => {
     }, 90);
   };
 
+  const closeDrawerRef = useRef(closeDrawer);
+  closeDrawerRef.current = closeDrawer;
+
+  const drawerPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponderCapture: (_, gesture) =>
+        gesture.dx < -16 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.5,
+      onPanResponderMove: (_, gesture) => {
+        const clampedX = Math.max(-DRAWER_WIDTH, Math.min(0, gesture.dx));
+        slideX.setValue(clampedX);
+        backdropOpacity.setValue(1 + clampedX / DRAWER_WIDTH);
+      },
+      onPanResponderRelease: (_, gesture) => {
+        if (gesture.dx < -65 || gesture.vx < -0.4) {
+          closeDrawerRef.current();
+        } else {
+          Animated.parallel([
+            Animated.timing(slideX, {
+              toValue: 0,
+              duration: 180,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }),
+            Animated.timing(backdropOpacity, {
+              toValue: 1,
+              duration: 160,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        }
+      },
+    })
+  ).current;
+
   return (
     <Modal
       visible={modalVisible}
@@ -120,7 +156,7 @@ export const SidebarDrawer: React.FC = () => {
       statusBarTranslucent
       onRequestClose={closeDrawer}
     >
-      <View style={styles.overlayRoot}>
+      <View style={styles.overlayRoot} {...drawerPanResponder.panHandlers}>
         {/* Animated Backdrop */}
         <Animated.View style={[styles.backdropWrap, { opacity: backdropOpacity }]}>
           <Pressable style={styles.backdropPress} onPress={closeDrawer} />

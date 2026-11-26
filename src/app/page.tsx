@@ -742,6 +742,50 @@ export default function HomePage() {
     activeView,
   ]);
 
+  // Mobile touch gesture: swipe left-to-right to open sidebar, right-to-left to close
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.innerWidth > 768 || e.touches.length !== 1) {
+        tracking = false;
+        return;
+      }
+      if (selectedCourse || pdfModalData || privacyModalState.isOpen || playerPlaylist) {
+        tracking = false;
+        return;
+      }
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      tracking = true;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!tracking || e.changedTouches.length !== 1) return;
+      tracking = false;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+
+      if (Math.abs(dx) < Math.abs(dy) * 1.5) return;
+
+      if (!isSidebarOpen && dx > 65 && startX < window.innerWidth * 0.7) {
+        setIsSidebarOpen(true);
+      } else if (isSidebarOpen && dx < -55) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isSidebarOpen, selectedCourse, pdfModalData, privacyModalState.isOpen, playerPlaylist]);
+
   // Toggle Theme
   const handleToggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';

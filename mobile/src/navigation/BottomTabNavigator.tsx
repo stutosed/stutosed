@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, StyleSheet, PanResponder } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useDrawer } from '../context/DrawerContext';
 import { HomeScreen } from '../screens/HomeScreen';
 import { CoursesScreen } from '../screens/CoursesScreen';
 import { LibraryScreen } from '../screens/LibraryScreen';
@@ -15,6 +16,47 @@ const Tab = createBottomTabNavigator<BottomTabParamList>();
 export const BottomTabNavigator: React.FC = () => {
   const { colors } = useTheme();
   const { user } = useAuth();
+  const { isOpen, openDrawer } = useDrawer();
+
+  const isOpenRef = useRef(isOpen);
+  isOpenRef.current = isOpen;
+  const openDrawerRef = useRef(openDrawer);
+  openDrawerRef.current = openDrawer;
+  const swipeTriggeredRef = useRef(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponderCapture: (_, gesture) => {
+        if (isOpenRef.current) return false;
+        return (
+          gesture.dx > 22 &&
+          Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.7
+        );
+      },
+      onPanResponderGrant: () => {
+        swipeTriggeredRef.current = false;
+      },
+      onPanResponderMove: (_, gesture) => {
+        if (!swipeTriggeredRef.current && gesture.dx > 40) {
+          swipeTriggeredRef.current = true;
+          openDrawerRef.current();
+        }
+      },
+      onPanResponderRelease: (_, gesture) => {
+        if (
+          !swipeTriggeredRef.current &&
+          (gesture.dx > 50 || (gesture.dx > 28 && gesture.vx > 0.35))
+        ) {
+          openDrawerRef.current();
+        }
+        swipeTriggeredRef.current = false;
+      },
+      onPanResponderTerminate: () => {
+        swipeTriggeredRef.current = false;
+      },
+    })
+  ).current;
 
   const renderIcon = (
     focused: boolean,
@@ -30,56 +72,61 @@ export const BottomTabNavigator: React.FC = () => {
   );
 
   return (
-    <Tab.Navigator
-      backBehavior="history"
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: [
-          styles.tabBar,
-          { backgroundColor: colors.bgCard, borderTopColor: colors.border },
-        ],
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textDim,
-        tabBarLabelStyle: styles.tabLabel,
-      }}
-    >
-      <Tab.Screen
-        name="HomeTab"
-        component={HomeScreen}
-        options={{
-          tabBarLabel: 'Home',
-          tabBarIcon: ({ focused, color }) => renderIcon(focused, Home, color),
+    <View style={styles.swipeContainer} {...panResponder.panHandlers}>
+      <Tab.Navigator
+        backBehavior="history"
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: [
+            styles.tabBar,
+            { backgroundColor: colors.bgCard, borderTopColor: colors.border },
+          ],
+          tabBarActiveTintColor: colors.accent,
+          tabBarInactiveTintColor: colors.textDim,
+          tabBarLabelStyle: styles.tabLabel,
         }}
-      />
-      <Tab.Screen
-        name="CoursesTab"
-        component={CoursesScreen}
-        options={{
-          tabBarLabel: 'Courses',
-          tabBarIcon: ({ focused, color }) => renderIcon(focused, Layers, color),
-        }}
-      />
-      <Tab.Screen
-        name="LibraryTab"
-        component={LibraryScreen}
-        options={{
-          tabBarLabel: 'Library',
-          tabBarIcon: ({ focused, color }) => renderIcon(focused, BookOpen, color),
-        }}
-      />
-      <Tab.Screen
-        name="ProfileTab"
-        component={ProfileScreen}
-        options={{
-          tabBarLabel: user ? 'Profile' : 'Login',
-          tabBarIcon: ({ focused, color }) => renderIcon(focused, User, color),
-        }}
-      />
-    </Tab.Navigator>
+      >
+        <Tab.Screen
+          name="HomeTab"
+          component={HomeScreen}
+          options={{
+            tabBarLabel: 'Home',
+            tabBarIcon: ({ focused, color }) => renderIcon(focused, Home, color),
+          }}
+        />
+        <Tab.Screen
+          name="CoursesTab"
+          component={CoursesScreen}
+          options={{
+            tabBarLabel: 'Courses',
+            tabBarIcon: ({ focused, color }) => renderIcon(focused, Layers, color),
+          }}
+        />
+        <Tab.Screen
+          name="LibraryTab"
+          component={LibraryScreen}
+          options={{
+            tabBarLabel: 'Library',
+            tabBarIcon: ({ focused, color }) => renderIcon(focused, BookOpen, color),
+          }}
+        />
+        <Tab.Screen
+          name="ProfileTab"
+          component={ProfileScreen}
+          options={{
+            tabBarLabel: user ? 'Profile' : 'Login',
+            tabBarIcon: ({ focused, color }) => renderIcon(focused, User, color),
+          }}
+        />
+      </Tab.Navigator>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  swipeContainer: {
+    flex: 1,
+  },
   tabBar: {
     borderTopWidth: 1,
     height: 64,
