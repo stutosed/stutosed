@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
@@ -16,6 +16,19 @@ const Tab = createBottomTabNavigator<BottomTabParamList>();
 export const BottomTabNavigator: React.FC = () => {
   const { colors } = useTheme();
   const { user } = useAuth();
+
+  const renderIcon = (
+    focused: boolean,
+    IconComponent: typeof Home,
+    color: string
+  ) => (
+    <View style={styles.iconWrap}>
+      {focused && (
+        <View style={[styles.activeBar, { backgroundColor: colors.accent }]} />
+      )}
+      <IconComponent size={20} strokeWidth={focused ? 2.4 : 1.8} color={color} />
+    </View>
+  );
 
   return (
     <Tab.Navigator
@@ -35,7 +48,7 @@ export const BottomTabNavigator: React.FC = () => {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => <Home size={size || 20} color={color} />,
+          tabBarIcon: ({ focused, color }) => renderIcon(focused, Home, color),
         }}
       />
       <Tab.Screen
@@ -43,7 +56,7 @@ export const BottomTabNavigator: React.FC = () => {
         component={GovtExamsScreen}
         options={{
           tabBarLabel: 'Govt',
-          tabBarIcon: ({ color, size }) => <Landmark size={size || 20} color={color} />,
+          tabBarIcon: ({ focused, color }) => renderIcon(focused, Landmark, color),
         }}
       />
       <Tab.Screen
@@ -51,7 +64,7 @@ export const BottomTabNavigator: React.FC = () => {
         component={BeuScreen}
         options={{
           tabBarLabel: 'B.Tech',
-          tabBarIcon: ({ color, size }) => <GraduationCap size={size || 20} color={color} />,
+          tabBarIcon: ({ focused, color }) => renderIcon(focused, GraduationCap, color),
         }}
       />
       <Tab.Screen
@@ -59,15 +72,15 @@ export const BottomTabNavigator: React.FC = () => {
         component={LibraryScreen}
         options={{
           tabBarLabel: 'Library',
-          tabBarIcon: ({ color, size }) => <BookOpen size={size || 20} color={color} />,
+          tabBarIcon: ({ focused, color }) => renderIcon(focused, BookOpen, color),
         }}
       />
       <Tab.Screen
         name="ProfileTab"
         component={ProfileScreen}
         options={{
-          tabBarLabel: user ? 'Profile' : 'Account',
-          tabBarIcon: ({ color, size }) => <User size={size || 20} color={color} />,
+          tabBarLabel: user ? 'Profile' : 'Login',
+          tabBarIcon: ({ focused, color }) => renderIcon(focused, User, color),
         }}
       />
     </Tab.Navigator>
@@ -77,12 +90,28 @@ export const BottomTabNavigator: React.FC = () => {
 const styles = StyleSheet.create({
   tabBar: {
     borderTopWidth: 1,
-    height: 62,
+    height: 64,
     paddingBottom: 8,
-    paddingTop: 6,
+    paddingTop: 0,
   },
   tabLabel: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: '600',
+    marginTop: 2,
+  },
+  iconWrap: {
+    width: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 6,
+    position: 'relative',
+  },
+  activeBar: {
+    position: 'absolute',
+    top: 0,
+    width: 28,
+    height: 3,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
   },
 });

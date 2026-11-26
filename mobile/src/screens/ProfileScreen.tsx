@@ -14,9 +14,10 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useDrawer } from '../context/DrawerContext';
+import { Header } from '../components/Header';
 import { spacing, radii } from '../theme/spacing';
 import {
-  User,
   LogOut,
   LogIn,
   Sun,
@@ -28,6 +29,8 @@ import {
   ShieldCheck,
   ChevronRight,
   Sparkles,
+  HelpCircle,
+  Scale,
 } from 'lucide-react-native';
 
 function getInitials(name: string): string {
@@ -39,7 +42,8 @@ function getInitials(name: string): string {
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { theme, isDark, colors, toggleTheme } = useTheme();
+  const { isDark, colors, toggleTheme } = useTheme();
+  const { openPrivacyModal } = useDrawer();
   const {
     user,
     studentId,
@@ -55,7 +59,8 @@ export const ProfileScreen: React.FC = () => {
   const displayName = user?.full_name || 'Guest Student';
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
+      <Header />
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={[styles.pageTitle, { color: colors.text }]}>Profile & Settings</Text>
 
@@ -226,6 +231,48 @@ export const ProfileScreen: React.FC = () => {
                 </Text>
                 <Text style={[styles.menuSubtitle, { color: colors.textDim }]}>
                   Made Easy 36 Lectures Portal
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={colors.textDim} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuItem, { borderTopWidth: 1, borderTopColor: colors.borderSubtle }]}
+            onPress={() => navigation.navigate('Help')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <View style={[styles.menuIconBox, { backgroundColor: 'rgba(204,120,92,0.14)' }]}>
+                <HelpCircle size={18} color={colors.accent} />
+              </View>
+              <View>
+                <Text style={[styles.menuTitle, { color: colors.text }]}>
+                  Help &amp; Community Support
+                </Text>
+                <Text style={[styles.menuSubtitle, { color: colors.textDim }]}>
+                  FAQs, Telegram channel &amp; direct support
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={colors.textDim} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuItem, { borderTopWidth: 1, borderTopColor: colors.borderSubtle }]}
+            onPress={() => openPrivacyModal('privacy')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <View style={[styles.menuIconBox, { backgroundColor: 'rgba(22,163,74,0.12)' }]}>
+                <Scale size={18} color={colors.green} />
+              </View>
+              <View>
+                <Text style={[styles.menuTitle, { color: colors.text }]}>
+                  Privacy Policy &amp; Terms
+                </Text>
+                <Text style={[styles.menuSubtitle, { color: colors.textDim }]}>
+                  Student-first fair use &amp; transparency
                 </Text>
               </View>
             </View>

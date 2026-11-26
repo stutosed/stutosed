@@ -92,6 +92,7 @@ export type RootStackParamList = {
     tabId?: string;
   };
   Gate: undefined;
+  Help: undefined;
   Auth: { mode?: 'signin' | 'signup' } | undefined;
 };
 

@@ -6,6 +6,7 @@ import { BottomTabNavigator } from './BottomTabNavigator';
 import { CourseDetailScreen } from '../screens/CourseDetailScreen';
 import { WatchScreen } from '../screens/WatchScreen';
 import { GateScreen } from '../screens/GateScreen';
+import { HelpScreen } from '../screens/HelpScreen';
 import { AuthScreen } from '../screens/AuthScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -25,6 +26,7 @@ export const RootNavigator: React.FC = () => {
       <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
       <Stack.Screen name="Watch" component={WatchScreen} />
       <Stack.Screen name="Gate" component={GateScreen} />
+      <Stack.Screen name="Help" component={HelpScreen} />
       <Stack.Screen
         name="Auth"
         component={AuthScreen}
