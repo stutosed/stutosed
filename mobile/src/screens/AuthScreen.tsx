@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as Linking from 'expo-linking';
 import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -66,9 +67,10 @@ export const AuthScreen: React.FC = () => {
     try {
       setLoading(true);
       setMessage(null);
+      const redirectUrl = Linking.createURL('/');
       const res = await authClient.signIn.social({
         provider: 'google',
-        callbackURL: '/',
+        callbackURL: redirectUrl,
       });
       if (res?.error) {
         setMessage({

@@ -66,7 +66,9 @@ function createAuthInstance(runtimeEnv: RuntimeEnv) {
     },
     trustedOrigins: [
       'stutosed://',
+      'stutosed://**',
       'exp://**',
+      'exps://**',
       'https://web.stutosed.workers.dev',
       'https://stutosed.7atva.workers.dev',
       'http://localhost:3000',
