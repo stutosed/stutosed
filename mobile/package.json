@@ -32,6 +32,8 @@
   "scripts": {
     "start": "expo start",
     "tunnel": "expo start --tunnel ngrok",
+    "tunnel:clear": "expo start --tunnel ngrok -c",
+    "lan": "expo start --lan -c",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web"
