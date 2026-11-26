@@ -25,7 +25,7 @@ function createAuthInstance(runtimeEnv: RuntimeEnv) {
     process.env.BETTER_AUTH_URL ||
     runtimeEnv.NEXT_PUBLIC_SITE_URL ||
     process.env.NEXT_PUBLIC_SITE_URL ||
-    'https://stutosed.7atva.workers.dev';
+    'https://web.stutosed.workers.dev';
   const betterAuthApiKey =
     runtimeEnv.BETTER_AUTH_API_KEY || process.env.BETTER_AUTH_API_KEY;
   const googleClientId =
@@ -67,6 +67,7 @@ function createAuthInstance(runtimeEnv: RuntimeEnv) {
     trustedOrigins: [
       'stutosed://',
       'exp://**',
+      'https://web.stutosed.workers.dev',
       'https://stutosed.7atva.workers.dev',
       'http://localhost:3000',
     ],
