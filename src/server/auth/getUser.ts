@@ -1,5 +1,5 @@
 import 'server-only';
-import { auth } from '@/lib/auth';
+import { getAuth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
 export interface AuthUser {
@@ -13,6 +13,7 @@ export interface AuthUser {
 export async function getUser(): Promise<AuthUser | null> {
   try {
     const reqHeaders = await headers();
+    const auth = await getAuth();
     const session = await auth.api.getSession({
       headers: reqHeaders,
     });

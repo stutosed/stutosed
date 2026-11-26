@@ -72,12 +72,20 @@ export const AuthScreen: React.FC = () => {
       });
       if (res?.error) {
         setMessage({
-          text: res.error.message || 'Google sign-in requires updated server deploy or email sign-in.',
+          text: res.error.message || 'Google authentication failed.',
           type: 'error',
         });
       } else {
         await refreshSessionAndSync();
-        if (navigation.canGoBack()) navigation.goBack();
+        const latest = await authClient.getSession();
+        if (latest?.data?.user) {
+          if (navigation.canGoBack()) navigation.goBack();
+        } else {
+          setMessage({
+            text: 'Google sign-in was cancelled or could not complete.',
+            type: 'error',
+          });
+        }
       }
     } catch (err: any) {
       setMessage({

@@ -8,7 +8,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "android": {
-      "package": "in.stutosed.app",
+      "package": "com.stutosed.mobile",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#121110",
