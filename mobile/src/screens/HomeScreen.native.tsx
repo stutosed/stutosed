@@ -133,6 +133,41 @@ export const HomeScreen: React.FC = () => {
   const [recentFeed, setRecentFeed] = useState<RecentFeedItem[]>([]);
 
   const pulseAnim = useRef(new Animated.Value(0.45)).current;
+  const streakFlameScale = useRef(new Animated.Value(1)).current;
+  const streakChipOpacity = useRef(new Animated.Value(0.88)).current;
+
+  useEffect(() => {
+    const flameLoop = Animated.loop(
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(streakFlameScale, {
+            toValue: 1.22,
+            duration: 900,
+            useNativeDriver: true,
+          }),
+          Animated.timing(streakChipOpacity, {
+            toValue: 1,
+            duration: 900,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(streakFlameScale, {
+            toValue: 1,
+            duration: 900,
+            useNativeDriver: true,
+          }),
+          Animated.timing(streakChipOpacity, {
+            toValue: 0.88,
+            duration: 900,
+            useNativeDriver: true,
+          }),
+        ]),
+      ])
+    );
+    flameLoop.start();
+    return () => flameLoop.stop();
+  }, [streakFlameScale, streakChipOpacity]);
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -370,9 +405,9 @@ export const HomeScreen: React.FC = () => {
           />
         }
       >
-        {/* 1. COMPACT GREETING ROW (One line, no big card) */}
-        <View style={styles.greetingRow}>
-          <View style={styles.greetingLeft}>
+        {/* 1. COMPACT GREETING ROW + ANIMATED STREAK ROW BELOW */}
+        <View style={styles.greetingBlock}>
+          <View style={styles.greetingRow}>
             <View
               style={[
                 styles.greetingAvatar,
@@ -388,22 +423,32 @@ export const HomeScreen: React.FC = () => {
                 <Text style={styles.greetingAvatarText}>{initials}</Text>
               )}
             </View>
-            <Text style={[styles.greetingText, { color: colors.text }]} numberOfLines={1}>
+            <Text style={[styles.greetingText, { color: colors.text }]}>
               {getGreetingPrefix()}, {firstName}
             </Text>
           </View>
 
-          <View
+          <Animated.View
             style={[
               styles.streakChip,
-              { backgroundColor: 'rgba(204, 120, 92, 0.12)', borderColor: 'rgba(204, 120, 92, 0.25)' },
+              {
+                opacity: streakChipOpacity,
+                backgroundColor: 'rgba(204, 120, 92, 0.12)',
+                borderColor: 'rgba(204, 120, 92, 0.28)',
+              },
             ]}
           >
-            <Flame size={13} color={colors.accent} fill={metrics.streakDays > 0 ? colors.accent : 'transparent'} />
+            <Animated.View style={{ transform: [{ scale: streakFlameScale }] }}>
+              <Flame
+                size={14}
+                color={colors.accent}
+                fill={metrics.streakDays > 0 ? colors.accent : 'transparent'}
+              />
+            </Animated.View>
             <Text style={[styles.streakText, { color: colors.accent }]}>
               {metrics.streakDays} day streak
             </Text>
-          </View>
+          </Animated.View>
         </View>
 
         {/* 2. RESUME LECTURE CARD (Top Priority) OR SKELETON / EMPTY STATE */}
@@ -785,18 +830,13 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     gap: 18,
   },
+  greetingBlock: {
+    gap: 8,
+  },
   greetingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: 10,
-  },
-  greetingLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-    minWidth: 0,
   },
   greetingAvatar: {
     width: 34,
@@ -817,15 +857,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   greetingText: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
-    flexShrink: 1,
+    flex: 1,
   },
   streakChip: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
+    gap: 6,
+    paddingHorizontal: 11,
     paddingVertical: 5,
     borderRadius: radii.pill,
     borderWidth: 1,
