@@ -186,7 +186,19 @@ export const WatchScreen: React.FC = () => {
   const [apiStreamUrl, setApiStreamUrl] = useState<string | null>(null);
   const [nativeFallbackToWebView, setNativeFallbackToWebView] = useState(false);
   const [embedFallbackToInlineHtml, setEmbedFallbackToInlineHtml] = useState(false);
+  const [playerEngine, setPlayerEngine] = useState<'edge' | 'html5' | 'chrome'>('edge');
   const [pdfLoadError, setPdfLoadError] = useState(false);
+
+  const webViewUserAgent = useMemo(() => {
+    if (playerEngine === 'html5') {
+      return 'Mozilla/5.0 (Linux; U; Android 13; en-US; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/126.0.0.0 UCBrowser/15.0.0.1306 Mobile Safari/537.36';
+    }
+    if (playerEngine === 'chrome') {
+      return 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
+    }
+    // EdgA bypasses Abyss broken ServiceWorker (/sw.import.v3.js) and serves direct mp4_native streams to JWPlayer
+    return 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36 EdgA/126.0.0.0';
+  }, [playerEngine]);
 
   const { refreshControl } = usePullToRefresh(() => {
     setPdfLoadError(false);
@@ -843,10 +855,10 @@ export const WatchScreen: React.FC = () => {
             )}
 
             <WebView
-              key={`${webViewKey}-${selectedServerIdx}-${currentIdx}-${embedFallbackToInlineHtml ? 'html' : 'url'}`}
+              key={`${webViewKey}-${selectedServerIdx}-${currentIdx}-${playerEngine}-${embedFallbackToInlineHtml ? 'html' : 'url'}`}
               source={webViewSource}
               style={styles.webView}
-              userAgent="Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36"
+              userAgent={webViewUserAgent}
               allowsFullscreenVideo
               javaScriptEnabled
               domStorageEnabled
@@ -1045,8 +1057,50 @@ export const WatchScreen: React.FC = () => {
 
             <Text style={[styles.cardLectureLabel, { color: colors.text }]}>{lecture.label}</Text>
 
-            {/* Server Switcher Pills when multiple servers exist */}
-            {servers.length > 1 && (
+              {/* Engine Switcher for Abyss Embed (Edge Native / HTML5 Direct / Chrome) */}
+              {mediaConfig.mode === 'abyss' && (
+                <View style={styles.serverRow}>
+                  {(
+                    [
+                      { key: 'edge' as const, label: 'Direct MP4 (Edge)' },
+                      { key: 'html5' as const, label: 'HTML5 Video' },
+                      { key: 'chrome' as const, label: 'Standard Stream' },
+                    ] as const
+                  ).map(({ key, label }) => {
+                    const active = playerEngine === key;
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        style={[
+                          styles.serverPill,
+                          {
+                            backgroundColor: active ? `${colors.accent}20` : colors.bgCardSubtle,
+                            borderColor: active ? colors.accent : colors.border,
+                          },
+                        ]}
+                        onPress={() => {
+                          setPlayerEngine(key);
+                          setLoading(true);
+                          setWebViewKey((k) => k + 1);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.serverPillText,
+                            { color: active ? colors.accent : colors.textMuted },
+                          ]}
+                        >
+                          {label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+
+              {/* Server Switcher Pills when multiple servers exist */}
+              {servers.length > 1 && (
               <View style={styles.serverRow}>
                 {servers.map((srv, idx) => {
                   const active = idx === selectedServerIdx;
@@ -1209,6 +1263,25 @@ export const WatchScreen: React.FC = () => {
                   </Text>
                 </TouchableOpacity>
               ) : null}
+
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
+                ]}
+                onPress={() => {
+                  const target =
+                    embedPageUrl ||
+                    `${API_BASE_URL.replace(/\/+$/, '')}/watch?course=${encodeURIComponent(courseId)}&index=${currentIdx}`;
+                  Linking.openURL(target).catch(() => {});
+                }}
+                activeOpacity={0.8}
+              >
+                <ExternalLink size={14} color={colors.textMuted} />
+                <Text style={[styles.actionBtnText, { color: colors.text }]}>
+                  Open in Browser
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
