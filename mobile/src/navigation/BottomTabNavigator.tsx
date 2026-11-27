@@ -65,15 +65,18 @@ const tabSceneInterpolator: NonNullable<BottomTabNavigationOptions['sceneStyleIn
   current,
 }) => ({
   sceneStyle: {
-    opacity: current.progress.interpolate({
-      inputRange: [-1, 0, 1],
-      outputRange: [0, 1, 0],
-    }),
+    opacity: 1,
     transform: [
       {
         translateX: current.progress.interpolate({
           inputRange: [-1, 0, 1],
-          outputRange: [-20, 0, 20],
+          outputRange: [-24, 0, 24],
+        }),
+      },
+      {
+        scale: current.progress.interpolate({
+          inputRange: [-1, 0, 1],
+          outputRange: [0.985, 1, 0.985],
         }),
       },
     ],
@@ -193,13 +196,15 @@ export const BottomTabNavigator: React.FC = () => {
     <View style={styles.swipeContainer} {...panResponder.panHandlers}>
       <Tab.Navigator
         backBehavior="history"
+        detachInactiveScreens={false}
         screenOptions={{
           headerShown: false,
+          sceneStyle: { backgroundColor: colors.bg },
           sceneStyleInterpolator: tabSceneInterpolator,
           transitionSpec: {
             animation: 'timing',
             config: {
-              duration: 220,
+              duration: 210,
               easing: Easing.out(Easing.cubic),
             },
           },
