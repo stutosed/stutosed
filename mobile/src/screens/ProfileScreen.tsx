@@ -20,8 +20,6 @@ import {
   LogOut,
   LogIn,
   RefreshCw,
-  CheckCircle2,
-  BookmarkCheck,
   ShieldCheck,
   ChevronRight,
   Sparkles,
@@ -44,14 +42,10 @@ export const ProfileScreen: React.FC = () => {
     user,
     studentId,
     isSyncing,
-    watchedMap,
-    bookmarks,
     refreshSessionAndSync,
     signOutUser,
   } = useAuth();
 
-  const watchedCount = Object.keys(watchedMap).length;
-  const bookmarkCount = bookmarks.length;
   const displayName = user?.full_name || 'Advik';
 
   return (
@@ -138,30 +132,6 @@ export const ProfileScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
           )}
-        </View>
-
-        {/* Learning Stats */}
-        <View style={styles.statsGrid}>
-          <View
-            style={[
-              styles.statCard,
-              { backgroundColor: colors.bgCard, borderColor: colors.border },
-            ]}
-          >
-            <CheckCircle2 size={20} color={colors.green} />
-            <Text style={[styles.statNumber, { color: colors.text }]}>{watchedCount}</Text>
-            <Text style={[styles.statLabel, { color: colors.textDim }]}>Watched Lectures</Text>
-          </View>
-          <View
-            style={[
-              styles.statCard,
-              { backgroundColor: colors.bgCard, borderColor: colors.border },
-            ]}
-          >
-            <BookmarkCheck size={20} color={colors.accent} />
-            <Text style={[styles.statNumber, { color: colors.text }]}>{bookmarkCount}</Text>
-            <Text style={[styles.statLabel, { color: colors.textDim }]}>Saved Courses</Text>
-          </View>
         </View>
 
         {/* Support & Legal */}
@@ -317,27 +287,6 @@ const styles = StyleSheet.create({
   },
   smallActionText: {
     fontSize: 12,
-    fontWeight: '600',
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  statCard: {
-    flex: 1,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    padding: spacing.base,
-    alignItems: 'flex-start',
-    gap: 6,
-  },
-  statNumber: {
-    fontSize: 22,
-    fontWeight: '800',
-  },
-  statLabel: {
-    fontSize: 11,
     fontWeight: '600',
   },
   sectionHeading: {
