@@ -1,6 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import Svg, { Defs, LinearGradient, Stop, Rect, Circle, Path } from 'react-native-svg';
 import { LectureItem } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { spacing, radii } from '../theme/spacing';
@@ -14,15 +13,13 @@ interface LectureRowProps {
   onToggleWatched?: () => void;
 }
 
-const THUMB_PALETTES: Array<[string, string, string]> = [
-  ['#1e293b', '#cc785c', '#f59e0b'],
-  ['#18181b', '#6366f1', '#38bdf8'],
-  ['#1f1b24', '#d97706', '#fb7185'],
-  ['#0f172a', '#0ea5e9', '#34d399'],
-  ['#27171a', '#e11d48', '#fb923c'],
-  ['#142420', '#10b981', '#a3e635'],
-  ['#1e1b2e', '#8b5cf6', '#ec4899'],
-  ['#261c15', '#b45309', '#facc15'],
+const SLIDE_THEMES: Array<{ bg: string; glow: string; accent: string }> = [
+  { bg: '#1c1917', glow: 'rgba(204, 120, 92, 0.24)', accent: '#e08b6f' },
+  { bg: '#171c28', glow: 'rgba(99, 102, 241, 0.26)', accent: '#818cf8' },
+  { bg: '#152026', glow: 'rgba(14, 165, 233, 0.24)', accent: '#38bdf8' },
+  { bg: '#18211d', glow: 'rgba(16, 185, 129, 0.22)', accent: '#34d399' },
+  { bg: '#21191d', glow: 'rgba(244, 63, 94, 0.22)', accent: '#fb7185' },
+  { bg: '#211c14', glow: 'rgba(245, 158, 11, 0.24)', accent: '#fbbf24' },
 ];
 
 function hashString(input: string): number {
@@ -41,6 +38,16 @@ function getYouTubeThumb(item: LectureItem): string | null {
   return match ? `https://i.ytimg.com/vi/${match[1]}/mqdefault.jpg` : null;
 }
 
+function getSlideHeadline(label: string): string {
+  const cleaned = label
+    .replace(/\[[^\]]*\]/g, ' ')
+    .replace(/\b(Class|Lec|Lecture|Part)\s*[-:#]?\s*\d+/gi, ' ')
+    .replace(/[|•\-–—]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return cleaned || label.trim() || 'Video Lecture';
+}
+
 export const LectureRow: React.FC<LectureRowProps> = ({
   item,
   index,
@@ -50,6 +57,7 @@ export const LectureRow: React.FC<LectureRowProps> = ({
 }) => {
   const { colors } = useTheme();
   const isPdf = item.type === 'pdf';
+  const [imgFailed, setImgFailed] = useState(false);
 
   const remoteThumb = useMemo(() => {
     const candidate = item.thumb || item.preview;
@@ -57,17 +65,14 @@ export const LectureRow: React.FC<LectureRowProps> = ({
     return getYouTubeThumb(item);
   }, [item]);
 
-  const palette = useMemo(() => {
+  const slideTheme = useMemo(() => {
     const seed = hashString(`${item.label || ''}-${index}`);
-    return THUMB_PALETTES[seed % THUMB_PALETTES.length];
+    return SLIDE_THEMES[seed % SLIDE_THEMES.length];
   }, [item.label, index]);
 
-  const gradId = useMemo(
-    () => `lecGrad_${index}_${hashString(item.label || 'v') % 9999}`,
-    [index, item.label]
-  );
-
+  const slideHeadline = useMemo(() => getSlideHeadline(item.label || ''), [item.label]);
   const indexLabel = String(index + 1).padStart(2, '0');
+  const showRemoteImage = Boolean(remoteThumb) && !imgFailed;
 
   return (
     <TouchableOpacity
@@ -81,49 +86,57 @@ export const LectureRow: React.FC<LectureRowProps> = ({
       onPress={onPress}
       activeOpacity={0.75}
     >
-      {/* YouTube-style 16:9 Video Thumbnail */}
-      <View style={[styles.thumbContainer, { borderColor: colors.borderSubtle }]}>
-        {remoteThumb ? (
-          <Image source={{ uri: remoteThumb }} style={styles.thumbImage} resizeMode="cover" />
-        ) : (
-          <Svg width="100%" height="100%" viewBox="0 0 160 90" style={StyleSheet.absoluteFill}>
-            <Defs>
-              <LinearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
-                <Stop offset="0%" stopColor={palette[0]} stopOpacity="1" />
-                <Stop offset="65%" stopColor={palette[1]} stopOpacity="0.88" />
-                <Stop offset="100%" stopColor={palette[2]} stopOpacity="0.72" />
-              </LinearGradient>
-            </Defs>
-            <Rect x="0" y="0" width="160" height="90" fill={`url(#${gradId})`} />
-            <Circle cx="136" cy="18" r="28" fill="#ffffff" fillOpacity="0.12" />
-            <Circle cx="24" cy="76" r="22" fill="#000000" fillOpacity="0.22" />
-            <Path
-              d="M0 68 Q 42 50, 88 66 T 160 56 L 160 90 L 0 90 Z"
-              fill="#000000"
-              fillOpacity="0.24"
+      {/* YouTube-style 16:9 Lecture Slide / Video Thumbnail */}
+      <View
+        style={[
+          styles.thumbContainer,
+          { backgroundColor: slideTheme.bg, borderColor: 'rgba(255,255,255,0.12)' },
+        ]}
+      >
+        {showRemoteImage && remoteThumb ? (
+          <>
+            <Image
+              source={{ uri: remoteThumb }}
+              style={styles.thumbImage}
+              resizeMode="cover"
+              onError={() => setImgFailed(true)}
             />
-          </Svg>
+            <View style={styles.remotePlayOrb}>
+              <Play size={11} color="#ffffff" fill="#ffffff" style={{ marginLeft: 1 }} />
+            </View>
+          </>
+        ) : (
+          <View style={styles.slideCanvas}>
+            {/* Subtle top accent bar & corner glow */}
+            <View style={[styles.slideTopAccent, { backgroundColor: slideTheme.accent }]} />
+            <View style={[styles.slideGlowOrb, { backgroundColor: slideTheme.glow }]} />
+
+            {/* Top Row: Eyebrow + Play Orb */}
+            <View style={styles.slideHeaderRow}>
+              <Text style={[styles.slideEyebrow, { color: slideTheme.accent }]} numberOfLines={1}>
+                {isPdf ? `DOC ${indexLabel}` : `LEC ${indexLabel}`}
+              </Text>
+              <View style={styles.slidePlayMini}>
+                {isPdf ? (
+                  <FileText size={9} color="#ffffff" />
+                ) : (
+                  <Play size={9} color="#ffffff" fill="#ffffff" style={{ marginLeft: 1 }} />
+                )}
+              </View>
+            </View>
+
+            {/* Center Headline Preview (just like YT lecture slide cards) */}
+            <Text style={styles.slideTitleText} numberOfLines={2}>
+              {slideHeadline}
+            </Text>
+          </View>
         )}
 
-        {/* Center Play / PDF Badge */}
-        <View style={styles.thumbCenterBadge}>
-          {isPdf ? (
-            <FileText size={13} color="#ffffff" />
-          ) : (
-            <Play size={13} color="#ffffff" fill="#ffffff" style={{ marginLeft: 1 }} />
-          )}
-        </View>
-
-        {/* Bottom-left Lecture Number Pill */}
-        <View style={styles.thumbIndexPill}>
-          <Text style={styles.thumbIndexText}>#{indexLabel}</Text>
-        </View>
-
-        {/* Bottom-right Format / Watched Micro Chip */}
+        {/* Bottom-right Format Micro Chip */}
         <View
           style={[
             styles.thumbTagPill,
-            { backgroundColor: isPdf ? 'rgba(217,119,6,0.88)' : 'rgba(18,17,16,0.72)' },
+            { backgroundColor: isPdf ? 'rgba(217,119,6,0.9)' : 'rgba(0,0,0,0.68)' },
           ]}
         >
           <Text style={styles.thumbTagText}>{isPdf ? 'PDF' : 'HD'}</Text>
@@ -140,15 +153,9 @@ export const LectureRow: React.FC<LectureRowProps> = ({
         >
           {item.label}
         </Text>
-        {item.subject ? (
-          <Text style={[styles.subject, { color: colors.textDim }]} numberOfLines={1}>
-            {item.subject}
-          </Text>
-        ) : (
-          <Text style={[styles.subject, { color: colors.textDim }]} numberOfLines={1}>
-            {isPdf ? 'PDF Resource' : `Lecture ${index + 1}`}
-          </Text>
-        )}
+        <Text style={[styles.subject, { color: colors.textDim }]} numberOfLines={1}>
+          {item.subject || (isPdf ? 'PDF Resource' : `Lecture ${index + 1}`)}
+        </Text>
       </View>
 
       <TouchableOpacity
@@ -180,56 +187,94 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   thumbContainer: {
-    width: 108,
-    height: 61,
+    width: 112,
+    height: 63,
     borderRadius: radii.sm,
     overflow: 'hidden',
     borderWidth: 1,
     marginRight: spacing.md,
-    backgroundColor: '#161514',
-    alignItems: 'center',
-    justifyContent: 'center',
     position: 'relative',
   },
   thumbImage: {
     width: '100%',
     height: '100%',
   },
-  thumbCenterBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(18, 17, 16, 0.56)',
+  remotePlayOrb: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -12,
+    marginLeft: -12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(18, 17, 16, 0.65)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.35)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  thumbIndexPill: {
-    position: 'absolute',
-    bottom: 4,
-    left: 4,
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
-    borderRadius: 4,
-    backgroundColor: 'rgba(18, 17, 16, 0.72)',
+  slideCanvas: {
+    flex: 1,
+    paddingHorizontal: 8,
+    paddingTop: 6,
+    paddingBottom: 6,
+    justifyContent: 'space-between',
+    position: 'relative',
   },
-  thumbIndexText: {
-    color: '#ffffff',
-    fontSize: 9,
+  slideTopAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 2.5,
+  },
+  slideGlowOrb: {
+    position: 'absolute',
+    right: -14,
+    bottom: -14,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  slideHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  slideEyebrow: {
+    fontSize: 8.5,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  slidePlayMini: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.28)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slideTitleText: {
+    color: '#f5f4f0',
+    fontSize: 9.5,
     fontWeight: '700',
+    lineHeight: 12,
+    paddingRight: 22,
   },
   thumbTagPill: {
     position: 'absolute',
     bottom: 4,
     right: 4,
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
-    borderRadius: 4,
+    paddingHorizontal: 4.5,
+    paddingVertical: 1,
+    borderRadius: 3.5,
   },
   thumbTagText: {
     color: '#ffffff',
-    fontSize: 8.5,
+    fontSize: 8,
     fontWeight: '800',
     letterSpacing: 0.3,
   },
