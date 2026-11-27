@@ -162,6 +162,61 @@ export const LectureRow: React.FC<LectureRowProps> = ({
     </View>
   );
 
+  if (isPdf && variant === 'grid') {
+    return (
+      <TouchableOpacity
+        style={[
+          styles.pdfGridCard,
+          {
+            backgroundColor: isWatched ? `${colors.green}08` : colors.bgCard,
+            borderColor: isWatched ? colors.greenDim : colors.border,
+          },
+        ]}
+        onPress={onPress}
+        activeOpacity={0.78}
+      >
+        <View style={styles.pdfGridAccentBar} />
+        <View style={styles.pdfGridHeader}>
+          <View style={styles.pdfDocIconWrap}>
+            <FileText size={16} color="#d97706" />
+          </View>
+          <View style={styles.pdfPillChip}>
+            <Text style={styles.pdfPillChipText}>PDF {indexLabel}</Text>
+          </View>
+        </View>
+
+        <Text
+          style={[
+            styles.gridLabel,
+            { color: isWatched ? colors.textMuted : colors.text },
+          ]}
+          numberOfLines={2}
+        >
+          {item.label}
+        </Text>
+
+        <View style={styles.gridFooter}>
+          <Text style={[styles.gridSubject, { color: colors.textDim }]} numberOfLines={1}>
+            {item.subject || 'PDF Notes'}
+          </Text>
+          <TouchableOpacity
+            onPress={(e) => {
+              e.stopPropagation?.();
+              onToggleWatched?.();
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <CheckCircle2
+              size={16}
+              color={isWatched ? colors.green : colors.border}
+              fill={isWatched ? `${colors.green}20` : 'transparent'}
+            />
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
   if (variant === 'grid') {
     return (
       <TouchableOpacity
@@ -190,7 +245,7 @@ export const LectureRow: React.FC<LectureRowProps> = ({
 
           <View style={styles.gridFooter}>
             <Text style={[styles.gridSubject, { color: colors.textDim }]} numberOfLines={1}>
-              {item.subject || (isPdf ? 'PDF Notes' : `Class ${index + 1}`)}
+              {item.subject || `Class ${index + 1}`}
             </Text>
             <TouchableOpacity
               onPress={(e) => {
@@ -207,6 +262,57 @@ export const LectureRow: React.FC<LectureRowProps> = ({
             </TouchableOpacity>
           </View>
         </View>
+      </TouchableOpacity>
+    );
+  }
+
+  if (isPdf) {
+    return (
+      <TouchableOpacity
+        style={[
+          styles.pdfRow,
+          {
+            backgroundColor: isWatched ? `${colors.green}08` : colors.bgCard,
+            borderColor: isWatched ? colors.greenDim : colors.borderSubtle,
+          },
+        ]}
+        onPress={onPress}
+        activeOpacity={0.75}
+      >
+        <View style={styles.pdfListIconBox}>
+          <FileText size={18} color="#d97706" />
+          <Text style={styles.pdfListMicroTag}>PDF</Text>
+        </View>
+
+        <View style={styles.info}>
+          <Text
+            style={[
+              styles.label,
+              { color: isWatched ? colors.textMuted : colors.text },
+            ]}
+            numberOfLines={2}
+          >
+            {item.label}
+          </Text>
+          <Text style={[styles.subject, { color: colors.textDim }]} numberOfLines={1}>
+            {item.subject || 'PDF Document'} • #{index + 1}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.checkButton}
+          onPress={(e) => {
+            e.stopPropagation?.();
+            onToggleWatched?.();
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <CheckCircle2
+            size={18}
+            color={isWatched ? colors.green : colors.border}
+            fill={isWatched ? `${colors.green}20` : 'transparent'}
+          />
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   }
@@ -428,5 +534,82 @@ const styles = StyleSheet.create({
   },
   checkButton: {
     padding: 4,
+  },
+  pdfRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: spacing.sm,
+    borderWidth: 1,
+    borderRadius: radii.md,
+    marginBottom: spacing.sm,
+  },
+  pdfListIconBox: {
+    width: 44,
+    height: 48,
+    borderRadius: radii.md,
+    backgroundColor: 'rgba(217, 119, 6, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(217, 119, 6, 0.28)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+    gap: 2,
+  },
+  pdfListMicroTag: {
+    color: '#d97706',
+    fontSize: 8.5,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  pdfGridCard: {
+    flex: 1,
+    maxWidth: '48.8%',
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    overflow: 'hidden',
+    padding: 11,
+    marginBottom: 10,
+    gap: 8,
+    justifyContent: 'space-between',
+    position: 'relative',
+  },
+  pdfGridAccentBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    backgroundColor: '#d97706',
+  },
+  pdfGridHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+  pdfDocIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    backgroundColor: 'rgba(217, 119, 6, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(217, 119, 6, 0.26)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pdfPillChip: {
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: radii.pill,
+    backgroundColor: 'rgba(217, 119, 6, 0.13)',
+    borderWidth: 1,
+    borderColor: 'rgba(217, 119, 6, 0.28)',
+  },
+  pdfPillChipText: {
+    color: '#d97706',
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
 });

@@ -1053,15 +1053,10 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                       position: 'relative',
                     }}
                   >
-                    <WebLectureThumb
-                      item={item}
-                      index={idx}
-                      isWatched={isWatched}
-                      variant="grid"
-                    />
                     <div
                       style={{
-                        padding: '10px 14px 8px',
+                        padding: '14px 16px 12px',
+                        background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.12) 0%, rgba(204, 120, 92, 0.04) 100%)',
                         borderBottom: '1px solid var(--border)',
                         display: 'flex',
                         alignItems: 'center',
@@ -1356,12 +1351,25 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                     onClick={() => handleItemClick(item, idx)}
                   >
                     <div className="video-num">{idx + 1}</div>
-                    <WebLectureThumb
-                      item={item}
-                      index={idx}
-                      isWatched={isWatched}
-                      variant="list"
-                    />
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '42px',
+                        borderRadius: '10px',
+                        background: 'rgba(217, 119, 6, 0.12)',
+                        border: '1px solid rgba(217, 119, 6, 0.28)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#d97706',
+                        flexShrink: 0,
+                        gap: '1px',
+                      }}
+                    >
+                      <FileText width={15} height={15} />
+                      <span style={{ fontSize: '8px', fontWeight: 800, letterSpacing: '0.4px' }}>PDF</span>
+                    </div>
                     <div className="video-body">
                       <div className="video-title">{item.label}</div>
                       <div className="video-sub">
