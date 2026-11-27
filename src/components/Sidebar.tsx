@@ -184,9 +184,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
               <span style={{ fontSize: '13px', fontWeight: 600 }}>{theme === 'light' ? 'Light Theme' : 'Dark Theme'}</span>
             </div>
-            <span style={{ fontSize: '11px', color: 'var(--text-dim)', background: 'var(--bg)', padding: '2px 8px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
-              Active
-            </span>
           </button>
 
           <button

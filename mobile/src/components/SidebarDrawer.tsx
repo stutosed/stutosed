@@ -235,14 +235,6 @@ export const SidebarDrawer: React.FC = () => {
                 {theme === 'light' ? 'Light Theme' : 'Dark Theme'}
               </Text>
             </View>
-            <View
-              style={[
-                styles.activeBadge,
-                { backgroundColor: colors.bg, borderColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.activeBadgeText, { color: colors.textDim }]}>Active</Text>
-            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -360,16 +352,6 @@ const styles = StyleSheet.create({
   bottomBtnText: {
     fontSize: 13,
     fontWeight: '600',
-  },
-  activeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: radii.sm,
-    borderWidth: 1,
-  },
-  activeBadgeText: {
-    fontSize: 11,
-    fontWeight: '500',
   },
   avatarImg: {
     width: 22,

@@ -181,8 +181,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           overflow: 'hidden',
         }}
       >
-        {/* Top Decorative Brand Gradient Bar */}
-        <div style={{ height: '4px', background: 'linear-gradient(90deg, var(--accent), var(--beu-blue), var(--govt-indigo))' }} />
+        {/* Top Decorative Animated Glowing Brand Gradient Bar */}
+        <div
+          style={{
+            height: '4px',
+            background: 'linear-gradient(90deg, var(--accent), #f09d7e, var(--beu-blue), var(--govt-indigo), var(--accent))',
+            backgroundSize: '200% 100%',
+            animation: 'authBarFlow 3.2s linear infinite',
+            boxShadow: '0 0 14px rgba(204, 120, 92, 0.65), 0 0 24px rgba(59, 130, 246, 0.42)',
+          }}
+        />
+        <style>{`@keyframes authBarFlow { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }`}</style>
 
         {/* Close Button */}
         <button

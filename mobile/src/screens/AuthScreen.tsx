@@ -20,7 +20,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import * as SecureStore from 'expo-secure-store';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { getSetCookie, storageAdapter } from '@better-auth/expo/client';
 import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
@@ -75,6 +75,9 @@ export const AuthScreen: React.FC = () => {
   const cardOpacity = useRef(new Animated.Value(0)).current;
   const cardScale = useRef(new Animated.Value(0.94)).current;
   const cardY = useRef(new Animated.Value(16)).current;
+  const barFlow = useRef(new Animated.Value(0)).current;
+  const barGlow = useRef(new Animated.Value(0.55)).current;
+  const [cardWidth, setCardWidth] = useState(380);
 
   const stopPolling = () => {
     if (pollTimerRef.current) {
@@ -106,8 +109,39 @@ export const AuthScreen: React.FC = () => {
         useNativeDriver: true,
       }),
     ]).start();
-    return () => stopPolling();
-  }, [cardOpacity, cardScale, cardY]);
+    const flowAnim = Animated.loop(
+      Animated.timing(barFlow, {
+        toValue: 1,
+        duration: 2800,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    const glowAnim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(barGlow, {
+          toValue: 1,
+          duration: 1400,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(barGlow, {
+          toValue: 0.5,
+          duration: 1400,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    flowAnim.start();
+    glowAnim.start();
+
+    return () => {
+      stopPolling();
+      flowAnim.stop();
+      glowAnim.stop();
+    };
+  }, [cardOpacity, cardScale, cardY, barFlow, barGlow]);
 
   const passwordStrength = useMemo(() => {
     if (!password) return { score: 0, label: '', color: 'transparent' };
@@ -338,12 +372,77 @@ export const AuthScreen: React.FC = () => {
             },
           ]}
         >
-          <Pressable style={{ flexShrink: 1 }} onPress={(e) => e.stopPropagation()}>
-          {/* Top Brand Accent Stripe matching AuthModal.tsx */}
-          <View style={styles.topGradientBar}>
-            <View style={{ flex: 1, backgroundColor: colors.accent }} />
-            <View style={{ flex: 1, backgroundColor: colors.beuBlue }} />
-            <View style={{ flex: 1, backgroundColor: colors.govtIndigo }} />
+          <Pressable
+            style={{ flexShrink: 1 }}
+            onPress={(e) => e.stopPropagation()}
+            onLayout={(e) => {
+              const w = e.nativeEvent.layout.width;
+              if (w > 100 && Math.abs(w - cardWidth) > 4) setCardWidth(w);
+            }}
+          >
+          {/* Top Animated Flowing & Glowing Brand Gradient Bar */}
+          <View style={styles.topGradientWrap}>
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                styles.topGradientGlow,
+                {
+                  width: cardWidth * 2,
+                  opacity: barGlow,
+                  transform: [
+                    {
+                      translateX: barFlow.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, -cardWidth],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <Svg width={cardWidth * 2} height={14}>
+                <Defs>
+                  <LinearGradient id="topBarGlowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <Stop offset="0%" stopColor={colors.accent} stopOpacity="0.45" />
+                    <Stop offset="25%" stopColor="#f09d7e" stopOpacity="0.4" />
+                    <Stop offset="50%" stopColor={colors.beuBlue} stopOpacity="0.45" />
+                    <Stop offset="75%" stopColor={colors.govtIndigo} stopOpacity="0.4" />
+                    <Stop offset="100%" stopColor={colors.accent} stopOpacity="0.45" />
+                  </LinearGradient>
+                </Defs>
+                <Rect x="0" y="0" width={cardWidth * 2} height="14" fill="url(#topBarGlowGrad)" />
+              </Svg>
+            </Animated.View>
+
+            <View style={styles.topGradientBar}>
+              <Animated.View
+                style={{
+                  width: cardWidth * 2,
+                  height: 4,
+                  transform: [
+                    {
+                      translateX: barFlow.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, -cardWidth],
+                      }),
+                    },
+                  ],
+                }}
+              >
+                <Svg width={cardWidth * 2} height={4}>
+                  <Defs>
+                    <LinearGradient id="topBarFlowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <Stop offset="0%" stopColor={colors.accent} />
+                      <Stop offset="20%" stopColor="#f09d7e" />
+                      <Stop offset="45%" stopColor={colors.beuBlue} />
+                      <Stop offset="70%" stopColor={colors.govtIndigo} />
+                      <Stop offset="100%" stopColor={colors.accent} />
+                    </LinearGradient>
+                  </Defs>
+                  <Rect x="0" y="0" width={cardWidth * 2} height="4" fill="url(#topBarFlowGrad)" />
+                </Svg>
+              </Animated.View>
+            </View>
           </View>
 
           {/* Top-Right Close Button */}
@@ -686,10 +785,28 @@ const styles = StyleSheet.create({
     shadowRadius: 28,
     elevation: 18,
   },
+  topGradientWrap: {
+    width: '100%',
+    height: 14,
+    overflow: 'visible',
+    position: 'relative',
+    marginBottom: -10,
+  },
+  topGradientGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: 14,
+  },
   topGradientBar: {
     height: 4,
-    flexDirection: 'row',
     width: '100%',
+    overflow: 'hidden',
+    shadowColor: '#cc785c',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.75,
+    shadowRadius: 10,
+    elevation: 8,
   },
   closeBtn: {
     position: 'absolute',
