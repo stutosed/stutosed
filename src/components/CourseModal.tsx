@@ -3,9 +3,229 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Course, LectureItem } from '@/types';
 import { countCourseStats, loadCourseDetails } from '@/lib/coursesData';
-import { getSubjectThumbnail, getDynamicThumbnailUrl } from '@/lib/subjectThumbnails';
 import { getWorkerProxyUrl, resolveDirectMediaUrl } from '@/lib/proxyConfig';
 import { ArrowLeft, Folder, Search, LayoutGrid, List, Video, FileText, CheckCircle2, Play, Download, ExternalLink } from 'lucide-react';
+
+const SLIDE_THEMES: Array<{ bg: string; glow: string; accent: string; pillBg: string }> = [
+  { bg: '#6b2d1c', glow: 'rgba(244, 162, 132, 0.28)', accent: '#f6a88e', pillBg: 'rgba(20, 10, 8, 0.48)' },
+  { bg: '#263163', glow: 'rgba(129, 140, 248, 0.30)', accent: '#a5b4fc', pillBg: 'rgba(12, 16, 36, 0.48)' },
+  { bg: '#13465e', glow: 'rgba(56, 189, 248, 0.28)', accent: '#7dd3fc', pillBg: 'rgba(8, 24, 34, 0.48)' },
+  { bg: '#164d3b', glow: 'rgba(52, 211, 153, 0.26)', accent: '#6ee7b7', pillBg: 'rgba(8, 28, 22, 0.48)' },
+  { bg: '#572043', glow: 'rgba(244, 114, 182, 0.28)', accent: '#f9a8d4', pillBg: 'rgba(28, 8, 22, 0.48)' },
+  { bg: '#5c3814', glow: 'rgba(251, 191, 36, 0.28)', accent: '#fcd34d', pillBg: 'rgba(28, 18, 6, 0.48)' },
+];
+
+function hashThumbSeed(input: string): number {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash * 31 + input.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function getYouTubeThumbUrl(item: LectureItem): string | null {
+  const url = item.links?.url || item.servers?.[0]?.url || item.url || '';
+  const match = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  return match ? `https://i.ytimg.com/vi/${match[1]}/mqdefault.jpg` : null;
+}
+
+function isUnreliablePosterUrl(url: string): boolean {
+  const lower = url.toLowerCase();
+  return lower.includes('syncp2p.com') || lower.includes('strp2p.site');
+}
+
+function getSlideHeadline(label: string): string {
+  const cleaned = label
+    .replace(/\[[^\]]*\]/g, ' ')
+    .replace(/\b(Class|Lec|Lecture|Part)\s*[-:#]?\s*\d+/gi, ' ')
+    .replace(/[|•\-–—]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return cleaned || label.trim() || 'Video Lecture';
+}
+
+function isPdfItem(item: LectureItem): boolean {
+  return (
+    item.type === 'pdf' ||
+    item.category === 'pdfs' ||
+    (item.url || '').toLowerCase().endsWith('.pdf')
+  );
+}
+
+const WebLectureThumb: React.FC<{
+  item: LectureItem;
+  index: number;
+  isWatched: boolean;
+  variant: 'grid' | 'list';
+}> = ({ item, index, isWatched, variant }) => {
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+  const isPdf = isPdfItem(item);
+
+  const remoteThumb = useMemo(() => {
+    const candidate = item.thumb || item.preview;
+    if (candidate && candidate.startsWith('http') && !isUnreliablePosterUrl(candidate)) {
+      return candidate;
+    }
+    return getYouTubeThumbUrl(item);
+  }, [item]);
+
+  const themePalette = useMemo(
+    () => SLIDE_THEMES[hashThumbSeed(`${item.label || ''}-${index}`) % SLIDE_THEMES.length],
+    [item.label, index]
+  );
+
+  const headline = useMemo(() => getSlideHeadline(item.label || ''), [item.label]);
+  const indexLabel = String(index + 1).padStart(2, '0');
+  const isGrid = variant === 'grid';
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: isGrid ? '100%' : '116px',
+        height: isGrid ? undefined : '65px',
+        aspectRatio: isGrid ? '16 / 9' : undefined,
+        borderRadius: isGrid ? '0' : '8px',
+        overflow: 'hidden',
+        flexShrink: 0,
+        background: themePalette.bg,
+        border: isGrid ? 'none' : '1px solid rgba(255, 255, 255, 0.14)',
+      }}
+    >
+      {/* Always render readable classroom slide underneath so failed/slow images never show black */}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          padding: isGrid ? '12px 14px' : '6px 8px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
+            background: themePalette.accent,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            right: '-14px',
+            bottom: '-14px',
+            width: isGrid ? '92px' : '52px',
+            height: isGrid ? '92px' : '52px',
+            borderRadius: '50%',
+            background: themePalette.glow,
+            pointerEvents: 'none',
+          }}
+        />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 1 }}>
+          <span
+            style={{
+              padding: isGrid ? '2px 7px' : '1px 5px',
+              borderRadius: '4px',
+              background: themePalette.pillBg,
+              color: themePalette.accent,
+              fontSize: isGrid ? '10px' : '8.5px',
+              fontWeight: 800,
+              letterSpacing: '0.5px',
+            }}
+          >
+            {isPdf ? `PDF ${indexLabel}` : `LEC ${indexLabel}`}
+          </span>
+          <span
+            style={{
+              width: isGrid ? '28px' : '18px',
+              height: isGrid ? '28px' : '18px',
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.18)',
+              border: '1px solid rgba(255, 255, 255, 0.34)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+            }}
+          >
+            {isPdf ? (
+              <FileText width={isGrid ? 13 : 9} height={isGrid ? 13 : 9} />
+            ) : (
+              <Play width={isGrid ? 12 : 9} height={isGrid ? 12 : 9} fill="currentColor" style={{ transform: 'translateX(1px)' }} />
+            )}
+          </span>
+        </div>
+
+        <div
+          style={{
+            color: '#ffffff',
+            fontSize: isGrid ? '13.5px' : '9.5px',
+            fontWeight: 700,
+            lineHeight: isGrid ? 1.32 : 1.25,
+            paddingRight: isGrid ? '28px' : '22px',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            zIndex: 1,
+          }}
+        >
+          {headline}
+        </div>
+      </div>
+
+      {remoteThumb && !imgFailed && (
+        <img
+          src={remoteThumb}
+          alt={item.label}
+          loading="lazy"
+          onLoad={() => setImgLoaded(true)}
+          onError={() => setImgFailed(true)}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: imgLoaded ? 1 : 0,
+            transition: 'opacity 0.2s ease',
+          }}
+        />
+      )}
+
+      <span
+        style={{
+          position: 'absolute',
+          bottom: isGrid ? '7px' : '4px',
+          right: isGrid ? '8px' : '4px',
+          padding: isGrid ? '2px 6px' : '1px 4px',
+          borderRadius: '4px',
+          background: isPdf
+            ? 'rgba(217, 119, 6, 0.92)'
+            : isWatched
+            ? 'rgba(22, 163, 74, 0.92)'
+            : 'rgba(0, 0, 0, 0.64)',
+          color: '#ffffff',
+          fontSize: isGrid ? '9.5px' : '8px',
+          fontWeight: 800,
+          letterSpacing: '0.3px',
+          zIndex: 2,
+        }}
+      >
+        {isPdf ? 'PDF' : isWatched ? 'DONE' : 'HD'}
+      </span>
+    </div>
+  );
+};
 
 interface CourseModalProps {
   course: Course | null;
@@ -112,32 +332,106 @@ export const CourseModal: React.FC<CourseModalProps> = ({
     }
   };
 
+  // Build unified sections/chapters across tabs, Parmar subjects, and Pratham subjects
+  const sections = useMemo<
+    Array<{ id: string; label: string; subname?: string; items: LectureItem[] }>
+  >(() => {
+    if (!course) return [];
+
+    if (course.tabs && course.tabs.length > 0) {
+      return course.tabs.map((t) => ({
+        id: t.id,
+        label: t.label,
+        subname: t.subname,
+        items: t.items || [],
+      }));
+    }
+
+    if (course.isParmar && course.parmarData) {
+      return Object.keys(course.parmarData).map((subj) => {
+        const parmarLectures = course.parmarData![subj]?.lectures || [];
+        const items: LectureItem[] = [];
+        parmarLectures.forEach((lec, idx) => {
+          const videoUrl = lec.links?.url ? resolveDirectMediaUrl(lec.links.url) : '';
+          items.push({
+            id: `${subj}-${idx}`,
+            label: lec.title,
+            url: videoUrl,
+            type: videoUrl.toLowerCase().endsWith('.pdf') ? 'pdf' : 'hls',
+            folderName: subj,
+            subject: subj,
+            links: lec.links,
+          });
+          // Extract section PDFs (Notes EN/HI, Handwritten, Quiz) so they appear in this section & PDF filter
+          const pdfFields: Array<{ key: string; suffix: string }> = [
+            { key: 'notes_en', suffix: 'Notes (English)' },
+            { key: 'notes_hi', suffix: 'Notes (Hindi)' },
+            { key: 'handwritten', suffix: 'Handwritten Notes' },
+            { key: 'quiz', suffix: 'Practice Quiz PDF' },
+          ];
+          pdfFields.forEach(({ key, suffix }) => {
+            const pdfUrl = lec.links?.[key];
+            if (pdfUrl && typeof pdfUrl === 'string' && pdfUrl.startsWith('http')) {
+              items.push({
+                id: `${subj}-${idx}-${key}`,
+                label: `${lec.title} • ${suffix}`,
+                url: resolveDirectMediaUrl(pdfUrl),
+                type: 'pdf',
+                category: 'pdfs',
+                folderName: subj,
+                subject: subj,
+              });
+            }
+          });
+        });
+        return {
+          id: subj,
+          label: subj,
+          subname: `${parmarLectures.length} Lectures & Notes`,
+          items,
+        };
+      });
+    }
+
+    if (course.isPratham && course.prathamBySubject) {
+      return Object.keys(course.prathamBySubject)
+        .filter((k) => k !== 'No Topic')
+        .map((subj) => ({
+          id: subj,
+          label: subj,
+          items: (course.prathamBySubject![subj] || []).map((it) => ({ ...it, subject: subj })),
+        }));
+    }
+
+    return [];
+  }, [course]);
+
+  const isMultiSection = sections.length > 1;
+
   useEffect(() => {
     if (!course) return;
     setFilterSearch('');
     setIsSearchExpanded(false);
     setActiveModuleFilter('All Modules');
+    setActiveMediaFilter('all');
 
-    if (course.isFolderMode) {
-      if (initialFolderTabId) {
+    if (sections.length > 1) {
+      if (initialFolderTabId && sections.some((s) => s.id === initialFolderTabId)) {
         setActiveFolderTabId(initialFolderTabId);
         setActiveTabId(initialFolderTabId);
       } else {
         setActiveFolderTabId(null);
-        if (course.tabs && course.tabs.length > 0) {
-          setActiveTabId(course.tabs[0].id);
-        }
+        setActiveTabId(sections[0].id);
       }
-    } else if (course.isParmar && course.parmarData) {
-      const keys = Object.keys(course.parmarData);
-      setActiveTabId(keys[0] || '');
-    } else if (course.isPratham && course.prathamBySubject) {
-      setActiveTabId('__all__');
-    } else if (course.tabs && course.tabs.length > 0) {
-      setActiveTabId(course.tabs[0].id);
+    } else if (sections.length === 1) {
+      setActiveFolderTabId(sections[0].id);
+      setActiveTabId(sections[0].id);
+    } else {
+      setActiveFolderTabId(null);
+      setActiveTabId('');
     }
     resetOverlayScroll();
-  }, [course]);
+  }, [course, sections.length]);
 
   // Ensure view is pinned at the top whenever folder tab, tab, or module filter changes
   useEffect(() => {
@@ -146,14 +440,14 @@ export const CourseModal: React.FC<CourseModalProps> = ({
 
   // Sync folder tab when initialFolderTabId prop changes from back navigation / popstate
   useEffect(() => {
-    if (course?.isFolderMode) {
+    if (isMultiSection) {
       setActiveFolderTabId(initialFolderTabId || null);
       if (initialFolderTabId) {
         setActiveTabId(initialFolderTabId);
       }
       resetOverlayScroll();
     }
-  }, [initialFolderTabId, course?.isFolderMode]);
+  }, [initialFolderTabId, isMultiSection]);
 
   // Click outside to collapse search if empty
   useEffect(() => {
@@ -172,12 +466,14 @@ export const CourseModal: React.FC<CourseModalProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [filterSearch]);
 
-  // Selected folder tab (if inside folder mode)
-  const selectedFolderTab = course?.isFolderMode && activeFolderTabId
-    ? course.tabs?.find((t) => t.id === activeFolderTabId)
+  // Selected folder/section
+  const selectedFolderTab = activeFolderTabId
+    ? sections.find((s) => s.id === activeFolderTabId) || null
+    : sections.length === 1
+    ? sections[0]
     : null;
 
-  // Extract distinct modules / subjects for folder mode (e.g. ECE/EE/EEE or Engineering Chemistry)
+  // Extract distinct sub-modules / subjects inside a section (e.g. BEU modules)
   const folderModules = useMemo(() => {
     if (!selectedFolderTab) return [];
     const set = new Set<string>();
@@ -185,6 +481,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
       if (it.subject) set.add(it.subject);
     });
     const list = Array.from(set);
+    if (list.length <= 1) return [];
     const isModuleNaming = list.some((s) => s.toLowerCase().startsWith('module'));
     const allLabel = isModuleNaming ? 'All Modules' : 'All Subjects';
     return [allLabel, ...list];
@@ -193,88 +490,27 @@ export const CourseModal: React.FC<CourseModalProps> = ({
   const activeItems = useMemo(() => {
     if (!course) return [];
     const search = filterSearch.toLowerCase().trim();
+    const targetSection = selectedFolderTab || sections.find((s) => s.id === activeTabId) || sections[0];
+    let items = targetSection ? targetSection.items : [];
 
-    if (course.isPratham && course.prathamBySubject) {
-      if (activeTabId === '__all__') {
-        const all: LectureItem[] = [];
-        Object.entries(course.prathamBySubject).forEach(([subj, items]) => {
-          if (subj === 'No Topic') return;
-          items.forEach((it) => all.push({ ...it, subject: subj }));
-        });
-        return search
-          ? all.filter(
-              (i) =>
-                (i.label || '').toLowerCase().includes(search) ||
-                (i.subject || '').toLowerCase().includes(search)
-            )
-          : all;
-      } else {
-        const items = course.prathamBySubject[activeTabId] || [];
-        return search ? items.filter((i) => (i.label || '').toLowerCase().includes(search)) : items;
-      }
+    if (activeModuleFilter !== 'All Modules' && activeModuleFilter !== 'All Subjects') {
+      items = items.filter((i) => i.subject === activeModuleFilter);
     }
 
-    if (course.isFolderMode && activeFolderTabId) {
-      const tab = course.tabs?.find((t) => t.id === activeFolderTabId);
-      let items = tab ? tab.items : [];
-
-      // Filter by module/subject if selected
-      if (activeModuleFilter !== 'All Modules' && activeModuleFilter !== 'All Subjects') {
-        items = items.filter((i) => i.subject === activeModuleFilter);
-      }
-
-      // Filter by media type (Videos / Notes & PDFs)
-      if (activeMediaFilter === 'videos') {
-        items = items.filter((i) => i.type !== 'pdf');
-      } else if (activeMediaFilter === 'pdfs') {
-        items = items.filter((i) => i.type === 'pdf');
-      }
-
-      return search
-        ? items.filter(
-            (i) =>
-              (i.label || '').toLowerCase().includes(search) ||
-              (i.subject || '').toLowerCase().includes(search)
-          )
-        : items;
+    if (activeMediaFilter === 'videos') {
+      items = items.filter((i) => !isPdfItem(i));
+    } else if (activeMediaFilter === 'pdfs') {
+      items = items.filter((i) => isPdfItem(i));
     }
 
-    if (course.isParmar && course.parmarData) {
-      const parmarLectures = course.parmarData[activeTabId]?.lectures || [];
-      const items: LectureItem[] = parmarLectures.map((lec) => {
-        const videoUrl = lec.links?.url ? resolveDirectMediaUrl(lec.links.url) : '';
-        return {
-          label: lec.title,
-          url: videoUrl,
-          type: 'hls' as const,
-          folderName: activeTabId,
-          subject: activeTabId,
-          links: lec.links,
-        };
-      });
-      return search
-        ? items.filter(
-            (i) =>
-              (i.label || '').toLowerCase().includes(search) ||
-              (i.subject || '').toLowerCase().includes(search)
-          )
-        : items;
-    }
-
-    if (course.tabs) {
-      const tab = course.tabs.find((t) => t.id === activeTabId);
-      const items = tab ? tab.items : [];
-      return search
-        ? items.filter(
-            (i) =>
-              (i.label || '').toLowerCase().includes(search) ||
-              (i.subject || '').toLowerCase().includes(search)
-          )
-        : items;
-    }
-
-    return [];
-  }, [course, activeTabId, activeFolderTabId, activeModuleFilter, activeMediaFilter, filterSearch]);
+    return search
+      ? items.filter(
+          (i) =>
+            (i.label || '').toLowerCase().includes(search) ||
+            (i.subject || '').toLowerCase().includes(search)
+        )
+      : items;
+  }, [course, sections, selectedFolderTab, activeTabId, activeModuleFilter, activeMediaFilter, filterSearch]);
 
   // Progressive rendering slice to eliminate DOM freezing on large batches
   const renderedItems = useMemo(() => {
@@ -288,20 +524,11 @@ export const CourseModal: React.FC<CourseModalProps> = ({
     localStorage.setItem(
       `stutosed-last-lec-${course.id}`,
       JSON.stringify({
-        tabId: course.isFolderMode ? activeFolderTabId : activeTabId,
+        tabId: isMultiSection ? activeFolderTabId : activeTabId,
         url,
         timestamp: Date.now(),
       })
     );
-  };
-
-  // Centralized Canonical Dynamic Title-Based SVG Thumbnail Resolver
-  const getLectureThumb = (item: LectureItem) => {
-    if (item.type === 'pdf') return '';
-    if (item.thumb) return item.thumb;
-    const currentTab = course.tabs?.find((t) => t.id === activeTabId) || selectedFolderTab;
-    const category = item.subject || currentTab?.label || course.name;
-    return getDynamicThumbnailUrl(item.label || item.subject, category, theme);
   };
 
   // Detect YouTube video URLs
@@ -505,16 +732,18 @@ export const CourseModal: React.FC<CourseModalProps> = ({
         <button
           className="overlay-header-back-btn"
           onClick={() => {
-            if (course.isFolderMode && activeFolderTabId) {
+            if (isMultiSection && activeFolderTabId) {
               setActiveFolderTabId(null);
               setActiveModuleFilter('All Modules');
+              setActiveMediaFilter('all');
+              setFilterSearch('');
               onFolderTabChange?.(null);
               resetOverlayScroll();
             } else {
               onClose();
             }
           }}
-          title={course.isFolderMode && activeFolderTabId ? 'Back to Subject Folders' : 'Close Course'}
+          title={isMultiSection && activeFolderTabId ? 'Back to Chapters / Sections' : 'Close Course'}
           aria-label="Back"
         >
           <ArrowLeft width={18} height={18} strokeWidth={2.4} />
@@ -527,7 +756,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
           <div className="overlay-header-sub">
             {course.id === 'beu-1st-year'
               ? `${selectedFolderTab ? selectedFolderTab.label + ' · ' : ''}Bihar Engineering University`
-              : [course.teacher, selectedFolderTab ? selectedFolderTab.subname : course.subname]
+              : [course.teacher, selectedFolderTab ? selectedFolderTab.label : course.subname]
                   .filter(Boolean)
                   .filter((val, idx, arr) => arr.indexOf(val) === idx)
                   .join(' · ')}
@@ -535,58 +764,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
         </div>
       </div>
 
-      {/* 3. HORIZONTAL PILL TABS (NO SCROLLBAR SLIDER) */}
-      {/* Normal course tabs */}
-      {!course.isFolderMode && (
-        <div className="overlay-pill-tabs no-scrollbar" id="overlay-tabs">
-          {course.isParmar && course.parmarData && (
-            Object.keys(course.parmarData).map((subj) => (
-              <button
-                key={subj}
-                onClick={() => setActiveTabId(subj)}
-                className={`pill-tab-item ${activeTabId === subj ? 'active' : ''}`}
-              >
-                {subj}
-              </button>
-            ))
-          )}
-
-          {course.isPratham && course.prathamBySubject && (
-            <>
-              <button
-                onClick={() => setActiveTabId('__all__')}
-                className={`pill-tab-item ${activeTabId === '__all__' ? 'active' : ''}`}
-              >
-                All subjects
-              </button>
-              {Object.keys(course.prathamBySubject).map((subj) => (
-                <button
-                  key={subj}
-                  onClick={() => setActiveTabId(subj)}
-                  className={`pill-tab-item ${activeTabId === subj ? 'active' : ''}`}
-                >
-                  {subj}
-                </button>
-              ))}
-            </>
-          )}
-
-          {!course.isParmar && !course.isPratham && course.tabs && (
-            course.tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTabId(tab.id)}
-                className={`pill-tab-item ${activeTabId === tab.id ? 'active' : ''}`}
-              >
-                {tab.label}
-              </button>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* Folder mode subject module tabs */}
-      {course.isFolderMode && activeFolderTabId && folderModules.length > 1 && (
+      {/* Sub-module pills inside selected section (e.g. BEU Modules) */}
+      {(!isMultiSection || activeFolderTabId) && folderModules.length > 1 && (
         <div className="overlay-pill-tabs no-scrollbar" id="overlay-tabs">
           {folderModules.map((mod) => (
             <button
@@ -600,8 +779,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
         </div>
       )}
 
-      {/* 4. CONTROLS STRIP (VIEW TOGGLE & LECTURE COUNT) */}
-      {(!course.isFolderMode || activeFolderTabId) && (
+      {/* 4. CONTROLS STRIP (VIEW TOGGLE & SECTION MEDIA FILTER) */}
+      {(!isMultiSection || activeFolderTabId) && (
         <div className="overlay-controls-strip">
           <div className="controls-left-group">
             <div className="view-mode-segmented">
@@ -623,22 +802,21 @@ export const CourseModal: React.FC<CourseModalProps> = ({
               </button>
             </div>
             <span className="lecture-count-badge">
-              {activeItems.some((i) => i.type === 'pdf') ? 'Lectures & Notes' : 'Lectures'}
+              {selectedFolderTab ? selectedFolderTab.label : 'Lectures & Notes'}
             </span>
           </div>
 
-          {/* Media Type Filter (All / Videos / Notes & PDFs) */}
-          {course.isFolderMode && activeFolderTabId && (() => {
-            const tab = course.tabs?.find((t) => t.id === activeFolderTabId);
-            const items = tab?.items || [];
-            const pdfCount = items.filter((i) => i.type === 'pdf').length;
-            if (pdfCount === 0) return null;
+          {/* Media Type Filter (All / Lectures / PDFs in this section) */}
+          {(() => {
+            const rawList = selectedFolderTab?.items || [];
+            const pdfCount = rawList.filter((i) => isPdfItem(i)).length;
+            const vidCount = rawList.length - pdfCount;
             return (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                 {([
-                  { key: 'all' as const, label: 'All' },
-                  { key: 'videos' as const, label: 'Videos' },
-                  { key: 'pdfs' as const, label: 'PDFs' },
+                  { key: 'all' as const, label: `All (${rawList.length})` },
+                  { key: 'videos' as const, label: `Lectures (${vidCount})` },
+                  { key: 'pdfs' as const, label: `PDFs (${pdfCount})` },
                 ] as const).map(({ key, label }) => (
                   <button
                     key={key}
@@ -667,9 +845,9 @@ export const CourseModal: React.FC<CourseModalProps> = ({
 
       {/* OVERLAY CONTENT */}
       <div className="overlay-content" id="overlay-content">
-        {/* CASE 1: FOLDER MODE ROOT (Show Subject Folders Grid) */}
-        {course.isFolderMode && !activeFolderTabId ? (
-          <div style={{ padding: '24px 20px 48px', maxWidth: '840px', margin: '0 auto' }}>
+        {/* CASE 1: FOLDER-FIRST CHAPTERS / SECTIONS DIRECTORY (No horizontal tab sliding!) */}
+        {isMultiSection && !activeFolderTabId ? (
+          <div style={{ padding: '24px 20px 48px', maxWidth: '880px', margin: '0 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
               <Folder width={20} height={20} style={{ color: 'var(--accent)' }} />
               <h3
@@ -681,70 +859,78 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                   margin: 0,
                 }}
               >
-                {course.name} — Subjects
+                {course.name} — Chapters &amp; Sections ({sections.length})
               </h3>
             </div>
 
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: '20px',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))',
+                gap: '18px',
               }}
             >
-              {course.tabs?.map((tab) => (
-                <div
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveFolderTabId(tab.id);
-                    setActiveTabId(tab.id);
-                    onFolderTabChange?.(tab.id);
-                    const isModuleNaming = tab.items.some((it) => it.subject?.toLowerCase().startsWith('module'));
-                    setActiveModuleFilter(isModuleNaming ? 'All Modules' : 'All Subjects');
-                    setActiveMediaFilter('all');
-                    resetOverlayScroll();
-                  }}
-                  style={{
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--r-xl)',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    boxShadow: 'var(--sh-card)',
-                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                  }}
-                  className="subject-folder-card"
-                >
-                  <div
-                    style={{
-                      padding: '20px 22px 16px',
-                      background: 'linear-gradient(135deg, rgba(204, 120, 92, 0.12) 0%, rgba(204, 120, 92, 0.02) 100%)',
-                      borderBottom: '1px solid var(--border)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '12px',
-                    }}
-                  >
+              {sections
+                .filter((sec) => {
+                  const q = filterSearch.trim().toLowerCase();
+                  if (!q) return true;
+                  return (
+                    sec.label.toLowerCase().includes(q) ||
+                    sec.items.some((it) => (it.label || '').toLowerCase().includes(q))
+                  );
+                })
+                .map((sec) => {
+                  const pdfs = sec.items.filter((i) => isPdfItem(i)).length;
+                  const vids = sec.items.length - pdfs;
+                  return (
                     <div
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: 'var(--r-md)',
-                        background: 'rgba(204, 120, 92, 0.15)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'var(--accent)',
-                        flexShrink: 0,
+                      key={sec.id}
+                      onClick={() => {
+                        setActiveFolderTabId(sec.id);
+                        setActiveTabId(sec.id);
+                        onFolderTabChange?.(sec.id);
+                        setActiveModuleFilter('All Modules');
+                        setActiveMediaFilter('all');
+                        setFilterSearch('');
+                        resetOverlayScroll();
                       }}
+                      style={{
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--r-xl)',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        boxShadow: 'var(--sh-card)',
+                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                      }}
+                      className="subject-folder-card"
                     >
-                      <Folder width={22} height={22} />
-                    </div>
-                    {(() => {
-                      const vids = tab.items.filter((i) => i.type !== 'pdf').length;
-                      const pdfs = tab.items.filter((i) => i.type === 'pdf').length;
-                      return (
+                      <div
+                        style={{
+                          padding: '18px 20px 14px',
+                          background: 'linear-gradient(135deg, rgba(204, 120, 92, 0.12) 0%, rgba(204, 120, 92, 0.02) 100%)',
+                          borderBottom: '1px solid var(--border)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: 'var(--r-md)',
+                            background: 'rgba(204, 120, 92, 0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--accent)',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Folder width={20} height={20} />
+                        </div>
                         <span
                           style={{
                             fontSize: '11px',
@@ -752,59 +938,51 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                             color: 'var(--accent)',
                             background: 'var(--bg-card)',
                             border: '1px solid var(--border)',
-                            padding: '3px 8px',
+                            padding: '3px 9px',
                             borderRadius: 'var(--r-pill)',
                           }}
                         >
-                          {vids} Lectures {pdfs > 0 ? `• ${pdfs} Notes` : ''}
+                          {vids} Lectures • {pdfs} PDFs
                         </span>
-                      );
-                    })()}
-                  </div>
+                      </div>
 
-                  <div style={{ padding: '18px 20px' }}>
-                    <div
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '18px',
-                        fontWeight: 700,
-                        color: 'var(--text)',
-                        marginBottom: '6px',
-                      }}
-                    >
-                      {tab.label}
-                    </div>
-                    {(() => {
-                      const desc =
-                        tab.subname ||
-                        'Video Lectures & Practice Notes';
-                      return (
-                        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>
-                          {desc}
+                      <div style={{ padding: '16px 18px' }}>
+                        <div
+                          style={{
+                            fontFamily: 'var(--font-display)',
+                            fontSize: '17px',
+                            fontWeight: 700,
+                            color: 'var(--text)',
+                            marginBottom: '6px',
+                          }}
+                        >
+                          {sec.label}
                         </div>
-                      );
-                    })()}
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: 'var(--accent)',
-                      }}
-                    >
-                      <span>Open Subject</span> →
+                        <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                          {sec.subname || `${vids} Video Lectures & ${pdfs} Notes/PDFs`}
+                        </div>
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: 'var(--accent)',
+                          }}
+                        >
+                          <span>Open Chapter</span> →
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
             </div>
           </div>
         ) : (
-          /* CASE 2: VIDEO & RESOURCE LIST / GRID (UNIVERSAL YT-STYLE FOR ALL COURSES) */
+          /* CASE 2: VIDEO & RESOURCE LIST / GRID */
           <div>
-            {course.isFolderMode && activeFolderTabId && (
+            {isMultiSection && activeFolderTabId && (
               <div
                 style={{
                   display: 'flex',
@@ -821,6 +999,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                   onClick={() => {
                     setActiveFolderTabId(null);
                     setActiveModuleFilter('All Modules');
+                    setActiveMediaFilter('all');
+                    setFilterSearch('');
                     onFolderTabChange?.(null);
                   }}
                   style={{
@@ -837,7 +1017,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                   }}
                 >
                   <ArrowLeft width={16} height={16} />
-                  <span>Back to Subjects</span>
+                  <span>Back to Chapters ({sections.length})</span>
                 </button>
               </div>
             )}
@@ -865,17 +1045,23 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                       background: 'var(--bg-card)',
                       border: '1px solid var(--border)',
                       borderRadius: 'var(--r-lg)',
-                      padding: '16px 18px',
+                      overflow: 'hidden',
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
-                      gap: '12px',
                       cursor: 'pointer',
                       transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                       position: 'relative',
                     }}
                   >
-                    <div>
+                    <WebLectureThumb
+                      item={item}
+                      index={idx}
+                      isWatched={isWatched}
+                      variant="grid"
+                    />
+
+                    <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', flex: 1, gap: '10px' }}>
                       {/* Top Header Row: Index & Duration & Status */}
                       <div
                         style={{
@@ -948,7 +1134,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                         </div>
                       </div>
 
-                      {/* Lecture Title ("kewal naming hi rehne do") */}
+                      {/* Lecture Title */}
                       <h4
                         style={{
                           fontSize: '14.5px',
@@ -957,14 +1143,13 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                           lineHeight: 1.4,
                           margin: 0,
                           display: '-webkit-box',
-                          WebkitLineClamp: 3,
+                          WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden',
                         }}
                       >
                         {item.label}
                       </h4>
-                    </div>
 
                     {/* Bot/Parmar Attachment links & Action Bar */}
                     <div
@@ -1057,6 +1242,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                           )}
                         </span>
                       </div>
+                    </div>
                     </div>
                   </div>
                 );
@@ -1220,22 +1406,12 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                     className={`video-row ${isWatched ? 'watched' : ''}`}
                     onClick={() => handleItemClick(item, idx)}
                   >
-                    <div className="video-num">{idx + 1}</div>
-                    <div
-                      className="video-icon vicon-hls"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: isYt ? '#ff4b4b' : undefined,
-                      }}
-                    >
-                      {isYt ? (
-                        <ExternalLink width={13} height={13} />
-                      ) : (
-                        <Play width={13} height={13} fill="currentColor" />
-                      )}
-                    </div>
+                    <WebLectureThumb
+                      item={item}
+                      index={idx}
+                      isWatched={isWatched}
+                      variant="list"
+                    />
                     <div className="video-body">
                       <div className="video-title">{item.label}</div>
                       <div className="video-sub">
