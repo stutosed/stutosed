@@ -116,7 +116,7 @@ export const CoursesScreen: React.FC = () => {
           </View>
 
           <Text style={[styles.portalTitle, { color: colors.text }]}>
-            GATE Engineering Section
+            GATE Section
           </Text>
           <Text style={[styles.portalDesc, { color: colors.textMuted }]}>
             Structured GATE ECE preparation featuring Made Easy Signals &amp; Systems full video

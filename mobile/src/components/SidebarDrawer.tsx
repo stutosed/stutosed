@@ -236,12 +236,7 @@ export const SidebarDrawer: React.FC = () => {
                 activeOpacity={0.7}
               >
                 <Cpu size={18} color={colors.orange} />
-                <View style={styles.navLabelRow}>
-                  <Text style={[styles.navLabel, { color: colors.text }]}>GATE Engineering</Text>
-                  <View style={[styles.catBadge, { backgroundColor: `${colors.orange}18` }]}>
-                    <Text style={[styles.catBadgeText, { color: colors.orange }]}>ECE Ready</Text>
-                  </View>
-                </View>
+                <Text style={[styles.navLabel, { color: colors.text }]}>GATE</Text>
               </TouchableOpacity>
 
               <TouchableOpacity

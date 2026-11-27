@@ -72,27 +72,45 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   // If user is not logged in, trigger auth modal
   if (!user) {
     return (
-      <button
-        onClick={onOpenAuth}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '7px',
-          padding: '7px 14px',
-          borderRadius: 'var(--r-pill)',
-          background: 'var(--accent)',
-          color: '#ffffff',
-          fontSize: '13px',
-          fontWeight: 600,
-          border: 'none',
-          cursor: 'pointer',
-          boxShadow: '0 2px 10px var(--accent-glow)',
-          transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-        }}
-      >
-        <Sparkles width={14} height={14} />
-        <span>Sign In</span>
-      </button>
+      <>
+        <button
+          onClick={onOpenAuth}
+          aria-label="Sign In"
+          className="header-signin-btn"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '7px',
+            padding: '7px 14px',
+            borderRadius: 'var(--r-pill)',
+            background: 'var(--accent)',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 600,
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 2px 10px var(--accent-glow)',
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
+          <User width={15} height={15} />
+          <span className="header-signin-label">Sign In</span>
+        </button>
+        <style>{`
+          @media (max-width: 768px) {
+            .header-signin-btn {
+              width: 34px !important;
+              height: 34px !important;
+              padding: 0 !important;
+              border-radius: 50% !important;
+            }
+            .header-signin-label {
+              display: none !important;
+            }
+          }
+        `}</style>
+      </>
     );
   }
 
@@ -107,9 +125,11 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         aria-label="User Account Menu"
         aria-expanded={isOpen}
+        className="profile-trigger-btn"
         style={{
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
           gap: '7px',
           padding: '3px 8px 3px 3px',
           borderRadius: 'var(--r-pill)',
@@ -127,20 +147,20 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             src={user.avatar_url!}
             alt={userName}
             onError={() => setImgError(true)}
-            style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+            style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover' }}
           />
         ) : (
           <div
             style={{
-              width: '28px',
-              height: '28px',
+              width: '30px',
+              height: '30px',
               borderRadius: '50%',
               background: avatarBg,
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '11px',
+              fontSize: '11.5px',
               fontWeight: 700,
               letterSpacing: '0.5px',
             }}
@@ -167,6 +187,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         <ChevronDown
           width={13}
           height={13}
+          className="header-chevron-icon"
           style={{
             color: 'var(--text-dim)',
             transform: isOpen ? 'rotate(180deg)' : 'rotate(0)',
@@ -419,8 +440,15 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         .dropdown-signout-item:hover {
           background: rgba(220, 38, 38, 0.1);
         }
-        @media (max-width: 600px) {
-          .header-username-label {
+        @media (max-width: 768px) {
+          .profile-trigger-btn {
+            width: 34px !important;
+            height: 34px !important;
+            padding: 1px !important;
+            border-radius: 50% !important;
+          }
+          .header-username-label,
+          .header-chevron-icon {
             display: none !important;
           }
         }

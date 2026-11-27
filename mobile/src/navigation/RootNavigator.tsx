@@ -34,7 +34,11 @@ export const RootNavigator: React.FC = () => {
       <Stack.Screen
         name="Auth"
         component={AuthScreen}
-        options={{ animation: 'slide_from_bottom' }}
+        options={{
+          presentation: 'transparentModal',
+          animation: 'fade',
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
       />
     </Stack.Navigator>
   );

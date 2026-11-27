@@ -56,7 +56,7 @@ export const ProfileScreen: React.FC = () => {
 
   const watchedCount = Object.keys(watchedMap).length;
   const bookmarkCount = bookmarks.length;
-  const displayName = user?.full_name || 'Guest Student';
+  const displayName = user?.full_name || 'Advik';
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
@@ -80,7 +80,7 @@ export const ProfileScreen: React.FC = () => {
             ) : (
               <View style={[styles.avatarCircle, { backgroundColor: colors.accent }]}>
                 <Text style={styles.avatarText}>
-                  {user ? getInitials(displayName) : 'ST'}
+                  {getInitials(displayName)}
                 </Text>
               </View>
             )}
@@ -90,7 +90,7 @@ export const ProfileScreen: React.FC = () => {
                 {displayName}
               </Text>
               <Text style={[styles.userEmail, { color: colors.textMuted }]} numberOfLines={1}>
-                {user ? user.email : `Guest ID: ${studentId.slice(0, 14)}...`}
+                {user ? user.email : 'student@stutosed.in'}
               </Text>
               <View style={styles.syncStatusRow}>
                 <ShieldCheck size={12} color={user ? colors.green : colors.orange} />
@@ -100,7 +100,7 @@ export const ProfileScreen: React.FC = () => {
                     { color: user ? colors.green : colors.orange },
                   ]}
                 >
-                  {user ? 'Cloud Sync Active' : 'Local Storage Only'}
+                  {user ? 'Cloud Sync Active' : `Demo Mode • ID: ${studentId.slice(0, 10)}`}
                 </Text>
               </View>
             </View>
@@ -227,7 +227,7 @@ export const ProfileScreen: React.FC = () => {
               </View>
               <View>
                 <Text style={[styles.menuTitle, { color: colors.text }]}>
-                  GATE ECE Engineering
+                  GATE
                 </Text>
                 <Text style={[styles.menuSubtitle, { color: colors.textDim }]}>
                   Made Easy 36 Lectures Portal

@@ -85,7 +85,7 @@ export const HomeScreen: React.FC = () => {
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const exploreYRef = useRef<number>(0);
 
-  const userName = user?.full_name || user?.email?.split('@')[0] || 'Student';
+  const userName = user?.full_name || user?.email?.split('@')[0] || 'Advik';
   const firstName = userName.split(' ')[0];
   const initials = getInitials(userName);
   const greetingData = useMemo(() => getTimeGreetingData(firstName), [firstName]);
@@ -176,83 +176,81 @@ export const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* 2. PERSONALIZED TIME-BASED GREETING BANNER */}
-        {user && (
-          <View style={styles.sectionPad}>
-            <View
-              style={[
-                styles.greetingCard,
-                { backgroundColor: colors.bgCard, borderColor: colors.border },
-              ]}
-            >
-              <View style={styles.greetingTop}>
-                <View
-                  style={[
-                    styles.greetingAvatar,
-                    {
-                      backgroundColor: user.avatar_url ? 'transparent' : colors.accent,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                >
-                  {user.avatar_url ? (
-                    <Image
-                      source={{ uri: user.avatar_url }}
-                      style={styles.greetingAvatarImg}
-                    />
-                  ) : (
-                    <Text style={styles.greetingAvatarInitials}>{initials}</Text>
-                  )}
-                </View>
-
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <View style={styles.greetingTitleRow}>
-                    <View
-                      style={[
-                        styles.timeIconBox,
-                        { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
-                      ]}
-                    >
-                      {greetingData.timeSlot === 'morning' && (
-                        <Sunrise size={14} color="#f59e0b" />
-                      )}
-                      {greetingData.timeSlot === 'afternoon' && (
-                        <Sun size={14} color="#eab308" />
-                      )}
-                      {greetingData.timeSlot === 'evening' && (
-                        <Sunset size={14} color="#f97316" />
-                      )}
-                      {greetingData.timeSlot === 'night' && (
-                        <Moon size={14} color="#818cf8" />
-                      )}
-                    </View>
-                    <Text style={[styles.greetingHeading, { color: colors.text }]} numberOfLines={2}>
-                      {greetingData.greeting}
-                    </Text>
-                    <BrandSpike size={17} color={colors.accent} />
-                  </View>
-                  <Text style={[styles.greetingSubtext, { color: colors.textMuted }]}>
-                    {greetingData.subtext}
-                  </Text>
-                </View>
+        {/* 2. PERSONALIZED TIME-BASED GREETING BANNER (Shows Advik demo when guest, matching Web) */}
+        <View style={styles.sectionPad}>
+          <View
+            style={[
+              styles.greetingCard,
+              { backgroundColor: colors.bgCard, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.greetingTop}>
+              <View
+                style={[
+                  styles.greetingAvatar,
+                  {
+                    backgroundColor: user?.avatar_url ? 'transparent' : colors.accent,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                {user?.avatar_url ? (
+                  <Image
+                    source={{ uri: user.avatar_url }}
+                    style={styles.greetingAvatarImg}
+                  />
+                ) : (
+                  <Text style={styles.greetingAvatarInitials}>{initials}</Text>
+                )}
               </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.viewProgressBtn,
-                  { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
-                ]}
-                onPress={() => (navigation as any).navigate('MainTabs', { screen: 'ProfileTab' })}
-                activeOpacity={0.75}
-              >
-                <Text style={[styles.viewProgressText, { color: colors.accent }]}>
-                  View Progress
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <View style={styles.greetingTitleRow}>
+                  <View
+                    style={[
+                      styles.timeIconBox,
+                      { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
+                    ]}
+                  >
+                    {greetingData.timeSlot === 'morning' && (
+                      <Sunrise size={14} color="#f59e0b" />
+                    )}
+                    {greetingData.timeSlot === 'afternoon' && (
+                      <Sun size={14} color="#eab308" />
+                    )}
+                    {greetingData.timeSlot === 'evening' && (
+                      <Sunset size={14} color="#f97316" />
+                    )}
+                    {greetingData.timeSlot === 'night' && (
+                      <Moon size={14} color="#818cf8" />
+                    )}
+                  </View>
+                  <Text style={[styles.greetingHeading, { color: colors.text }]} numberOfLines={2}>
+                    {greetingData.greeting}
+                  </Text>
+                  <BrandSpike size={17} color={colors.accent} />
+                </View>
+                <Text style={[styles.greetingSubtext, { color: colors.textMuted }]}>
+                  {greetingData.subtext}
                 </Text>
-                <ArrowRight size={14} color={colors.accent} />
-              </TouchableOpacity>
+              </View>
             </View>
+
+            <TouchableOpacity
+              style={[
+                styles.viewProgressBtn,
+                { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
+              ]}
+              onPress={() => (navigation as any).navigate('MainTabs', { screen: 'ProfileTab' })}
+              activeOpacity={0.75}
+            >
+              <Text style={[styles.viewProgressText, { color: colors.accent }]}>
+                View Progress
+              </Text>
+              <ArrowRight size={14} color={colors.accent} />
+            </TouchableOpacity>
           </View>
-        )}
+        </View>
 
         {/* 3. CONTINUE LEARNING SECTION */}
         <View style={styles.sectionPad}>
@@ -415,7 +413,7 @@ export const HomeScreen: React.FC = () => {
             </View>
 
             <Text style={[styles.portalTitle, { color: colors.text }]}>
-              GATE Engineering Section
+              GATE Section
             </Text>
             <Text style={[styles.portalDesc, { color: colors.textMuted }]}>
               Structured GATE ECE preparation featuring Made Easy Signals &amp; Systems full video
@@ -544,7 +542,7 @@ export const HomeScreen: React.FC = () => {
             >
               <Cpu size={14} color="#f59e0b" />
               <Text style={[styles.footerLinkText, { color: colors.textMuted }]}>
-                GATE Engineering (ECE Made Easy)
+                GATE (ECE Made Easy)
               </Text>
             </TouchableOpacity>
             <TouchableOpacity

@@ -1,5 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Modal,
+  Pressable,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
@@ -8,6 +17,16 @@ import { useAuth } from '../context/AuthContext';
 import { useDrawer } from '../context/DrawerContext';
 import { BrandSpike } from './BrandSpike';
 import { radii, spacing } from '../theme/spacing';
+import {
+  User,
+  BookmarkCheck,
+  BookOpen,
+  Sun,
+  Moon,
+  HelpCircle,
+  LogOut,
+  ShieldCheck,
+} from 'lucide-react-native';
 
 function getInitials(name: string): string {
   if (!name) return 'S';
@@ -18,13 +37,25 @@ function getInitials(name: string): string {
 
 export const Header: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { colors } = useTheme();
-  const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { theme, colors, toggleTheme } = useTheme();
+  const { user, signOutUser } = useAuth();
   const { openDrawer } = useDrawer();
 
-  const userName = user?.full_name || user?.email?.split('@')[0] || 'Student';
-  const firstName = userName.split(' ')[0];
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const userName = user?.full_name || user?.email?.split('@')[0] || 'Advik';
   const initials = getInitials(userName);
+
+  const handleNavigateTab = (tab: 'HomeTab' | 'CoursesTab' | 'LibraryTab' | 'ProfileTab') => {
+    setMenuOpen(false);
+    (navigation as any).navigate('MainTabs', { screen: tab });
+  };
+
+  const handleNavigateScreen = (screen: 'GovtExams' | 'Help' | 'Auth') => {
+    setMenuOpen(false);
+    (navigation as any).navigate(screen);
+  };
 
   return (
     <View
@@ -48,7 +79,7 @@ export const Header: React.FC = () => {
         <View style={[styles.hamburgerLine, { backgroundColor: colors.text, width: 13 }]} />
       </TouchableOpacity>
 
-      {/* Center: Floating Brand Logo Pill (exact match to MobileHeader.tsx) */}
+      {/* Center: Floating Brand Logo Pill (with rotating BrandSpike) */}
       <View style={styles.centerSlot} pointerEvents="box-none">
         <TouchableOpacity
           style={[
@@ -58,7 +89,7 @@ export const Header: React.FC = () => {
               borderColor: colors.border,
             },
           ]}
-          onPress={() => (navigation as any).navigate('MainTabs', { screen: 'HomeTab' })}
+          onPress={() => handleNavigateTab('HomeTab')}
           activeOpacity={0.75}
         >
           <BrandSpike size={18} color={colors.accent} />
@@ -66,19 +97,20 @@ export const Header: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Right: Profile Pill or Sign In Pill */}
+      {/* Right: Circular Sign In (Guest) OR Circular Avatar Only + Profile Popup (Logged In) */}
       <View style={styles.rightSlot}>
         {user ? (
           <TouchableOpacity
             style={[
-              styles.avatarPill,
+              styles.circularTrigger,
               {
-                backgroundColor: colors.bgCard,
-                borderColor: colors.border,
+                backgroundColor: colors.bgCardSubtle,
+                borderColor: menuOpen ? colors.accent : colors.border,
               },
             ]}
-            onPress={() => (navigation as any).navigate('MainTabs', { screen: 'ProfileTab' })}
+            onPress={() => setMenuOpen(true)}
             activeOpacity={0.75}
+            accessibilityLabel="User Account Menu"
           >
             {user.avatar_url ? (
               <Image source={{ uri: user.avatar_url }} style={styles.avatarImg} />
@@ -87,20 +119,155 @@ export const Header: React.FC = () => {
                 <Text style={styles.avatarInitials}>{initials}</Text>
               </View>
             )}
-            <Text style={[styles.userNameText, { color: colors.text }]} numberOfLines={1}>
-              {firstName}
-            </Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={[styles.signInPill, { backgroundColor: colors.accent }]}
+            style={[styles.circularSignInBtn, { backgroundColor: colors.accent }]}
             onPress={() => navigation.navigate('Auth')}
             activeOpacity={0.8}
+            accessibilityLabel="Sign In"
           >
-            <Text style={styles.signInText}>Sign In</Text>
+            <User size={16} color="#ffffff" />
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Profile Dropdown Popup Modal (Exact Web ProfileMenu.tsx replica) */}
+      {user && (
+        <Modal
+          visible={menuOpen}
+          transparent
+          animationType="fade"
+          statusBarTranslucent
+          onRequestClose={() => setMenuOpen(false)}
+        >
+          <Pressable style={styles.dropdownBackdrop} onPress={() => setMenuOpen(false)}>
+            <Pressable
+              style={[
+                styles.dropdownCard,
+                {
+                  top: insets.top + 56,
+                  backgroundColor: colors.bgCard,
+                  borderColor: colors.border,
+                },
+              ]}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {/* User Summary Row */}
+              <View style={[styles.dropdownHeader, { borderBottomColor: colors.border }]}>
+                {user.avatar_url ? (
+                  <Image
+                    source={{ uri: user.avatar_url }}
+                    style={[styles.dropdownAvatarImg, { borderColor: colors.accent }]}
+                  />
+                ) : (
+                  <View style={[styles.dropdownAvatarCircle, { backgroundColor: colors.accent }]}>
+                    <Text style={styles.dropdownAvatarInitials}>{initials}</Text>
+                  </View>
+                )}
+
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={[styles.dropdownName, { color: colors.text }]} numberOfLines={1}>
+                    {userName}
+                  </Text>
+                  <View style={styles.verifiedRow}>
+                    <ShieldCheck size={12} color={colors.accent} />
+                    <Text style={[styles.verifiedText, { color: colors.accent }]}>
+                      Verified Student
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Action Items matching ProfileMenu.tsx */}
+              <View style={styles.dropdownList}>
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => handleNavigateTab('ProfileTab')}
+                  activeOpacity={0.7}
+                >
+                  <User size={15} color={colors.accent} />
+                  <Text style={[styles.dropdownItemText, { color: colors.text }]}>
+                    My Profile
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => handleNavigateTab('LibraryTab')}
+                  activeOpacity={0.7}
+                >
+                  <BookmarkCheck size={15} color={colors.accent} />
+                  <Text style={[styles.dropdownItemText, { color: colors.text }]}>
+                    My Library
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => handleNavigateScreen('GovtExams')}
+                  activeOpacity={0.7}
+                >
+                  <BookOpen size={15} color={colors.beuBlue} />
+                  <Text style={[styles.dropdownItemText, { color: colors.text }]}>
+                    Govt Exams
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.dropdownItem, { justifyContent: 'space-between' }]}
+                  onPress={toggleTheme}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.dropdownItemLeft}>
+                    {theme === 'light' ? (
+                      <Moon size={15} color={colors.accent} />
+                    ) : (
+                      <Sun size={15} color={colors.orange} />
+                    )}
+                    <Text style={[styles.dropdownItemText, { color: colors.text }]}>Theme</Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.themeTag,
+                      { backgroundColor: colors.bg, borderColor: colors.border },
+                    ]}
+                  >
+                    <Text style={[styles.themeTagText, { color: colors.textDim }]}>
+                      {theme === 'light' ? 'Light' : 'Dark'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => handleNavigateScreen('Help')}
+                  activeOpacity={0.7}
+                >
+                  <HelpCircle size={15} color={colors.govtIndigo} />
+                  <Text style={[styles.dropdownItemText, { color: colors.text }]}>
+                    Help &amp; Community
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+              <TouchableOpacity
+                style={styles.dropdownItem}
+                onPress={async () => {
+                  setMenuOpen(false);
+                  await signOutUser();
+                }}
+                activeOpacity={0.7}
+              >
+                <LogOut size={15} color={colors.red} />
+                <Text style={[styles.signOutText, { color: colors.red }]}>Sign Out</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      )}
     </View>
   );
 };
@@ -159,45 +326,138 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  avatarPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radii.pill,
+  circularTrigger: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     borderWidth: 1,
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarImg: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
   avatarCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitials: {
     color: '#ffffff',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
-  userNameText: {
-    fontSize: 12,
-    fontWeight: '600',
-    maxWidth: 68,
+  circularSignInBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#cc785c',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.28,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  signInPill: {
-    paddingHorizontal: 13,
-    paddingVertical: 7,
-    borderRadius: radii.pill,
+  dropdownBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(18, 17, 16, 0.18)',
   },
-  signInText: {
+  dropdownCard: {
+    position: 'absolute',
+    right: 14,
+    width: 235,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: 7,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  dropdownHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    marginBottom: 4,
+  },
+  dropdownAvatarImg: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
+  },
+  dropdownAvatarCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dropdownAvatarInitials: {
     color: '#ffffff',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
+  },
+  dropdownName: {
+    fontSize: 13.5,
+    fontWeight: '700',
+  },
+  verifiedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  verifiedText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  dropdownList: {
+    gap: 2,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: radii.md,
+  },
+  dropdownItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  dropdownItemText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  themeTag: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+  },
+  themeTagText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  divider: {
+    height: 1,
+    marginVertical: 4,
+  },
+  signOutText: {
+    fontSize: 12.5,
+    fontWeight: '600',
   },
 });

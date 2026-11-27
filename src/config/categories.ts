@@ -23,13 +23,12 @@ export const COURSE_CATEGORIES: CategoryConfig[] = [
   },
   {
     id: 'gate',
-    label: 'GATE Engineering',
-    shortLabel: 'GATE Engineering',
+    label: 'GATE',
+    shortLabel: 'GATE',
     description: 'Graduate Aptitude Test in Engineering preparation for ECE and core technical engineering subjects.',
     iconName: 'Cpu',
     accentColor: '#f59e0b',
     accentDim: 'rgba(245, 158, 11, 0.12)',
-    badge: 'ECE Ready',
   },
 ];
 
