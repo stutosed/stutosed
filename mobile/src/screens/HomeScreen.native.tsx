@@ -321,100 +321,7 @@ export const HomeScreen: React.FC = () => {
           </Text>
         </View>
 
-        {/* 2. RESUME LECTURE CARD (Top Priority) OR SKELETON / EMPTY STATE */}
-        {showSkeleton ? (
-          <Animated.View
-            style={[
-              styles.skeletonCard,
-              { backgroundColor: colors.bgCard, borderColor: colors.border, opacity: pulseAnim },
-            ]}
-          >
-            <View style={[styles.skeletonThumb, { backgroundColor: colors.bgCardSubtle }]} />
-            <View style={{ flex: 1, gap: 8 }}>
-              <View style={[styles.skeletonLine, { width: '45%', backgroundColor: colors.bgCardSubtle }]} />
-              <View style={[styles.skeletonLine, { width: '85%', height: 14, backgroundColor: colors.bgCardSubtle }]} />
-              <View style={[styles.skeletonLine, { width: '100%', height: 6, backgroundColor: colors.bgCardSubtle }]} />
-            </View>
-          </Animated.View>
-        ) : lastPlayed && lastPlayedCourse ? (
-          <TouchableOpacity
-            style={[
-              styles.resumeCard,
-              { backgroundColor: colors.bgCard, borderColor: colors.border },
-            ]}
-            onPress={handleResumePress}
-            activeOpacity={0.85}
-          >
-            <View style={styles.resumeTopRow}>
-              {resumeThumbUri ? (
-                <Image source={{ uri: resumeThumbUri }} style={styles.resumeThumb} />
-              ) : (
-                <View
-                  style={[
-                    styles.resumeThumbPlaceholder,
-                    { backgroundColor: 'rgba(204, 120, 92, 0.12)', borderColor: colors.border },
-                  ]}
-                >
-                  <BookOpen size={22} color={colors.accent} />
-                </View>
-              )}
-
-              <View style={styles.resumeInfo}>
-                <Text style={[styles.resumeBatch, { color: colors.accent }]} numberOfLines={1}>
-                  {lastPlayedCourse.name}
-                </Text>
-                <Text style={[styles.resumeLectureTitle, { color: colors.text }]} numberOfLines={2}>
-                  {lastPlayed.lectureTitle || lastPlayedCourse.name}
-                </Text>
-              </View>
-
-              <View style={[styles.resumePlayBtn, { backgroundColor: colors.accent }]}>
-                <Play size={16} color="#ffffff" fill="#ffffff" />
-              </View>
-            </View>
-
-            <View style={styles.progressBlock}>
-              <View style={[styles.progressTrack, { backgroundColor: colors.bgCardSubtle }]}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      backgroundColor: colors.accent,
-                      width: `${Math.max(resumeProgress.pct, resumeProgress.watched > 0 ? 4 : 0)}%`,
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={[styles.progressLabel, { color: colors.textMuted }]}>
-                {resumeProgress.pct}% ({resumeProgress.watched}/{resumeProgress.total})
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[
-              styles.emptyResumeCard,
-              { backgroundColor: colors.bgCard, borderColor: colors.border },
-            ]}
-            onPress={() => (navigation as any).navigate('MainTabs', { screen: 'CoursesTab' })}
-            activeOpacity={0.85}
-          >
-            <View style={[styles.emptyPlayCircle, { backgroundColor: 'rgba(204, 120, 92, 0.12)' }]}>
-              <Play size={18} color={colors.accent} fill={colors.accent} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                Start your first lecture
-              </Text>
-              <Text style={[styles.emptySub, { color: colors.textMuted }]} numberOfLines={2}>
-                Pick a batch from Courses to track daily progress and resume anytime.
-              </Text>
-            </View>
-            <ArrowRight size={18} color={colors.accent} />
-          </TouchableOpacity>
-        )}
-
-        {/* 3. ONE ROW, TWO COLUMNS: BIG STREAK SQUARE BOX + TODAY'S STUDY STATS COLUMN */}
+        {/* 2. ONE ROW, TWO COLUMNS: BIG STREAK SQUARE BOX + TODAY'S STUDY STATS COLUMN */}
         <View style={styles.bentoRow}>
           {/* Column 1: Big Static Square Streak Box */}
           <View
@@ -512,7 +419,148 @@ export const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* 4. QUICK ACCESS HORIZONTAL ROW */}
+        {/* 3. COMPACT TRACKS (Two small side-by-side tiles: Icon + Name + Count only) */}
+        <View style={styles.sectionBlock}>
+          <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Tracks</Text>
+          <View style={styles.tracksGrid}>
+            <TouchableOpacity
+              style={[
+                styles.trackTile,
+                { backgroundColor: colors.bgCard, borderColor: colors.border },
+              ]}
+              onPress={() => navigation.navigate('GovtExams')}
+              activeOpacity={0.82}
+            >
+              <View style={[styles.trackIconBox, { backgroundColor: colors.govtDim }]}>
+                <Landmark size={18} color={colors.govtIndigo} />
+              </View>
+              <View style={styles.trackTextWrap}>
+                <Text style={[styles.trackName, { color: colors.text }]} numberOfLines={1}>
+                  Government Exams
+                </Text>
+                <Text style={[styles.trackCount, { color: colors.govtIndigo }]}>
+                  {govtBatchesCount} Batches
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.trackTile,
+                { backgroundColor: colors.bgCard, borderColor: colors.border },
+              ]}
+              onPress={() => navigation.navigate('Gate')}
+              activeOpacity={0.82}
+            >
+              <View style={[styles.trackIconBox, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
+                <Cpu size={18} color="#f59e0b" />
+              </View>
+              <View style={styles.trackTextWrap}>
+                <Text style={[styles.trackName, { color: colors.text }]} numberOfLines={1}>
+                  GATE ECE
+                </Text>
+                <Text style={[styles.trackCount, { color: '#d97706' }]}>
+                  {gateLectureCount} Lectures
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* 4. RESUME LECTURE CARD (Last Viewed Lecture) OR SKELETON / EMPTY STATE */}
+        {showSkeleton ? (
+          <Animated.View
+            style={[
+              styles.skeletonCard,
+              { backgroundColor: colors.bgCard, borderColor: colors.border, opacity: pulseAnim },
+            ]}
+          >
+            <View style={[styles.skeletonThumb, { backgroundColor: colors.bgCardSubtle }]} />
+            <View style={{ flex: 1, gap: 8 }}>
+              <View style={[styles.skeletonLine, { width: '45%', backgroundColor: colors.bgCardSubtle }]} />
+              <View style={[styles.skeletonLine, { width: '85%', height: 14, backgroundColor: colors.bgCardSubtle }]} />
+              <View style={[styles.skeletonLine, { width: '100%', height: 6, backgroundColor: colors.bgCardSubtle }]} />
+            </View>
+          </Animated.View>
+        ) : lastPlayed && lastPlayedCourse ? (
+          <TouchableOpacity
+            style={[
+              styles.resumeCard,
+              { backgroundColor: colors.bgCard, borderColor: colors.border },
+            ]}
+            onPress={handleResumePress}
+            activeOpacity={0.85}
+          >
+            <View style={styles.resumeTopRow}>
+              {resumeThumbUri ? (
+                <Image source={{ uri: resumeThumbUri }} style={styles.resumeThumb} />
+              ) : (
+                <View
+                  style={[
+                    styles.resumeThumbPlaceholder,
+                    { backgroundColor: 'rgba(204, 120, 92, 0.12)', borderColor: colors.border },
+                  ]}
+                >
+                  <BookOpen size={22} color={colors.accent} />
+                </View>
+              )}
+
+              <View style={styles.resumeInfo}>
+                <Text style={[styles.resumeBatch, { color: colors.accent }]} numberOfLines={1}>
+                  {lastPlayedCourse.name}
+                </Text>
+                <Text style={[styles.resumeLectureTitle, { color: colors.text }]} numberOfLines={2}>
+                  {lastPlayed.lectureTitle || lastPlayedCourse.name}
+                </Text>
+              </View>
+
+              <View style={[styles.resumePlayBtn, { backgroundColor: colors.accent }]}>
+                <Play size={16} color="#ffffff" fill="#ffffff" />
+              </View>
+            </View>
+
+            <View style={styles.progressBlock}>
+              <View style={[styles.progressTrack, { backgroundColor: colors.bgCardSubtle }]}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      backgroundColor: colors.accent,
+                      width: `${Math.max(resumeProgress.pct, resumeProgress.watched > 0 ? 4 : 0)}%`,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={[styles.progressLabel, { color: colors.textMuted }]}>
+                {resumeProgress.pct}% ({resumeProgress.watched}/{resumeProgress.total})
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.emptyResumeCard,
+              { backgroundColor: colors.bgCard, borderColor: colors.border },
+            ]}
+            onPress={() => (navigation as any).navigate('MainTabs', { screen: 'CoursesTab' })}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.emptyPlayCircle, { backgroundColor: 'rgba(204, 120, 92, 0.12)' }]}>
+              <Play size={18} color={colors.accent} fill={colors.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                Start your first lecture
+              </Text>
+              <Text style={[styles.emptySub, { color: colors.textMuted }]} numberOfLines={2}>
+                Pick a batch from Courses to track daily progress and resume anytime.
+              </Text>
+            </View>
+            <ArrowRight size={18} color={colors.accent} />
+          </TouchableOpacity>
+        )}
+
+        {/* 5. QUICK ACCESS HORIZONTAL ROW */}
         <View style={styles.sectionBlock}>
           <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Quick Access</Text>
           <ScrollView
@@ -586,54 +634,6 @@ export const HomeScreen: React.FC = () => {
               </View>
             </TouchableOpacity>
           </ScrollView>
-        </View>
-
-        {/* 5. COMPACT TRACKS (Two small side-by-side tiles: Icon + Name + Count only) */}
-        <View style={styles.sectionBlock}>
-          <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Tracks</Text>
-          <View style={styles.tracksGrid}>
-            <TouchableOpacity
-              style={[
-                styles.trackTile,
-                { backgroundColor: colors.bgCard, borderColor: colors.border },
-              ]}
-              onPress={() => navigation.navigate('GovtExams')}
-              activeOpacity={0.82}
-            >
-              <View style={[styles.trackIconBox, { backgroundColor: colors.govtDim }]}>
-                <Landmark size={18} color={colors.govtIndigo} />
-              </View>
-              <View style={styles.trackTextWrap}>
-                <Text style={[styles.trackName, { color: colors.text }]} numberOfLines={1}>
-                  Government Exams
-                </Text>
-                <Text style={[styles.trackCount, { color: colors.govtIndigo }]}>
-                  {govtBatchesCount} Batches
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.trackTile,
-                { backgroundColor: colors.bgCard, borderColor: colors.border },
-              ]}
-              onPress={() => navigation.navigate('Gate')}
-              activeOpacity={0.82}
-            >
-              <View style={[styles.trackIconBox, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
-                <Cpu size={18} color="#f59e0b" />
-              </View>
-              <View style={styles.trackTextWrap}>
-                <Text style={[styles.trackName, { color: colors.text }]} numberOfLines={1}>
-                  GATE ECE
-                </Text>
-                <Text style={[styles.trackCount, { color: '#d97706' }]}>
-                  {gateLectureCount} Lectures
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

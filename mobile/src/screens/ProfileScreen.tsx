@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -20,9 +19,6 @@ import { spacing, radii } from '../theme/spacing';
 import {
   LogOut,
   LogIn,
-  Sun,
-  Moon,
-  Cpu,
   RefreshCw,
   CheckCircle2,
   BookmarkCheck,
@@ -42,7 +38,7 @@ function getInitials(name: string): string {
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { isDark, colors, toggleTheme } = useTheme();
+  const { colors } = useTheme();
   const { openPrivacyModal } = useDrawer();
   const {
     user,
@@ -168,48 +164,8 @@ export const ProfileScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Appearance & Preferences */}
-        <Text style={[styles.sectionHeading, { color: colors.textMuted }]}>APPEARANCE</Text>
-        <View
-          style={[
-            styles.menuCard,
-            { backgroundColor: colors.bgCard, borderColor: colors.border },
-          ]}
-        >
-          <TouchableOpacity style={styles.menuItem} onPress={toggleTheme} activeOpacity={0.7}>
-            <View style={styles.menuLeft}>
-              <View
-                style={[
-                  styles.menuIconBox,
-                  { backgroundColor: isDark ? `${colors.accent}20` : `${colors.orange}20` },
-                ]}
-              >
-                {isDark ? (
-                  <Moon size={18} color={colors.accent} />
-                ) : (
-                  <Sun size={18} color={colors.orange} />
-                )}
-              </View>
-              <View>
-                <Text style={[styles.menuTitle, { color: colors.text }]}>
-                  {isDark ? 'Dark Surface Theme' : 'Light Warm Linen Theme'}
-                </Text>
-                <Text style={[styles.menuSubtitle, { color: colors.textDim }]}>
-                  Tap to switch between Light & Dark editorial themes
-                </Text>
-              </View>
-            </View>
-            <Switch
-              value={!isDark}
-              onValueChange={toggleTheme}
-              trackColor={{ false: colors.border, true: colors.accent }}
-              thumbColor="#ffffff"
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Explore Tracks */}
-        <Text style={[styles.sectionHeading, { color: colors.textMuted }]}>MORE TRACKS</Text>
+        {/* Support & Legal */}
+        <Text style={[styles.sectionHeading, { color: colors.textMuted }]}>SUPPORT & LEGAL</Text>
         <View
           style={[
             styles.menuCard,
@@ -218,27 +174,6 @@ export const ProfileScreen: React.FC = () => {
         >
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation.navigate('Gate')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.menuLeft}>
-              <View style={[styles.menuIconBox, { backgroundColor: `${colors.orange}20` }]}>
-                <Cpu size={18} color={colors.orange} />
-              </View>
-              <View>
-                <Text style={[styles.menuTitle, { color: colors.text }]}>
-                  GATE
-                </Text>
-                <Text style={[styles.menuSubtitle, { color: colors.textDim }]}>
-                  Made Easy 36 Lectures Portal
-                </Text>
-              </View>
-            </View>
-            <ChevronRight size={18} color={colors.textDim} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.menuItem, { borderTopWidth: 1, borderTopColor: colors.borderSubtle }]}
             onPress={() => navigation.navigate('Help')}
             activeOpacity={0.7}
           >

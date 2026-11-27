@@ -3,7 +3,6 @@ import { View, StyleSheet, PanResponder } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
 import { useDrawer } from '../context/DrawerContext';
 import { HomeScreen } from '../screens/HomeScreen';
 import { CoursesScreen } from '../screens/CoursesScreen';
@@ -15,7 +14,6 @@ const Tab = createBottomTabNavigator<BottomTabParamList>();
 
 export const BottomTabNavigator: React.FC = () => {
   const { colors } = useTheme();
-  const { user } = useAuth();
   const { isOpen, openDrawer } = useDrawer();
 
   const isOpenRef = useRef(isOpen);
@@ -114,7 +112,7 @@ export const BottomTabNavigator: React.FC = () => {
           name="ProfileTab"
           component={ProfileScreen}
           options={{
-            tabBarLabel: user ? 'Profile' : 'Login',
+            tabBarLabel: 'Profile',
             tabBarIcon: ({ focused, color }) => renderIcon(focused, User, color),
           }}
         />
