@@ -3,11 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { BottomTabNavigator } from './BottomTabNavigator';
-import { CourseDetailScreen } from '../screens/CourseDetailScreen';
 import { WatchScreen } from '../screens/WatchScreen';
-import { GovtExamsScreen } from '../screens/GovtExamsScreen';
-import { GateScreen } from '../screens/GateScreen';
-import { HelpScreen } from '../screens/HelpScreen';
 import { AuthScreen } from '../screens/AuthScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -26,7 +22,6 @@ export const RootNavigator: React.FC = () => {
       }}
     >
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
-      <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
       <Stack.Screen
         name="Watch"
         component={WatchScreen}
@@ -35,9 +30,6 @@ export const RootNavigator: React.FC = () => {
           animationDuration: 260,
         }}
       />
-      <Stack.Screen name="GovtExams" component={GovtExamsScreen} />
-      <Stack.Screen name="Gate" component={GateScreen} />
-      <Stack.Screen name="Help" component={HelpScreen} />
       <Stack.Screen
         name="Auth"
         component={AuthScreen}

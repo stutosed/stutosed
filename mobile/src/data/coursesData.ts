@@ -1,4 +1,4 @@
-import { Course } from '../types';
+import { Course, LectureItem } from '../types';
 import manifestData from './courses-manifest.json';
 
 const courseDetailsCache = new Map<string, Course>();
@@ -131,4 +131,118 @@ export function getTotalStats(): {
     totalPDFs,
     totalCourses: INITIAL_COURSES.length,
   };
+}
+
+export interface WatchedLectureMatch {
+  label: string;
+  courseId: string;
+  courseName: string;
+  lecture: LectureItem;
+  tabId?: string;
+}
+
+/**
+ * Resolves watchedMap keys (URLs or generated lecture keys) back to human-readable
+ * lecture titles & course metadata across local course JSON catalogs.
+ */
+export async function resolveWatchedLecturesMap(
+  watchKeys: string[]
+): Promise<Record<string, WatchedLectureMatch>> {
+  const result: Record<string, WatchedLectureMatch> = {};
+  if (!watchKeys || watchKeys.length === 0) return result;
+
+  const remaining = new Set(watchKeys);
+
+  const tryMatch = (
+    keys: (string | undefined)[],
+    label: string,
+    course: Course,
+    lecture: LectureItem,
+    tabId?: string
+  ) => {
+    for (const k of keys) {
+      if (k && remaining.has(k)) {
+        result[k] = {
+          label,
+          courseId: course.id,
+          courseName: course.name,
+          lecture,
+          tabId,
+        };
+        remaining.delete(k);
+      }
+    }
+  };
+
+  for (const c of INITIAL_COURSES) {
+    if (remaining.size === 0) break;
+    const course = await loadCourseDetails(c.id);
+    if (!course) continue;
+
+    if (course.tabs && course.tabs.length > 0) {
+      for (const tab of course.tabs) {
+        tab.items.forEach((item, idx) => {
+          const serverUrls = item.servers?.map((s) => s.url) || [];
+          tryMatch(
+            [
+              item.url,
+              item.links?.url,
+              item.id,
+              `${course.id}-${tab.id}-${idx}`,
+              ...serverUrls,
+            ],
+            item.label,
+            course,
+            item,
+            tab.id
+          );
+        });
+      }
+    }
+
+    if (course.isParmar && course.parmarData) {
+      for (const [subjKey, subj] of Object.entries(course.parmarData)) {
+        subj.lectures.forEach((lec, idx) => {
+          const lecItem: LectureItem = {
+            id: `${subjKey}-${idx}`,
+            label: lec.title,
+            url: lec.links?.url || '',
+            type: lec.links?.url?.endsWith('.pdf') ? 'pdf' : 'external',
+            links: lec.links,
+            subject: subjKey,
+          };
+          tryMatch(
+            [lec.links?.url, `${course.id}-${subjKey}-${idx}`, `${subjKey}-${idx}`],
+            lec.title,
+            course,
+            lecItem,
+            subjKey
+          );
+        });
+      }
+    }
+
+    if (course.isPratham && course.prathamBySubject) {
+      for (const [subjKey, items] of Object.entries(course.prathamBySubject)) {
+        items.forEach((item, idx) => {
+          const serverUrls = item.servers?.map((s) => s.url) || [];
+          tryMatch(
+            [
+              item.url,
+              item.links?.url,
+              item.id,
+              `${course.id}-${subjKey}-${idx}`,
+              ...serverUrls,
+            ],
+            item.label,
+            course,
+            item,
+            subjKey
+          );
+        });
+      }
+    }
+  }
+
+  return result;
 }

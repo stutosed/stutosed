@@ -83,12 +83,35 @@ export const Header: React.FC = () => {
 
   const handleNavigateTab = (tab: 'HomeTab' | 'CoursesTab' | 'LibraryTab' | 'ProfileTab') => {
     setMenuOpen(false);
-    (navigation as any).navigate('MainTabs', { screen: tab });
+    const rootScreen =
+      tab === 'HomeTab'
+        ? 'HomeRoot'
+        : tab === 'CoursesTab'
+        ? 'CoursesRoot'
+        : tab === 'LibraryTab'
+        ? 'LibraryRoot'
+        : 'ProfileRoot';
+    (navigation as any).navigate('MainTabs', {
+      screen: tab,
+      params: { screen: rootScreen },
+    });
   };
 
   const handleNavigateScreen = (screen: 'GovtExams' | 'Help' | 'Auth') => {
     setMenuOpen(false);
-    (navigation as any).navigate(screen);
+    if (screen === 'Auth') {
+      (navigation as any).navigate('Auth');
+    } else if (screen === 'Help') {
+      (navigation as any).navigate('MainTabs', {
+        screen: 'ProfileTab',
+        params: { screen: 'Help' },
+      });
+    } else {
+      (navigation as any).navigate('MainTabs', {
+        screen: 'CoursesTab',
+        params: { screen: screen },
+      });
+    }
   };
 
   return (

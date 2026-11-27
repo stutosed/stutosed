@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,11 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { Header } from '../components/Header';
 import { CourseCard } from '../components/CourseCard';
-import { getCourseById } from '../data/coursesData';
+import {
+  getCourseById,
+  resolveWatchedLecturesMap,
+  WatchedLectureMatch,
+} from '../data/coursesData';
 import { triggerSmoothLayout } from '../lib/layoutAnim';
 import { spacing, radii } from '../theme/spacing';
 import {
@@ -40,8 +44,27 @@ export const LibraryScreen: React.FC = () => {
   } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'history'>('bookmarks');
+  const [watchedLookup, setWatchedLookup] = useState<Record<string, WatchedLectureMatch>>({});
 
-  const watchedEntries = useMemo(() => Object.entries(watchedMap), [watchedMap]);
+  const watchedEntries = useMemo(
+    () => Object.entries(watchedMap).sort((a, b) => Number(b[1]) - Number(a[1])),
+    [watchedMap]
+  );
+
+  useEffect(() => {
+    let active = true;
+    const keys = Object.keys(watchedMap);
+    if (keys.length === 0) {
+      setWatchedLookup({});
+      return;
+    }
+    resolveWatchedLecturesMap(keys).then((resolved) => {
+      if (active) setWatchedLookup(resolved);
+    });
+    return () => {
+      active = false;
+    };
+  }, [watchedMap]);
   const bookmarkedCourses = useMemo(
     () =>
       bookmarks
@@ -290,25 +313,41 @@ export const LibraryScreen: React.FC = () => {
             )}
 
             {watchedEntries.length > 0 ? (
-              watchedEntries.slice(0, 30).map(([url, timestamp]) => (
-                <View
-                  key={url}
-                  style={[
-                    styles.historyRow,
-                    { backgroundColor: colors.bgCard, borderColor: colors.border },
-                  ]}
-                >
-                  <CheckCircle2 size={17} color={colors.green} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.historyLabel, { color: colors.text }]} numberOfLines={1}>
-                      {url.split('/').pop() || 'Completed Lecture'}
-                    </Text>
-                    <Text style={[styles.historyTime, { color: colors.textDim }]}>
-                      Completed {new Date(timestamp).toLocaleDateString()}
-                    </Text>
-                  </View>
-                </View>
-              ))
+              watchedEntries.slice(0, 30).map(([watchKey, timestamp]) => {
+                const match = watchedLookup[watchKey];
+                const cleanTitle = match?.label || 'Watched Lecture';
+                return (
+                  <TouchableOpacity
+                    key={watchKey}
+                    style={[
+                      styles.historyRow,
+                      { backgroundColor: colors.bgCard, borderColor: colors.border },
+                    ]}
+                    activeOpacity={match ? 0.78 : 1}
+                    onPress={() => {
+                      if (match) {
+                        navigation.navigate('Watch', {
+                          lecture: match.lecture,
+                          courseId: match.courseId,
+                          courseTitle: match.courseName,
+                          tabId: match.tabId,
+                        });
+                      }
+                    }}
+                  >
+                    <CheckCircle2 size={17} color={colors.green} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.historyLabel, { color: colors.text }]} numberOfLines={1}>
+                        {cleanTitle}
+                      </Text>
+                      <Text style={[styles.historyTime, { color: colors.textDim }]} numberOfLines={1}>
+                        {match?.courseName ? `${match.courseName} • ` : ''}
+                        Completed {new Date(timestamp).toLocaleDateString()}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })
             ) : (
               <View
                 style={[

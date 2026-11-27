@@ -4,16 +4,62 @@ import {
   createBottomTabNavigator,
   BottomTabNavigationOptions,
 } from '@react-navigation/bottom-tabs';
-import { BottomTabParamList } from '../types';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { BottomTabParamList, RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useDrawer } from '../context/DrawerContext';
 import { HomeScreen } from '../screens/HomeScreen';
 import { CoursesScreen } from '../screens/CoursesScreen';
 import { LibraryScreen } from '../screens/LibraryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { CourseDetailScreen } from '../screens/CourseDetailScreen';
+import { GovtExamsScreen } from '../screens/GovtExamsScreen';
+import { GateScreen } from '../screens/GateScreen';
+import { HelpScreen } from '../screens/HelpScreen';
 import { Home, Layers, BookOpen, User } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
+
+function createTabStack(
+  rootName: string,
+  RootComponent: React.ComponentType<any>
+): React.FC {
+  const InnerStack = createNativeStackNavigator<Record<string, object | undefined>>();
+
+  const TabStackNavigator: React.FC = () => {
+    const { colors } = useTheme();
+    return (
+      <InnerStack.Navigator
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.bg },
+          animation: 'ios_from_right',
+          animationDuration: 260,
+          gestureEnabled: true,
+        }}
+      >
+        <InnerStack.Screen name={rootName} component={RootComponent} />
+        <InnerStack.Screen name="CourseDetail" component={CourseDetailScreen} />
+        <InnerStack.Screen name="GovtExams" component={GovtExamsScreen} />
+        <InnerStack.Screen name="Gate" component={GateScreen} />
+        <InnerStack.Screen name="Help" component={HelpScreen} />
+      </InnerStack.Navigator>
+    );
+  };
+
+  return TabStackNavigator;
+}
+
+const HomeStack = createTabStack('HomeRoot', HomeScreen);
+const CoursesStack = createTabStack('CoursesRoot', CoursesScreen);
+const LibraryStack = createTabStack('LibraryRoot', LibraryScreen);
+const ProfileStack = createTabStack('ProfileRoot', ProfileScreen);
+
+// Keep RootStackParamList imported for type compatibility
+export type TabInnerRoutes = keyof Pick<
+  RootStackParamList,
+  'CourseDetail' | 'GovtExams' | 'Gate' | 'Help'
+>;
 
 const tabSceneInterpolator: NonNullable<BottomTabNavigationOptions['sceneStyleInterpolator']> = ({
   current,
@@ -168,7 +214,7 @@ export const BottomTabNavigator: React.FC = () => {
       >
         <Tab.Screen
           name="HomeTab"
-          component={HomeScreen}
+          component={HomeStack}
           options={{
             tabBarLabel: 'Home',
             tabBarIcon: ({ focused, color }) => renderIcon(focused, Home, color),
@@ -176,7 +222,7 @@ export const BottomTabNavigator: React.FC = () => {
         />
         <Tab.Screen
           name="CoursesTab"
-          component={CoursesScreen}
+          component={CoursesStack}
           options={{
             tabBarLabel: 'Courses',
             tabBarIcon: ({ focused, color }) => renderIcon(focused, Layers, color),
@@ -184,7 +230,7 @@ export const BottomTabNavigator: React.FC = () => {
         />
         <Tab.Screen
           name="LibraryTab"
-          component={LibraryScreen}
+          component={LibraryStack}
           options={{
             tabBarLabel: 'Library',
             tabBarIcon: ({ focused, color }) => renderIcon(focused, BookOpen, color),
@@ -192,7 +238,7 @@ export const BottomTabNavigator: React.FC = () => {
         />
         <Tab.Screen
           name="ProfileTab"
-          component={ProfileScreen}
+          component={ProfileStack}
           options={{
             tabBarLabel: 'Profile',
             tabBarIcon: ({ focused, color }) => renderIcon(focused, User, color),

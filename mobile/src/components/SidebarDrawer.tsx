@@ -60,7 +60,18 @@ export const SidebarDrawer: React.FC = () => {
       try {
         if (navigationRef.isReady()) {
           const current = navigationRef.getCurrentRoute();
-          if (current?.name) setActiveRouteName(current.name);
+          const rawName: string = (current?.name as string) || '';
+          const mappedName =
+            rawName === 'HomeRoot'
+              ? 'HomeTab'
+              : rawName === 'CoursesRoot'
+              ? 'CoursesTab'
+              : rawName === 'LibraryRoot'
+              ? 'LibraryTab'
+              : rawName === 'ProfileRoot'
+              ? 'ProfileTab'
+              : rawName;
+          if (mappedName) setActiveRouteName(mappedName);
         }
       } catch {}
 
@@ -123,9 +134,20 @@ export const SidebarDrawer: React.FC = () => {
 
   const navigateTab = (tabName: 'HomeTab' | 'CoursesTab' | 'LibraryTab' | 'ProfileTab') => {
     closeDrawer();
+    const rootScreen =
+      tabName === 'HomeTab'
+        ? 'HomeRoot'
+        : tabName === 'CoursesTab'
+        ? 'CoursesRoot'
+        : tabName === 'LibraryTab'
+        ? 'LibraryRoot'
+        : 'ProfileRoot';
     setTimeout(() => {
       if (navigationRef.isReady()) {
-        (navigationRef as any).navigate('MainTabs', { screen: tabName });
+        (navigationRef as any).navigate('MainTabs', {
+          screen: tabName,
+          params: { screen: rootScreen },
+        });
       }
     }, 160);
   };
@@ -133,8 +155,19 @@ export const SidebarDrawer: React.FC = () => {
   const navigateScreen = (screenName: 'GovtExams' | 'Gate' | 'Help' | 'Auth') => {
     closeDrawer();
     setTimeout(() => {
-      if (navigationRef.isReady()) {
-        (navigationRef as any).navigate(screenName);
+      if (!navigationRef.isReady()) return;
+      if (screenName === 'Auth') {
+        (navigationRef as any).navigate('Auth');
+      } else if (screenName === 'Help') {
+        (navigationRef as any).navigate('MainTabs', {
+          screen: 'ProfileTab',
+          params: { screen: 'Help' },
+        });
+      } else {
+        (navigationRef as any).navigate('MainTabs', {
+          screen: 'CoursesTab',
+          params: { screen: screenName },
+        });
       }
     }, 160);
   };
