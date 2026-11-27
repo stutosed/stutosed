@@ -39,7 +39,7 @@ export interface UserProfileRecord {
 export async function getWatchHistory(userId: string): Promise<WatchHistoryRecord[]> {
   try {
     const res = await turso.execute({
-      sql: 'SELECT lecture_url, course_id, watched_at FROM user_watch_history WHERE user_id = ?',
+      sql: 'SELECT lecture_url, course_id, watched_at FROM user_watch_history WHERE user_id = ? ORDER BY watched_at DESC',
       args: [userId],
     });
     return res.rows.map((r: any) => ({

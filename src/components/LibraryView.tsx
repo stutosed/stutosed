@@ -1,11 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Course, LectureItem } from '@/types';
-import { INITIAL_COURSES } from '@/lib/coursesData';
+import {
+  INITIAL_COURSES,
+  resolveWatchedLecturesMap,
+  WatchedLectureMatch,
+} from '@/lib/coursesData';
 import { getSubjectThumbnail } from '@/lib/subjectThumbnails';
 import { LectureThumb } from '@/components/LectureThumb';
-import { isLectureWatched } from '@/lib/progressSync';
+import {
+  isLectureWatched,
+  getWatchedLecturesMap,
+  pullCloudUserData,
+  syncLectureWatched,
+} from '@/lib/progressSync';
 import {
   getBookmarkedCourseIds,
   toggleCourseBookmark,
@@ -26,6 +35,8 @@ import {
   Layers,
   GraduationCap,
   Sparkles,
+  CheckCircle2,
+  RefreshCw,
 } from 'lucide-react';
 
 interface LibraryViewProps {
@@ -43,18 +54,23 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   onExploreCourses,
   theme,
 }) => {
-  const [activeTab, setActiveTab] = useState<'bookmarks' | 'saved-videos'>('saved-videos');
+  const [activeTab, setActiveTab] = useState<'history' | 'bookmarks' | 'saved-videos'>('history');
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const [batchFolders, setBatchFolders] = useState<CourseVideoFolder[]>([]);
   const [expandedFolderId, setExpandedFolderId] = useState<string | null>(null);
+  const [watchedMap, setWatchedMap] = useState<Record<string, number>>({});
+  const [watchedLookup, setWatchedLookup] = useState<Record<string, WatchedLectureMatch>>({});
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  // Sync state from localStorage and listen to real-time updates
+  // Sync state from in-memory Turso store and listen to real-time updates
   const reloadLibrary = () => {
     const bIds = getBookmarkedCourseIds();
     setBookmarkedIds(bIds);
 
     const folders = getSavedVideosGroupedByBatch();
     setBatchFolders(folders);
+
+    setWatchedMap(getWatchedLecturesMap());
 
     // Auto-expand first folder if none expanded
     if (folders.length > 0 && !expandedFolderId) {
@@ -64,11 +80,46 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
   useEffect(() => {
     reloadLibrary();
+    pullCloudUserData().catch(() => {});
 
     const handleUpdate = () => reloadLibrary();
     window.addEventListener('stutosed_library_updated', handleUpdate);
-    return () => window.removeEventListener('stutosed_library_updated', handleUpdate);
+    window.addEventListener('stutosed_progress_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('stutosed_library_updated', handleUpdate);
+      window.removeEventListener('stutosed_progress_updated', handleUpdate);
+    };
   }, []);
+
+  const watchedEntries = useMemo(
+    () => Object.entries(watchedMap).sort((a, b) => Number(b[1]) - Number(a[1])),
+    [watchedMap]
+  );
+
+  useEffect(() => {
+    let active = true;
+    const keys = Object.keys(watchedMap);
+    if (keys.length === 0) {
+      setWatchedLookup({});
+      return;
+    }
+    resolveWatchedLecturesMap(keys).then((resolved) => {
+      if (active) setWatchedLookup(resolved);
+    });
+    return () => {
+      active = false;
+    };
+  }, [watchedMap]);
+
+  const handleManualSync = async () => {
+    setIsRefreshing(true);
+    try {
+      await pullCloudUserData();
+      reloadLibrary();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const bookmarkedCourses = INITIAL_COURSES.filter((c) => bookmarkedIds.includes(c.id));
   const totalSavedVideos = batchFolders.reduce((acc, f) => acc + f.videos.length, 0);
@@ -109,6 +160,15 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       {/* Primary Tab Switcher */}
       <div className="library-tabs-dock">
         <button
+          className={`library-tab-pill ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => setActiveTab('history')}
+        >
+          <CheckCircle2 width={16} height={16} />
+          <span>Watched Activity</span>
+          <span className="tab-count-tag">{watchedEntries.length}</span>
+        </button>
+
+        <button
           className={`library-tab-pill ${activeTab === 'saved-videos' ? 'active' : ''}`}
           onClick={() => setActiveTab('saved-videos')}
         >
@@ -125,7 +185,103 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           <span>Bookmarked Batches</span>
           <span className="tab-count-tag">{bookmarkedCourses.length}</span>
         </button>
+
+        <button
+          className="library-tab-pill"
+          onClick={handleManualSync}
+          disabled={isRefreshing}
+          title="Refresh from Turso Cloud"
+        >
+          <RefreshCw width={14} height={14} className={isRefreshing ? 'animate-spin' : ''} />
+          <span>{isRefreshing ? 'Syncing...' : 'Sync Turso'}</span>
+        </button>
       </div>
+
+      {/* =========================================================================
+          TAB 0: WATCHED ACTIVITY (SYNCED FROM TURSO CLOUD)
+          ========================================================================= */}
+      {activeTab === 'history' && (
+        <div className="library-section">
+          {watchedEntries.length === 0 ? (
+            <div className="library-empty-state">
+              <div className="empty-icon-wrap">
+                <CheckCircle2 width={36} height={36} color="var(--accent)" />
+              </div>
+              <h3>No Watched Lectures Yet</h3>
+              <p>
+                Sign in and watch any lecture or PDF across web or mobile — your progress syncs
+                live with Turso here.
+              </p>
+              <button className="library-action-btn" onClick={onExploreCourses}>
+                <BookOpen width={16} height={16} />
+                <span>Explore All Batches</span>
+              </button>
+            </div>
+          ) : (
+            <div className="batch-folders-list">
+              {watchedEntries.map(([watchKey, timestamp], idx) => {
+                const match = watchedLookup[watchKey];
+                const title = match?.label || 'Watched Lecture';
+                const itemObj: Partial<LectureItem> = match?.lecture || {
+                  label: title,
+                  url: watchKey,
+                  type: watchKey.toLowerCase().includes('.pdf') ? 'pdf' : 'external',
+                };
+                return (
+                  <div key={watchKey} className="saved-video-row">
+                    <div className="saved-video-left">
+                      <LectureThumb
+                        item={itemObj}
+                        index={idx}
+                        isWatched={true}
+                        variant="compact"
+                      />
+                      <div className="saved-video-info">
+                        <div className="saved-video-title">{title}</div>
+                        <span className="saved-video-subject-pill">
+                          {match?.courseName ? `${match.courseName} • ` : ''}
+                          Completed {new Date(timestamp).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="saved-video-actions">
+                      {match && (
+                        <button
+                          className="saved-video-play-btn"
+                          onClick={() => {
+                            if (itemObj.type === 'pdf') {
+                              window.open(
+                                match.lecture.downloadUrl || match.lecture.url,
+                                '_blank',
+                                'noopener,noreferrer'
+                              );
+                            } else {
+                              onPlayVideo([match.lecture], 0, match.courseName);
+                            }
+                          }}
+                        >
+                          <Play width={14} height={14} fill="currentColor" />
+                          <span>Open</span>
+                        </button>
+                      )}
+                      <button
+                        className="saved-video-remove-btn"
+                        onClick={() =>
+                          syncLectureWatched(match?.courseId || '', watchKey, title, false)
+                        }
+                        title="Remove from watched history"
+                      >
+                        <Trash2 width={15} height={15} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* =========================================================================
           TAB 1: SAVED VIDEOS (ORGANIZED INTO AUTOMATIC BATCH FOLDERS)

@@ -68,9 +68,14 @@ export async function pullCloudUserData(userId: string): Promise<SyncPullResult>
 
   try {
     const res = await fetch(
-      `${API_BASE_URL}/api/v1/sync?userId=${encodeURIComponent(userId)}`,
+      `${API_BASE_URL}/api/v1/sync?userId=${encodeURIComponent(userId)}&_ts=${Date.now()}`,
       {
-        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+        cache: 'no-store',
+        headers: {
+          Accept: 'application/json',
+          'Cache-Control': 'no-cache, no-store',
+          Pragma: 'no-cache',
+        },
       }
     );
     if (!res.ok) {

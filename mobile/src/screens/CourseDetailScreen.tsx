@@ -221,8 +221,26 @@ export const CourseDetailScreen: React.FC = () => {
 
   const getLectureKey = useCallback(
     (item: LectureItem, index: number, secId: string) =>
-      item.url || item.links?.url || item.id || `${courseId}-${secId}-${index}`,
+      item.url ||
+      item.links?.url ||
+      item.servers?.[0]?.url ||
+      item.id ||
+      `${courseId}-${secId}-${index}`,
     [courseId]
+  );
+
+  const isItemWatchedInMap = useCallback(
+    (item: LectureItem, index: number, secId: string) => {
+      const candidates = [
+        item.url,
+        item.links?.url,
+        ...(item.servers?.map((s) => s.url) || []),
+        item.id,
+        `${courseId}-${secId}-${index}`,
+      ];
+      return candidates.some((c) => Boolean(c && watchedMap[c]));
+    },
+    [courseId, watchedMap]
   );
 
   const filteredSections = useMemo(() => {
@@ -389,7 +407,7 @@ export const CourseDetailScreen: React.FC = () => {
             const pdfCount = sec.items.filter(isPdfItem).length;
             const vidCount = sec.items.length - pdfCount;
             const watchedInSec = sec.items.filter((it, idx) =>
-              Boolean(watchedMap[getLectureKey(it, idx, sec.id)])
+              isItemWatchedInMap(it, idx, sec.id)
             ).length;
             const pct = sec.items.length > 0 ? Math.round((watchedInSec / sec.items.length) * 100) : 0;
 
@@ -594,7 +612,7 @@ export const CourseDetailScreen: React.FC = () => {
             renderItem={({ item, index }) => {
               const secId = activeSection?.id || 'videos';
               const lecKey = getLectureKey(item, index, secId);
-              const isWatched = !!watchedMap[lecKey];
+              const isWatched = isItemWatchedInMap(item, index, secId);
               return (
                 <LectureRow
                   item={item}

@@ -6,6 +6,7 @@ import { countCourseStats, loadCourseDetails } from '@/lib/coursesData';
 import { getWorkerProxyUrl, resolveDirectMediaUrl } from '@/lib/proxyConfig';
 import { ArrowLeft, Folder, Search, LayoutGrid, List, Video, FileText, CheckCircle2, Play, Download, ExternalLink } from 'lucide-react';
 import { LectureThumb, isPdfItem } from '@/components/LectureThumb';
+import { getCanonicalLectureKey, isLectureWatched, syncLectureWatched } from '@/lib/progressSync';
 
 const WebLectureThumb = LectureThumb;
 
@@ -812,7 +813,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
               const hasBoth = videoItems.length > 0 && pdfItems.length > 0;
 
               const renderVideoCard = (item: LectureItem, idx: number) => {
-                const isWatched = watchedUrls.has(item.url);
+                const isWatched = isLectureWatched(item, watchedUrls);
                 const isYt = isYouTubeItem(item);
 
                 return (
@@ -1031,7 +1032,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
               };
 
               const renderPdfCard = (item: LectureItem, idx: number) => {
-                const isWatched = watchedUrls.has(item.url);
+                const isWatched = isLectureWatched(item, watchedUrls);
                 const directUrl = item.downloadUrl || item.url;
 
                 return (
@@ -1183,7 +1184,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
               };
 
               const renderVideoRow = (item: LectureItem, idx: number) => {
-                const isWatched = watchedUrls.has(item.url);
+                const isWatched = isLectureWatched(item, watchedUrls);
                 const isYt = isYouTubeItem(item);
 
                 return (
@@ -1311,17 +1312,40 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                           {formatItemDuration(item.duration)}
                         </span>
                       )}
-                      <div className="watched-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const watchKey = getCanonicalLectureKey(item);
+                          if (watchKey) {
+                            syncLectureWatched(course.id, watchKey, item.label, !isWatched);
+                          }
+                        }}
+                        title={isWatched ? 'Mark as unwatched' : 'Mark as watched'}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          color: isWatched ? 'var(--green)' : 'var(--text-dim)',
+                          background: isWatched ? 'rgba(34, 197, 94, 0.12)' : 'transparent',
+                          border: `1px solid ${isWatched ? 'rgba(34, 197, 94, 0.35)' : 'var(--border)'}`,
+                          padding: '3px 8px',
+                          borderRadius: 'var(--r-pill)',
+                          cursor: 'pointer',
+                        }}
+                      >
                         <CheckCircle2 width={12} height={12} />
-                        <span>Watched</span>
-                      </div>
+                        <span>{isWatched ? 'Watched' : 'Mark'}</span>
+                      </button>
                     </div>
                   </div>
                 );
               };
 
               const renderPdfRow = (item: LectureItem, idx: number) => {
-                const isWatched = watchedUrls.has(item.url);
+                const isWatched = isLectureWatched(item, watchedUrls);
                 const directUrl = item.downloadUrl || item.url;
 
                 return (

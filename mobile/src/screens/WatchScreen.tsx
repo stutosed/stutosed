@@ -189,8 +189,21 @@ export const WatchScreen: React.FC = () => {
     return () => sub.remove();
   }, [isManualFullscreen, exitLandscapeFullscreen]);
 
-  const watchKey = mediaConfig.rawUrl || lecture.id || '';
-  const isWatched = !!watchedMap[watchKey];
+  const watchKey =
+    lecture.url ||
+    lecture.links?.url ||
+    lecture.servers?.[0]?.url ||
+    mediaConfig.rawUrl ||
+    lecture.id ||
+    '';
+  const isWatched = [
+    watchKey,
+    mediaConfig.rawUrl,
+    lecture.url,
+    lecture.links?.url,
+    ...(lecture.servers?.map((s) => s.url) || []),
+    lecture.id,
+  ].some((k) => Boolean(k && watchedMap[k]));
 
   const finalNativeStreamUrl =
     mediaConfig.mode === 'native-video' && !nativeFallbackToWebView

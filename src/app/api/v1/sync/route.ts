@@ -23,15 +23,21 @@ export const GET = withApi(
         tursoRepo.getUserProfile(userId),
       ]);
 
-    return ok({
-      userId,
-      watchHistory,
-      videoProgress,
-      bookmarks,
-      savedVideos,
-      courseMemory,
-      profile,
-    });
+    return ok(
+      {
+        userId,
+        watchHistory,
+        videoProgress,
+        bookmarks,
+        savedVideos,
+        courseMemory,
+        profile,
+      },
+      200,
+      {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      }
+    );
   },
   {
     querySchema: syncGetQuerySchema,

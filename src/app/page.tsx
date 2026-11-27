@@ -26,6 +26,7 @@ import {
   purgeLegacyLocalSyncCache,
   getWatchedLecturesMap,
   getLastPlayedMemory,
+  getCanonicalLectureKey,
 } from '@/lib/progressSync';
 import { authClient } from '@/lib/auth-client';
 import {
@@ -850,15 +851,16 @@ export default function HomePage() {
       thumb: activeThumb,
     });
 
-    if (current?.url) {
-      handleMarkWatched(current.url, activeCourseId, current.label);
+    const watchKey = current ? getCanonicalLectureKey(current) : '';
+    if (watchKey) {
+      handleMarkWatched(watchKey, activeCourseId, current.label);
       if (selectedCourse || activeCourseName) {
         const memoryObj = {
           courseId: activeCourseId,
           courseName: activeCourseName,
           courseThumb: activeThumb,
           lectureTitle: current.label,
-          url: current.url,
+          url: watchKey,
           timestamp: Date.now(),
         };
         setLastPlayed(memoryObj);
@@ -866,11 +868,11 @@ export default function HomePage() {
 
       // If YouTube URL, open directly in YouTube in a new tab
       if (
-        current.url.includes('youtube.com') ||
-        current.url.includes('youtu.be') ||
+        watchKey.includes('youtube.com') ||
+        watchKey.includes('youtu.be') ||
         current.type === 'youtube'
       ) {
-        window.open(current.url, '_blank', 'noopener,noreferrer');
+        window.open(watchKey, '_blank', 'noopener,noreferrer');
         return;
       }
     }
@@ -960,7 +962,8 @@ export default function HomePage() {
       handleMarkWatched(itemOrUrl, selectedCourse?.id);
     } else {
       item = itemOrUrl;
-      handleMarkWatched(item.url, selectedCourse?.id, item.label);
+      const pdfKey = getCanonicalLectureKey(item);
+      if (pdfKey) handleMarkWatched(pdfKey, selectedCourse?.id, item.label);
     }
 
     // Determine cleanest target URL

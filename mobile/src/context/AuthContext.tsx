@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { authClient } from '../lib/auth-client';
 import { CourseMemory, UserProfile } from '../types';
 import {
@@ -42,11 +43,18 @@ const AuthContext = createContext<AuthContextValue>({
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { data: sessionData, isPending, refetch } = authClient.useSession();
 
-  const [studentId, setStudentId] = useState<string>('');
+  const sessionUserId = sessionData?.user?.id || '';
+  const [studentId, setStudentId] = useState<string>(sessionUserId);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [watchedMap, setWatchedMap] = useState<Record<string, number>>({});
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [lastPlayed, setLastPlayed] = useState<CourseMemory | null>(null);
+
+  // Always keep latest authenticated user ID accessible immediately without stale closures
+  const activeUserIdRef = useRef<string>(sessionUserId);
+  if (sessionUserId) {
+    activeUserIdRef.current = sessionUserId;
+  }
 
   const user: UserProfile | null = sessionData?.user
     ? {
@@ -57,11 +65,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     : null;
 
+  const resolveUserId = useCallback(async (): Promise<string | null> => {
+    if (activeUserIdRef.current) return activeUserIdRef.current;
+    try {
+      const latest = await authClient.getSession();
+      const uid = latest?.data?.user?.id || null;
+      if (uid) {
+        activeUserIdRef.current = uid;
+        setStudentId(uid);
+      }
+      return uid;
+    } catch {
+      return null;
+    }
+  }, []);
+
   const syncNow = useCallback(async (authId?: string | null) => {
     setIsSyncing(true);
     try {
       await purgeLegacyLocalSyncCache();
       if (!authId) {
+        activeUserIdRef.current = '';
         setStudentId('');
         setWatchedMap({});
         setBookmarks([]);
@@ -69,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      activeUserIdRef.current = authId;
       setStudentId(authId);
       const cloud = await pullCloudUserData(authId);
       setWatchedMap(cloud.watchedMap);
@@ -85,73 +110,96 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [isPending, sessionData?.user?.id, syncNow]);
 
+  // Automatically re-sync from Turso whenever app returns to foreground
+  useEffect(() => {
+    const handleAppState = (nextState: AppStateStatus) => {
+      if (nextState === 'active') {
+        resolveUserId().then((uid) => {
+          if (uid) syncNow(uid);
+        });
+      }
+    };
+    const sub = AppState.addEventListener('change', handleAppState);
+    return () => sub.remove();
+  }, [resolveUserId, syncNow]);
+
   const markLectureWatched = useCallback(
     (courseId: string, lectureUrl: string) => {
       if (!lectureUrl) return;
       setWatchedMap((prev) => ({ ...prev, [lectureUrl]: Date.now() }));
-      if (studentId) {
-        pushSyncAction(studentId, 'watch', { courseId, lectureUrl, isWatched: true });
-      }
+      resolveUserId().then((uid) => {
+        if (uid) {
+          pushSyncAction(uid, 'watch', { courseId, lectureUrl, isWatched: true });
+        }
+      });
     },
-    [studentId]
+    [resolveUserId]
   );
 
   const toggleLectureWatched = useCallback(
     (courseId: string, lectureUrl: string) => {
       if (!lectureUrl) return;
+      let willBeWatched = true;
       setWatchedMap((prev) => {
         const next = { ...prev };
-        const willBeWatched = !next[lectureUrl];
+        willBeWatched = !next[lectureUrl];
         if (!willBeWatched) {
           delete next[lectureUrl];
         } else {
           next[lectureUrl] = Date.now();
         }
-        if (studentId) {
-          pushSyncAction(studentId, 'watch', {
+        return next;
+      });
+      resolveUserId().then((uid) => {
+        if (uid) {
+          pushSyncAction(uid, 'watch', {
             courseId,
             lectureUrl,
             isWatched: willBeWatched,
           });
         }
-        return next;
       });
     },
-    [studentId]
+    [resolveUserId]
   );
 
   const recordCourseMemory = useCallback(
     (memory: CourseMemory) => {
       setLastPlayed(memory);
-      if (studentId) {
-        pushSyncAction(studentId, 'memory', {
-          courseId: memory.courseId,
-          lastTabId: memory.tabId || 'videos',
-          lastLectureUrl: memory.url,
-        });
-      }
+      resolveUserId().then((uid) => {
+        if (uid) {
+          pushSyncAction(uid, 'memory', {
+            courseId: memory.courseId,
+            lastTabId: memory.tabId || 'videos',
+            lastLectureUrl: memory.url,
+          });
+        }
+      });
     },
-    [studentId]
+    [resolveUserId]
   );
 
   const toggleCourseBookmark = useCallback(
     (courseId: string) => {
       if (!courseId) return;
+      let nextIsBookmarked = true;
       setBookmarks((prev) => {
         const isBookmarked = prev.includes(courseId);
-        const next = isBookmarked
+        nextIsBookmarked = !isBookmarked;
+        return isBookmarked
           ? prev.filter((id) => id !== courseId)
           : [...prev, courseId];
-        if (studentId) {
-          pushSyncAction(studentId, 'bookmark', {
+      });
+      resolveUserId().then((uid) => {
+        if (uid) {
+          pushSyncAction(uid, 'bookmark', {
             courseId,
-            isBookmarked: !isBookmarked,
+            isBookmarked: nextIsBookmarked,
           });
         }
-        return next;
       });
     },
-    [studentId]
+    [resolveUserId]
   );
 
   const refreshSessionAndSync = useCallback(async () => {

@@ -20,6 +20,7 @@ import {
   pullCloudUserData,
   isLectureWatched,
   getVideoProgressSeconds,
+  getCanonicalLectureKey,
 } from '@/lib/progressSync';
 import {
   Bookmark,
@@ -421,8 +422,9 @@ export default function WatchClient() {
         setIsBookmarked(isCourseBookmarked(courseInfo.id));
       }
       if (currentItem) {
-        setIsSaved(isVideoSaved(currentItem.id || currentItem.url));
-        setIsWatched(isLectureWatched(currentItem.url));
+        const key = getCanonicalLectureKey(currentItem);
+        setIsSaved(isVideoSaved(currentItem.id || key));
+        setIsWatched(isLectureWatched(currentItem));
       }
     };
     refreshFromCloud();
@@ -434,13 +436,14 @@ export default function WatchClient() {
     };
   }, [courseInfo.id, currentItem]);
 
-  // Mark watched & remember last played (Local + Database Cloud)
+  // Mark watched & remember last played (Turso Cloud)
   useEffect(() => {
-    if (!currentItem?.url) return;
+    const watchKey = currentItem ? getCanonicalLectureKey(currentItem) : '';
+    if (!currentItem || !watchKey) return;
 
     setIsWatched(true);
-    syncLectureWatched(courseInfo.id, currentItem.url, currentItem.label);
-    syncCourseMemory(courseInfo.id, subjectParam || folderParam || 'videos', currentItem.url, {
+    syncLectureWatched(courseInfo.id, watchKey, currentItem.label, true);
+    syncCourseMemory(courseInfo.id, subjectParam || folderParam || 'videos', watchKey, {
       courseName: courseInfo.name,
       courseThumb: courseInfo.thumb || '',
       lectureTitle: currentItem.label,
@@ -2206,11 +2209,20 @@ export default function WatchClient() {
                 <span>{isSaved ? 'Saved in Folder' : 'Save Video'}</span>
               </button>
 
-              {/* 3. Watched Status */}
-              <div className="watch-action-btn static">
+              {/* 3. Watched Status (Click to toggle in Turso) */}
+              <button
+                className={`watch-action-btn ${isWatched ? 'active' : ''}`}
+                onClick={() => {
+                  const key = currentItem ? getCanonicalLectureKey(currentItem) : '';
+                  if (!key) return;
+                  const next = !isWatched;
+                  setIsWatched(next);
+                  syncLectureWatched(courseInfo.id, key, currentItem?.label, next);
+                }}
+              >
                 <CheckCircle2 width={17} height={17} color={isWatched ? 'var(--green)' : 'rgba(255,255,255,0.4)'} />
-                <span>{isWatched ? 'Watched' : 'In Progress'}</span>
-              </div>
+                <span>{isWatched ? 'Watched' : 'Mark Watched'}</span>
+              </button>
 
               {/* 4. Share Lecture */}
               <button className="watch-action-btn" onClick={handleShare}>
@@ -2262,7 +2274,7 @@ export default function WatchClient() {
                     <LectureThumb
                       item={lec}
                       index={idx}
-                      isWatched={isLectureWatched(lec.url)}
+                      isWatched={isLectureWatched(lec)}
                       variant="compact"
                     />
 

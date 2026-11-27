@@ -139,8 +139,51 @@ export function getWatchedLecturesMap(): Record<string, number> {
   return { ...cloudWatchedMap };
 }
 
-export function isLectureWatched(url: string): boolean {
-  return Boolean(url && cloudWatchedMap[url]);
+export function getLectureWatchKeys(item: {
+  url?: string;
+  id?: string;
+  links?: Record<string, string>;
+  servers?: Array<{ url?: string }>;
+}): string[] {
+  const candidates = [
+    item.url,
+    item.links?.url,
+    ...(item.servers?.map((s) => s.url) || []),
+    item.id,
+  ];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const c of candidates) {
+    const trimmed = typeof c === 'string' ? c.trim() : '';
+    if (trimmed && !seen.has(trimmed)) {
+      seen.add(trimmed);
+      out.push(trimmed);
+    }
+  }
+  return out;
+}
+
+export function getCanonicalLectureKey(item: {
+  url?: string;
+  id?: string;
+  links?: Record<string, string>;
+  servers?: Array<{ url?: string }>;
+}): string {
+  return getLectureWatchKeys(item)[0] || '';
+}
+
+export function isLectureWatched(urlOrItem: string | {
+  url?: string;
+  id?: string;
+  links?: Record<string, string>;
+  servers?: Array<{ url?: string }>;
+}, overrideSet?: Set<string>): boolean {
+  if (!urlOrItem) return false;
+  if (typeof urlOrItem === 'string') {
+    return overrideSet ? overrideSet.has(urlOrItem) : Boolean(cloudWatchedMap[urlOrItem]);
+  }
+  const keys = getLectureWatchKeys(urlOrItem);
+  return keys.some((k) => (overrideSet ? overrideSet.has(k) : Boolean(cloudWatchedMap[k])));
 }
 
 export function getLastPlayedMemory(): LastPlayedMemory | null {
@@ -173,6 +216,8 @@ async function postSync(userId: string, action: string, payload: Record<string, 
   try {
     await apiClient('/api/v1/sync', {
       method: 'POST',
+      keepalive: true,
+      cache: 'no-store',
       body: JSON.stringify({ userId, action, payload }),
     });
   } catch (err) {
@@ -333,7 +378,8 @@ export async function pullCloudUserData(explicitUserId?: string): Promise<void> 
     }
 
     const data = await apiClient<CloudSyncResponse>(
-      `/api/v1/sync?userId=${encodeURIComponent(userId)}`
+      `/api/v1/sync?userId=${encodeURIComponent(userId)}&_ts=${Date.now()}`,
+      { cache: 'no-store' }
     );
     if (!data) return;
 

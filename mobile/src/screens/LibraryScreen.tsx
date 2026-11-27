@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
@@ -45,6 +45,14 @@ export const LibraryScreen: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'history'>('bookmarks');
   const [watchedLookup, setWatchedLookup] = useState<Record<string, WatchedLectureMatch>>({});
+
+  useFocusEffect(
+    useCallback(() => {
+      if (user?.id) {
+        refreshSessionAndSync();
+      }
+    }, [user?.id, refreshSessionAndSync])
+  );
 
   const watchedEntries = useMemo(
     () => Object.entries(watchedMap).sort((a, b) => Number(b[1]) - Number(a[1])),

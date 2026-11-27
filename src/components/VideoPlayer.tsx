@@ -19,6 +19,7 @@ import {
   isLectureWatched,
   getVideoProgressSeconds,
   pullCloudUserData,
+  getCanonicalLectureKey,
 } from '@/lib/progressSync';
 import {
   Bookmark,
@@ -157,9 +158,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       if (courseId) {
         setIsBookmarked(isCourseBookmarked(courseId));
       }
-      if (currentItem?.url) {
-        setIsSaved(isVideoSaved(currentItem.url));
-        setIsWatched(isLectureWatched(currentItem.url));
+      if (currentItem) {
+        const key = getCanonicalLectureKey(currentItem);
+        setIsSaved(isVideoSaved(key || currentItem.url));
+        setIsWatched(isLectureWatched(currentItem));
       }
     };
     syncStateFromMemory();
@@ -519,10 +521,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const onPlay = () => {
       setIsPlaying(true);
       setIsBuffering(false);
-      if (currentItem?.url) {
+      const watchKey = currentItem ? getCanonicalLectureKey(currentItem) : '';
+      if (currentItem && watchKey) {
         setIsWatched(true);
-        syncLectureWatched(courseId || '', currentItem.url, currentItem.label);
-        syncCourseMemory(courseId || '', 'videos', currentItem.url, {
+        syncLectureWatched(courseId || '', watchKey, currentItem.label, true);
+        syncCourseMemory(courseId || '', 'videos', watchKey, {
           courseName,
           lectureTitle: currentItem.label,
         });
@@ -1682,11 +1685,20 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   <span>{isSaved ? 'Saved in Folder' : 'Save Video'}</span>
                 </button>
 
-                {/* 3. Watched Status Indicator */}
-                <div className="yt-action-pill static">
+                {/* 3. Watched Status Toggle */}
+                <button
+                  className={`yt-action-pill ${isWatched ? 'active' : ''}`}
+                  onClick={() => {
+                    const key = currentItem ? getCanonicalLectureKey(currentItem) : '';
+                    if (!key) return;
+                    const next = !isWatched;
+                    setIsWatched(next);
+                    syncLectureWatched(courseId || '', key, currentItem?.label, next);
+                  }}
+                >
                   <CheckCircle2 width={17} height={17} color={isWatched ? 'var(--green)' : 'rgba(255,255,255,0.4)'} />
-                  <span>{isWatched ? 'Watched' : 'In Progress'}</span>
-                </div>
+                  <span>{isWatched ? 'Watched' : 'Mark Watched'}</span>
+                </button>
 
                 {/* 4. Share Lecture */}
                 <button className="yt-action-pill" onClick={handleShare} title="Share lecture">
@@ -1738,7 +1750,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       <LectureThumb
                         item={lec}
                         index={idx}
-                        isWatched={isLectureWatched(lec.url)}
+                        isWatched={isLectureWatched(lec)}
                         variant="compact"
                       />
 
