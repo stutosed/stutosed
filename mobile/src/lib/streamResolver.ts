@@ -91,12 +91,19 @@ export function resolveMobileMedia(
     };
   }
 
-  // 2. PDF Documents
-  if (lecture.type === 'pdf' || lowerUrl.endsWith('.pdf')) {
+  // 2. PDF Documents (PDF notes, handwritten notes, quizzes, or image attachments)
+  if (
+    lecture.type === 'pdf' ||
+    lecture.category === 'pdfs' ||
+    serverType === 'pdf' ||
+    lowerUrl.endsWith('.pdf') ||
+    lowerUrl.includes('.pdf?')
+  ) {
+    const directUrl = resolveDirectMediaUrl(rawUrl);
     return {
       mode: 'pdf',
-      rawUrl,
-      resolvedUrl: `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(rawUrl)}`,
+      rawUrl: directUrl,
+      resolvedUrl: `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(directUrl)}`,
       needsApiResolution: false,
     };
   }

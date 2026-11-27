@@ -9,6 +9,8 @@ import {
   BackHandler,
   StatusBar,
   ScrollView,
+  Linking,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
@@ -24,7 +26,7 @@ import { RootStackParamList, ServerOption } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../lib/config';
-import { resolveMobileMedia, fetchResolvedStreamUrl } from '../lib/streamResolver';
+import { resolveMobileMedia, fetchResolvedStreamUrl, getWorkerProxyUrl } from '../lib/streamResolver';
 import { LiquidGlassVideoPlayer } from '../components/LiquidGlassVideoPlayer';
 import { spacing, radii } from '../theme/spacing';
 import {
@@ -35,6 +37,9 @@ import {
   Minimize2,
   SlidersHorizontal,
   X,
+  FileText,
+  Download,
+  ExternalLink,
 } from 'lucide-react-native';
 
 type WatchRouteProp = RouteProp<RootStackParamList, 'Watch'>;
@@ -90,6 +95,8 @@ export const WatchScreen: React.FC = () => {
   const [showUpperOverlay, setShowUpperOverlay] = useState(false);
   const [apiStreamUrl, setApiStreamUrl] = useState<string | null>(null);
   const [nativeFallbackToWebView, setNativeFallbackToWebView] = useState(false);
+  const [pdfEngine, setPdfEngine] = useState<'google' | 'pdfjs' | 'direct'>('google');
+  const [pdfLoadError, setPdfLoadError] = useState(false);
 
   const isLandscape = width > height;
   const isExpandedPlayer = isLandscape || isManualFullscreen;
@@ -197,7 +204,43 @@ export const WatchScreen: React.FC = () => {
       : null;
 
   const isNativeVideoActive = Boolean(finalNativeStreamUrl);
+  const isPdfMode = mediaConfig.mode === 'pdf';
   const useIframeWrapper = mediaConfig.mode === 'abyss' || mediaConfig.mode === 'youtube';
+
+  const pdfDirectUrl = mediaConfig.rawUrl || lecture.downloadUrl || lecture.url || '';
+  const pdfProxiedUrl = useMemo(
+    () => (pdfDirectUrl ? getWorkerProxyUrl(pdfDirectUrl) : ''),
+    [pdfDirectUrl]
+  );
+  const isPdfImageNote = useMemo(() => {
+    const check = `${lecture.label || ''} ${pdfDirectUrl}`.toLowerCase();
+    return /\.(png|jpe?g|webp)(\?|$)/i.test(check);
+  }, [lecture.label, pdfDirectUrl]);
+
+  const activePdfViewerUrl = useMemo(() => {
+    if (!pdfDirectUrl) return '';
+    if (pdfEngine === 'pdfjs') {
+      const target = pdfProxiedUrl || pdfDirectUrl;
+      return `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(target)}`;
+    }
+    if (pdfEngine === 'direct') {
+      return pdfProxiedUrl || pdfDirectUrl;
+    }
+    return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(pdfDirectUrl)}`;
+  }, [pdfDirectUrl, pdfProxiedUrl, pdfEngine]);
+
+  const handleOpenPdfExternal = useCallback(() => {
+    const target = lecture.downloadUrl || pdfProxiedUrl || pdfDirectUrl;
+    if (!target) return;
+    Linking.openURL(target).catch(() => {});
+  }, [lecture.downloadUrl, pdfProxiedUrl, pdfDirectUrl]);
+
+  // Safety auto-dismiss PDF loading spinner so streaming PDFs stay immediately visible
+  useEffect(() => {
+    if (!isPdfMode || !loading) return;
+    const timer = setTimeout(() => setLoading(false), 1800);
+    return () => clearTimeout(timer);
+  }, [isPdfMode, loading, webViewKey, pdfEngine, selectedServerIdx]);
 
   const iframeWrapperHtml = useMemo(() => {
     const safeSrc = escapeHtmlAttr(mediaConfig.resolvedUrl);
@@ -276,6 +319,263 @@ export const WatchScreen: React.FC = () => {
   const playerBoxStyle = isExpandedPlayer
     ? { width, height, backgroundColor: '#000000' }
     : { width, height: (width * 9) / 16, backgroundColor: '#000000' };
+
+  if (isPdfMode) {
+    return (
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: colors.bg }]}
+        edges={['top', 'bottom']}
+      >
+        <StatusBar hidden={false} />
+
+        {/* Dedicated PDF Reader Header */}
+        <View
+          style={[
+            styles.topBar,
+            { backgroundColor: colors.bgCard, borderBottomColor: colors.borderSubtle },
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <ArrowLeft size={20} color={colors.text} />
+          </TouchableOpacity>
+
+          <View style={styles.headerInfo}>
+            <View style={styles.pdfTitleRow}>
+              <View style={[styles.pdfBadgeChip, { backgroundColor: 'rgba(217, 119, 6, 0.14)', borderColor: 'rgba(217, 119, 6, 0.35)' }]}>
+                <FileText size={10} color="#d97706" />
+                <Text style={styles.pdfBadgeText}>PDF</Text>
+              </View>
+              <Text style={[styles.lectureTitle, { color: colors.text, flex: 1 }]} numberOfLines={1}>
+                {lecture.label}
+              </Text>
+            </View>
+            <Text style={[styles.courseSubtitle, { color: colors.textDim }]} numberOfLines={1}>
+              {courseTitle}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.pdfHeaderIconBtn,
+              {
+                backgroundColor: isWatched ? `${colors.green}18` : colors.bgCardSubtle,
+                borderColor: isWatched ? colors.green : colors.borderSubtle,
+              },
+            ]}
+            onPress={() => toggleLectureWatched(courseId, watchKey)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <CheckCircle2 size={16} color={isWatched ? colors.green : colors.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.pdfHeaderIconBtn,
+              { backgroundColor: colors.bgCardSubtle, borderColor: colors.borderSubtle },
+            ]}
+            onPress={() => {
+              setPdfLoadError(false);
+              setLoading(true);
+              setWebViewKey((k) => k + 1);
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <RefreshCw size={15} color={colors.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.pdfHeaderIconBtn,
+              { backgroundColor: colors.accent, borderColor: colors.accent },
+            ]}
+            onPress={handleOpenPdfExternal}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Download size={15} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
+
+        {/* PDF Viewer Switcher & Quick Controls Bar */}
+        {!isPdfImageNote && (
+          <View
+            style={[
+              styles.pdfToolbar,
+              { backgroundColor: colors.bgCardSubtle, borderBottomColor: colors.borderSubtle },
+            ]}
+          >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.pdfToolbarScroll}
+            >
+              {[
+                { key: 'google' as const, label: 'Reader View' },
+                { key: 'pdfjs' as const, label: 'PDF.js HD' },
+                { key: 'direct' as const, label: 'Direct Stream' },
+              ].map((opt) => {
+                const active = pdfEngine === opt.key;
+                return (
+                  <TouchableOpacity
+                    key={opt.key}
+                    style={[
+                      styles.pdfEngineChip,
+                      {
+                        backgroundColor: active ? colors.accent : colors.bgCard,
+                        borderColor: active ? colors.accent : colors.border,
+                      },
+                    ]}
+                    onPress={() => {
+                      setPdfEngine(opt.key);
+                      setPdfLoadError(false);
+                      setLoading(true);
+                      setWebViewKey((k) => k + 1);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.pdfEngineText,
+                        { color: active ? '#ffffff' : colors.textMuted },
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+
+              {servers.length > 1 &&
+                servers.map((srv, idx) => {
+                  const active = idx === selectedServerIdx;
+                  return (
+                    <TouchableOpacity
+                      key={`pdf-srv-${idx}`}
+                      style={[
+                        styles.pdfEngineChip,
+                        {
+                          backgroundColor: active ? `${colors.accent}20` : colors.bgCard,
+                          borderColor: active ? colors.accent : colors.border,
+                        },
+                      ]}
+                      onPress={() => {
+                        setSelectedServerIdx(idx);
+                        setPdfLoadError(false);
+                        setLoading(true);
+                        setWebViewKey((k) => k + 1);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.pdfEngineText,
+                          { color: active ? colors.accent : colors.textMuted },
+                        ]}
+                      >
+                        {srv.name || `Source ${idx + 1}`}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+
+              <TouchableOpacity
+                style={[
+                  styles.pdfEngineChip,
+                  { backgroundColor: colors.bgCard, borderColor: colors.border },
+                ]}
+                onPress={handleOpenPdfExternal}
+              >
+                <ExternalLink size={11} color={colors.accent} />
+                <Text style={[styles.pdfEngineText, { color: colors.accent }]}>
+                  Open Browser
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Full-Height PDF Reading Canvas */}
+        <View style={[styles.pdfCanvas, { backgroundColor: colors.bg }]}>
+          {isPdfImageNote ? (
+            <ScrollView
+              contentContainerStyle={styles.pdfImageScroll}
+              maximumZoomScale={4}
+              minimumZoomScale={1}
+              centerContent
+            >
+              <Image
+                source={{ uri: pdfProxiedUrl || pdfDirectUrl }}
+                style={{ width: width - 16, height: Math.max(height * 0.78, 420) }}
+                resizeMode="contain"
+                onLoadEnd={() => setLoading(false)}
+              />
+            </ScrollView>
+          ) : (
+            <>
+              <WebView
+                key={`pdf-${webViewKey}-${pdfEngine}-${selectedServerIdx}`}
+                source={{ uri: activePdfViewerUrl }}
+                style={styles.pdfWebView}
+                javaScriptEnabled
+                domStorageEnabled
+                mixedContentMode="compatibility"
+                scalesPageToFit
+                builtInZoomControls
+                displayZoomControls={false}
+                setSupportMultipleWindows={false}
+                onLoadEnd={() => setLoading(false)}
+                onError={() => {
+                  setLoading(false);
+                  setPdfLoadError(true);
+                }}
+              />
+
+              {loading && (
+                <View style={[styles.pdfLoadingOverlay, { backgroundColor: colors.bg }]}>
+                  <ActivityIndicator size="large" color={colors.accent} />
+                  <Text style={[styles.pdfLoadingTitle, { color: colors.text }]}>
+                    Opening PDF Document...
+                  </Text>
+                  <Text style={[styles.pdfLoadingSub, { color: colors.textMuted }]}>
+                    Agar page slow load ho toh upar "PDF.js HD" ya "Open Browser" use karein
+                  </Text>
+                </View>
+              )}
+
+              {pdfLoadError && !loading && (
+                <View style={[styles.pdfErrorBanner, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+                  <Text style={[styles.pdfErrorText, { color: colors.text }]}>
+                    Preview load nahi ho paaya. PDF.js HD try karein ya browser me kholein:
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity
+                      style={[styles.pdfFallbackBtn, { backgroundColor: colors.accent }]}
+                      onPress={() => {
+                        setPdfEngine(pdfEngine === 'google' ? 'pdfjs' : 'direct');
+                        setPdfLoadError(false);
+                        setLoading(true);
+                        setWebViewKey((k) => k + 1);
+                      }}
+                    >
+                      <Text style={styles.pdfFallbackBtnText}>Switch Reader</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.pdfFallbackBtn, { backgroundColor: colors.bgCardSubtle, borderWidth: 1, borderColor: colors.border }]}
+                      onPress={handleOpenPdfExternal}
+                    >
+                      <Text style={[styles.pdfFallbackBtnText, { color: colors.text }]}>Open / Download</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </>
+          )}
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -804,5 +1104,115 @@ const styles = StyleSheet.create({
   badgePillText: {
     fontSize: 11,
     fontWeight: '600',
+  },
+  pdfTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  pdfBadgeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  pdfBadgeText: {
+    color: '#d97706',
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  pdfHeaderIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pdfToolbar: {
+    borderBottomWidth: 1,
+    paddingVertical: 8,
+  },
+  pdfToolbarScroll: {
+    paddingHorizontal: spacing.base,
+    gap: 8,
+    alignItems: 'center',
+  },
+  pdfEngineChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+  },
+  pdfEngineText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  pdfCanvas: {
+    flex: 1,
+    position: 'relative',
+  },
+  pdfWebView: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  pdfImageScroll: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 8,
+  },
+  pdfLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+    gap: 10,
+    zIndex: 10,
+  },
+  pdfLoadingTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  pdfLoadingSub: {
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 17,
+  },
+  pdfErrorBanner: {
+    position: 'absolute',
+    left: 14,
+    right: 14,
+    bottom: 16,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    padding: 12,
+    gap: 10,
+    zIndex: 20,
+  },
+  pdfErrorText: {
+    fontSize: 12.5,
+    fontWeight: '600',
+  },
+  pdfFallbackBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radii.md,
+  },
+  pdfFallbackBtnText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
