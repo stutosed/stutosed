@@ -43,19 +43,9 @@ import {
   History,
   Landmark,
   Cpu,
-  Video,
   ArrowRight,
   BookOpen,
 } from 'lucide-react-native';
-
-interface RecentFeedItem {
-  key: string;
-  lecture: LectureItem;
-  courseId: string;
-  courseName: string;
-  thumb?: string;
-  isPdf: boolean;
-}
 
 function getGreetingPrefix(): string {
   const hour = new Date().getHours();
@@ -120,8 +110,6 @@ export const HomeScreen: React.FC = () => {
     watchedMap,
     bookmarks,
     lastPlayed,
-    markLectureWatched,
-    recordCourseMemory,
     refreshSessionAndSync,
   } = useAuth();
 
@@ -130,44 +118,8 @@ export const HomeScreen: React.FC = () => {
   const [studyMinutesToday, setStudyMinutesToday] = useState(0);
   const [dailyMinutesMap, setDailyMinutesMap] = useState<Record<string, number>>({});
   const [resumeCourseDetails, setResumeCourseDetails] = useState<Course | null>(null);
-  const [recentFeed, setRecentFeed] = useState<RecentFeedItem[]>([]);
 
   const pulseAnim = useRef(new Animated.Value(0.45)).current;
-  const streakFlameScale = useRef(new Animated.Value(1)).current;
-  const streakChipOpacity = useRef(new Animated.Value(0.88)).current;
-
-  useEffect(() => {
-    const flameLoop = Animated.loop(
-      Animated.sequence([
-        Animated.parallel([
-          Animated.timing(streakFlameScale, {
-            toValue: 1.22,
-            duration: 900,
-            useNativeDriver: true,
-          }),
-          Animated.timing(streakChipOpacity, {
-            toValue: 1,
-            duration: 900,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.timing(streakFlameScale, {
-            toValue: 1,
-            duration: 900,
-            useNativeDriver: true,
-          }),
-          Animated.timing(streakChipOpacity, {
-            toValue: 0.88,
-            duration: 900,
-            useNativeDriver: true,
-          }),
-        ]),
-      ])
-    );
-    flameLoop.start();
-    return () => flameLoop.stop();
-  }, [streakFlameScale, streakChipOpacity]);
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -221,46 +173,6 @@ export const HomeScreen: React.FC = () => {
       } else {
         setResumeCourseDetails(null);
       }
-
-      const feedCourseIds = [
-        'banking-quant-hero',
-        'gate-ece-made-easy-signal-system',
-        'parmar',
-      ];
-      const loadedCourses = await Promise.all(
-        feedCourseIds.map((id) => loadCourseDetails(id))
-      );
-
-      const feedItems: RecentFeedItem[] = [];
-      for (const course of loadedCourses) {
-        if (!course) continue;
-        const entries = extractCourseLectureItems(course);
-        const videoEntries = entries
-          .filter((e) => e.item.type !== 'pdf' && e.item.category !== 'pdfs')
-          .slice(0, 3);
-        const pdfEntries = entries
-          .filter((e) => e.item.type === 'pdf' || e.item.category === 'pdfs')
-          .slice(0, 1);
-
-        for (const entry of [...videoEntries, ...pdfEntries]) {
-          const thumbCandidate =
-            (entry.item.thumb && entry.item.thumb.startsWith('http')
-              ? entry.item.thumb
-              : undefined) ||
-            (course.thumb && course.thumb.startsWith('http') ? course.thumb : undefined);
-
-          feedItems.push({
-            key: `${course.id}-${entry.item.id || entry.item.label}`,
-            lecture: entry.item,
-            courseId: course.id,
-            courseName: course.name,
-            thumb: thumbCandidate,
-            isPdf: entry.item.type === 'pdf' || entry.item.category === 'pdfs',
-          });
-        }
-      }
-
-      setRecentFeed(feedItems.slice(0, 10));
     } finally {
       setHydrating(false);
     }
@@ -355,24 +267,6 @@ export const HomeScreen: React.FC = () => {
     }
   };
 
-  const handleOpenRecentItem = (feedItem: RecentFeedItem) => {
-    const key = feedItem.lecture.url || feedItem.lecture.links?.url || feedItem.lecture.id || feedItem.key;
-    markLectureWatched(feedItem.courseId, key);
-    recordCourseMemory({
-      courseId: feedItem.courseId,
-      courseName: feedItem.courseName,
-      lectureTitle: feedItem.lecture.label,
-      tabId: feedItem.lecture.subject || 'videos',
-      url: key,
-      timestamp: Date.now(),
-    });
-    navigation.navigate('Watch', {
-      lecture: feedItem.lecture,
-      courseId: feedItem.courseId,
-      courseTitle: feedItem.courseName,
-    });
-  };
-
   const firstPdfCourse = useMemo(
     () =>
       INITIAL_COURSES.find((c) => countCourseStats(c).resources > 0) ||
@@ -405,50 +299,26 @@ export const HomeScreen: React.FC = () => {
           />
         }
       >
-        {/* 1. COMPACT GREETING ROW + ANIMATED STREAK ROW BELOW */}
-        <View style={styles.greetingBlock}>
-          <View style={styles.greetingRow}>
-            <View
-              style={[
-                styles.greetingAvatar,
-                {
-                  backgroundColor: user?.avatar_url ? 'transparent' : colors.accent,
-                  borderColor: colors.border,
-                },
-              ]}
-            >
-              {user?.avatar_url ? (
-                <Image source={{ uri: user.avatar_url }} style={styles.greetingAvatarImg} />
-              ) : (
-                <Text style={styles.greetingAvatarText}>{initials}</Text>
-              )}
-            </View>
-            <Text style={[styles.greetingText, { color: colors.text }]}>
-              {getGreetingPrefix()}, {firstName}
-            </Text>
-          </View>
-
-          <Animated.View
+        {/* 1. COMPACT GREETING ROW (Full width, clean one-line feel) */}
+        <View style={styles.greetingRow}>
+          <View
             style={[
-              styles.streakChip,
+              styles.greetingAvatar,
               {
-                opacity: streakChipOpacity,
-                backgroundColor: 'rgba(204, 120, 92, 0.12)',
-                borderColor: 'rgba(204, 120, 92, 0.28)',
+                backgroundColor: user?.avatar_url ? 'transparent' : colors.accent,
+                borderColor: colors.border,
               },
             ]}
           >
-            <Animated.View style={{ transform: [{ scale: streakFlameScale }] }}>
-              <Flame
-                size={14}
-                color={colors.accent}
-                fill={metrics.streakDays > 0 ? colors.accent : 'transparent'}
-              />
-            </Animated.View>
-            <Text style={[styles.streakText, { color: colors.accent }]}>
-              {metrics.streakDays} day streak
-            </Text>
-          </Animated.View>
+            {user?.avatar_url ? (
+              <Image source={{ uri: user.avatar_url }} style={styles.greetingAvatarImg} />
+            ) : (
+              <Text style={styles.greetingAvatarText}>{initials}</Text>
+            )}
+          </View>
+          <Text style={[styles.greetingText, { color: colors.text }]}>
+            {getGreetingPrefix()}, {firstName}
+          </Text>
         </View>
 
         {/* 2. RESUME LECTURE CARD (Top Priority) OR SKELETON / EMPTY STATE */}
@@ -476,7 +346,6 @@ export const HomeScreen: React.FC = () => {
             activeOpacity={0.85}
           >
             <View style={styles.resumeTopRow}>
-              {/* Thumbnail */}
               {resumeThumbUri ? (
                 <Image source={{ uri: resumeThumbUri }} style={styles.resumeThumb} />
               ) : (
@@ -490,7 +359,6 @@ export const HomeScreen: React.FC = () => {
                 </View>
               )}
 
-              {/* Details */}
               <View style={styles.resumeInfo}>
                 <Text style={[styles.resumeBatch, { color: colors.accent }]} numberOfLines={1}>
                   {lastPlayedCourse.name}
@@ -500,13 +368,11 @@ export const HomeScreen: React.FC = () => {
                 </Text>
               </View>
 
-              {/* Play Button */}
               <View style={[styles.resumePlayBtn, { backgroundColor: colors.accent }]}>
                 <Play size={16} color="#ffffff" fill="#ffffff" />
               </View>
             </View>
 
-            {/* Progress Bar + Percentage */}
             <View style={styles.progressBlock}>
               <View style={[styles.progressTrack, { backgroundColor: colors.bgCardSubtle }]}>
                 <View
@@ -548,49 +414,105 @@ export const HomeScreen: React.FC = () => {
           </TouchableOpacity>
         )}
 
-        {/* 3. TODAY'S PROGRESS (3 small inline stat chips) */}
-        <View style={styles.statsRow}>
+        {/* 3. ONE ROW, TWO COLUMNS: BIG STREAK SQUARE BOX + TODAY'S STUDY STATS COLUMN */}
+        <View style={styles.bentoRow}>
+          {/* Column 1: Big Static Square Streak Box */}
           <View
             style={[
-              styles.statChip,
+              styles.streakSquareCard,
               { backgroundColor: colors.bgCard, borderColor: colors.border },
             ]}
           >
-            <Clock size={14} color={colors.accent} />
-            <Text style={[styles.statValue, { color: colors.text }]}>
-              {formatStudyDuration(studyMinutesToday)}
+            <View
+              style={[
+                styles.streakIconOrb,
+                { backgroundColor: 'rgba(204, 120, 92, 0.12)', borderColor: 'rgba(204, 120, 92, 0.25)' },
+              ]}
+            >
+              <Flame
+                size={24}
+                color={colors.accent}
+                fill={metrics.streakDays > 0 ? colors.accent : 'transparent'}
+              />
+            </View>
+            <Text style={[styles.streakBigNumber, { color: colors.text }]}>
+              {metrics.streakDays}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.textDim }]}>Studied</Text>
+            <Text style={[styles.streakBoxLabel, { color: colors.accent }]}>Day Streak</Text>
+            <Text style={[styles.streakBoxHint, { color: colors.textDim }]} numberOfLines={1}>
+              {metrics.streakDays > 0 ? 'Active study streak' : 'Watch 1 lecture today'}
+            </Text>
           </View>
 
+          {/* Column 2: Study Duration & Progress Stats */}
           <View
             style={[
-              styles.statChip,
+              styles.statsColumnCard,
               { backgroundColor: colors.bgCard, borderColor: colors.border },
             ]}
           >
-            <CheckCircle2 size={14} color={colors.green} />
-            <Text style={[styles.statValue, { color: colors.text }]}>
-              {metrics.lecturesToday}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.textDim }]}>Done today</Text>
-          </View>
+            <View style={styles.statLineItem}>
+              <View style={[styles.statLineIcon, { backgroundColor: 'rgba(204, 120, 92, 0.12)' }]}>
+                <Clock size={14} color={colors.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.statLineLabel, { color: colors.textDim }]}>
+                  Studied Today
+                </Text>
+                <Text style={[styles.statLineValue, { color: colors.text }]}>
+                  {formatStudyDuration(studyMinutesToday)}
+                </Text>
+              </View>
+            </View>
 
-          <View
-            style={[
-              styles.statChip,
-              { backgroundColor: colors.bgCard, borderColor: colors.border },
-            ]}
-          >
-            <Target size={14} color={colors.govtIndigo} />
-            <Text style={[styles.statValue, { color: colors.text }]}>
-              {metrics.weeklyGoalPct}%
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.textDim }]}>Weekly goal</Text>
+            <View style={[styles.statDivider, { backgroundColor: colors.borderSubtle }]} />
+
+            <View style={styles.statLineItem}>
+              <View style={[styles.statLineIcon, { backgroundColor: colors.greenDim }]}>
+                <CheckCircle2 size={14} color={colors.green} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.statLineLabel, { color: colors.textDim }]}>
+                  Lectures Done
+                </Text>
+                <Text style={[styles.statLineValue, { color: colors.text }]}>
+                  {metrics.lecturesToday} today • {metrics.totalWatched} total
+                </Text>
+              </View>
+            </View>
+
+            <View style={[styles.statDivider, { backgroundColor: colors.borderSubtle }]} />
+
+            <View style={styles.statLineItem}>
+              <View style={[styles.statLineIcon, { backgroundColor: colors.govtDim }]}>
+                <Target size={14} color={colors.govtIndigo} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={styles.goalHeaderRow}>
+                  <Text style={[styles.statLineLabel, { color: colors.textDim }]}>
+                    Weekly Goal
+                  </Text>
+                  <Text style={[styles.goalPctText, { color: colors.govtIndigo }]}>
+                    {metrics.weeklyGoalPct}%
+                  </Text>
+                </View>
+                <View style={[styles.goalTrack, { backgroundColor: colors.bgCardSubtle }]}>
+                  <View
+                    style={[
+                      styles.goalFill,
+                      {
+                        backgroundColor: colors.govtIndigo,
+                        width: `${Math.max(metrics.weeklyGoalPct, metrics.weeklyGoalPct > 0 ? 5 : 0)}%`,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+            </View>
           </View>
         </View>
 
-        {/* 4. QUICK ACCESS HORIZONTAL ROW (Real app features only) */}
+        {/* 4. QUICK ACCESS HORIZONTAL ROW */}
         <View style={styles.sectionBlock}>
           <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Quick Access</Text>
           <ScrollView
@@ -666,109 +588,7 @@ export const HomeScreen: React.FC = () => {
           </ScrollView>
         </View>
 
-        {/* 5. RECENTLY ADDED HORIZONTAL LIST */}
-        <View style={styles.sectionBlock}>
-          <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionLabel, { color: colors.textMuted, marginBottom: 0 }]}>
-              Recently Added
-            </Text>
-            <TouchableOpacity
-              onPress={() => (navigation as any).navigate('MainTabs', { screen: 'CoursesTab' })}
-            >
-              <Text style={[styles.seeAllText, { color: colors.accent }]}>See all</Text>
-            </TouchableOpacity>
-          </View>
-
-          {showSkeleton && recentFeed.length === 0 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.recentScroll}
-            >
-              {[1, 2, 3].map((idx) => (
-                <Animated.View
-                  key={idx}
-                  style={[
-                    styles.recentSkeletonCard,
-                    { backgroundColor: colors.bgCard, borderColor: colors.border, opacity: pulseAnim },
-                  ]}
-                >
-                  <View style={[styles.recentSkeletonThumb, { backgroundColor: colors.bgCardSubtle }]} />
-                  <View style={[styles.skeletonLine, { width: '80%', marginTop: 10, backgroundColor: colors.bgCardSubtle }]} />
-                  <View style={[styles.skeletonLine, { width: '50%', marginTop: 6, backgroundColor: colors.bgCardSubtle }]} />
-                </Animated.View>
-              ))}
-            </ScrollView>
-          ) : (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.recentScroll}
-            >
-              {recentFeed.map((item) => (
-                <TouchableOpacity
-                  key={item.key}
-                  style={[
-                    styles.recentCard,
-                    { backgroundColor: colors.bgCard, borderColor: colors.border },
-                  ]}
-                  onPress={() => handleOpenRecentItem(item)}
-                  activeOpacity={0.82}
-                >
-                  {item.thumb ? (
-                    <Image source={{ uri: item.thumb }} style={styles.recentThumb} />
-                  ) : (
-                    <View
-                      style={[
-                        styles.recentThumbFallback,
-                        { backgroundColor: 'rgba(204, 120, 92, 0.1)' },
-                      ]}
-                    >
-                      {item.isPdf ? (
-                        <FileText size={22} color={colors.accent} />
-                      ) : (
-                        <Video size={22} color={colors.accent} />
-                      )}
-                    </View>
-                  )}
-
-                  <View style={styles.recentBody}>
-                    <View style={styles.recentTypeRow}>
-                      <View
-                        style={[
-                          styles.recentTypeBadge,
-                          {
-                            backgroundColor: item.isPdf
-                              ? 'rgba(204, 120, 92, 0.12)'
-                              : colors.govtDim,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.recentTypeText,
-                            { color: item.isPdf ? colors.accent : colors.govtIndigo },
-                          ]}
-                        >
-                          {item.isPdf ? 'PDF' : 'Lecture'}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <Text style={[styles.recentTitle, { color: colors.text }]} numberOfLines={2}>
-                      {item.lecture.label}
-                    </Text>
-                    <Text style={[styles.recentBatch, { color: colors.textDim }]} numberOfLines={1}>
-                      {item.courseName}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-        </View>
-
-        {/* 6. COMPACT TRACKS (Two small side-by-side tiles: Icon + Name + Count only) */}
+        {/* 5. COMPACT TRACKS (Two small side-by-side tiles: Icon + Name + Count only) */}
         <View style={styles.sectionBlock}>
           <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Tracks</Text>
           <View style={styles.tracksGrid}>
@@ -828,10 +648,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.base,
     paddingTop: 14,
     paddingBottom: 24,
-    gap: 18,
-  },
-  greetingBlock: {
-    gap: 8,
+    gap: 16,
   },
   greetingRow: {
     flexDirection: 'row',
@@ -860,20 +677,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     flex: 1,
-  },
-  streakChip: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 11,
-    paddingVertical: 5,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-  },
-  streakText: {
-    fontSize: 11.5,
-    fontWeight: '700',
   },
   skeletonCard: {
     flexDirection: 'row',
@@ -988,44 +791,113 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
   },
-  statsRow: {
+  bentoRow: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'stretch',
+    gap: 10,
   },
-  statChip: {
-    flex: 1,
-    borderRadius: radii.lg,
+  streakSquareCard: {
+    width: '44%',
+    aspectRatio: 1,
+    borderRadius: radii.xl,
     borderWidth: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    padding: 14,
     alignItems: 'center',
-    gap: 3,
+    justifyContent: 'center',
+    gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  statValue: {
-    fontSize: 14,
+  streakIconOrb: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  streakBigNumber: {
+    fontSize: 28,
+    fontWeight: '800',
+    lineHeight: 32,
+  },
+  streakBoxLabel: {
+    fontSize: 12.5,
     fontWeight: '700',
   },
-  statLabel: {
+  streakBoxHint: {
+    fontSize: 10.5,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  statsColumnCard: {
+    flex: 1,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: 12,
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  statLineItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+  },
+  statLineIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statLineLabel: {
     fontSize: 10.5,
     fontWeight: '600',
   },
-  sectionBlock: {
-    gap: 10,
+  statLineValue: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    marginTop: 1,
   },
-  sectionHeaderRow: {
+  statDivider: {
+    height: 1,
+    marginVertical: 4,
+  },
+  goalHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  goalPctText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  goalTrack: {
+    height: 5,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginTop: 4,
+  },
+  goalFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  sectionBlock: {
+    gap: 10,
   },
   sectionLabel: {
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
-  },
-  seeAllText: {
-    fontSize: 12.5,
-    fontWeight: '700',
   },
   quickAccessScroll: {
     gap: 10,
@@ -1052,64 +924,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   quickSub: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  recentScroll: {
-    gap: 12,
-    paddingRight: 4,
-  },
-  recentSkeletonCard: {
-    width: 176,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    padding: 10,
-  },
-  recentSkeletonThumb: {
-    width: '100%',
-    height: 88,
-    borderRadius: radii.md,
-  },
-  recentCard: {
-    width: 182,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  recentThumb: {
-    width: '100%',
-    height: 92,
-    backgroundColor: '#1a1917',
-  },
-  recentThumbFallback: {
-    width: '100%',
-    height: 92,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  recentBody: {
-    padding: 10,
-    gap: 4,
-  },
-  recentTypeRow: {
-    flexDirection: 'row',
-  },
-  recentTypeBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: radii.pill,
-  },
-  recentTypeText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  recentTitle: {
-    fontSize: 12.5,
-    fontWeight: '700',
-    lineHeight: 17,
-    minHeight: 34,
-  },
-  recentBatch: {
     fontSize: 11,
     fontWeight: '500',
   },
