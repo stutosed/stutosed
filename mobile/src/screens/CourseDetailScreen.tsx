@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
+  TextInput,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, Course, LectureItem } from '../types';
 import { useTheme } from '../context/ThemeContext';
@@ -18,9 +19,92 @@ import { spacing, radii } from '../theme/spacing';
 import { triggerSmoothLayout } from '../lib/layoutAnim';
 import { loadCourseDetails } from '../data/coursesData';
 import { LectureRow } from '../components/LectureRow';
-import { ArrowLeft, User, BookOpen, Layers, Bookmark } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  User,
+  BookOpen,
+  Layers,
+  Bookmark,
+  Folder,
+  Video,
+  FileText,
+  ChevronRight,
+  Search,
+  X,
+  LayoutList,
+  LayoutGrid,
+} from 'lucide-react-native';
 
 type CourseDetailRouteProp = RouteProp<RootStackParamList, 'CourseDetail'>;
+type MediaFilter = 'all' | 'videos' | 'pdfs';
+type ViewMode = 'list' | 'grid';
+
+interface CourseSection {
+  id: string;
+  label: string;
+  subname?: string;
+  items: LectureItem[];
+}
+
+function isPdfItem(item: LectureItem): boolean {
+  return (
+    item.type === 'pdf' ||
+    item.category === 'pdfs' ||
+    (item.url || '').toLowerCase().endsWith('.pdf')
+  );
+}
+
+function buildSectionItems(course: Course, sectionId: string): LectureItem[] {
+  if (course.tabs && course.tabs.length > 0) {
+    const tab = course.tabs.find((t) => t.id === sectionId) || course.tabs[0];
+    return tab ? tab.items : [];
+  }
+
+  if (course.isParmar && course.parmarData) {
+    const subj = course.parmarData[sectionId];
+    if (!subj) return [];
+    const items: LectureItem[] = [];
+    subj.lectures.forEach((lec, idx) => {
+      if (lec.links?.url) {
+        items.push({
+          id: `${sectionId}-${idx}`,
+          label: lec.title,
+          url: lec.links.url,
+          type: lec.links.url.endsWith('.pdf') ? 'pdf' : 'external',
+          links: lec.links,
+          subject: sectionId,
+        });
+      }
+      // Include section PDFs (Notes EN/HI, Handwritten, Quiz) right inside this section
+      const pdfFields: Array<{ key: string; suffix: string }> = [
+        { key: 'notes_en', suffix: 'Notes (English)' },
+        { key: 'notes_hi', suffix: 'Notes (Hindi)' },
+        { key: 'handwritten', suffix: 'Handwritten Notes' },
+        { key: 'quiz', suffix: 'Practice Quiz PDF' },
+      ];
+      pdfFields.forEach(({ key, suffix }) => {
+        const pdfUrl = lec.links?.[key];
+        if (pdfUrl && typeof pdfUrl === 'string' && pdfUrl.startsWith('http')) {
+          items.push({
+            id: `${sectionId}-${idx}-${key}`,
+            label: `${lec.title} • ${suffix}`,
+            url: pdfUrl,
+            type: 'pdf',
+            category: 'pdfs',
+            subject: sectionId,
+          });
+        }
+      });
+    });
+    return items;
+  }
+
+  if (course.isPratham && course.prathamBySubject) {
+    return course.prathamBySubject[sectionId] || [];
+  }
+
+  return [];
+}
 
 export const CourseDetailScreen: React.FC = () => {
   const route = useRoute<CourseDetailRouteProp>();
@@ -40,21 +124,29 @@ export const CourseDetailScreen: React.FC = () => {
 
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedTabId, setSelectedTabId] = useState<string>('');
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mediaFilter, setMediaFilter] = useState<MediaFilter>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   useEffect(() => {
     let isMounted = true;
+    setSelectedSectionId(null);
+    setSearchQuery('');
+    setMediaFilter('all');
+
     loadCourseDetails(courseId).then((data) => {
       if (isMounted) {
         setCourse(data);
-        if (data?.tabs && data.tabs.length > 0) {
-          setSelectedTabId(data.tabs[0].id);
+        // Only auto-open the items directly if there is 1 section (no folder selection needed)
+        if (data?.tabs && data.tabs.length === 1) {
+          setSelectedSectionId(data.tabs[0].id);
         } else if (data?.isParmar && data.parmarData) {
-          const firstKey = Object.keys(data.parmarData)[0];
-          setSelectedTabId(firstKey || '');
+          const keys = Object.keys(data.parmarData);
+          if (keys.length === 1) setSelectedSectionId(keys[0]);
         } else if (data?.isPratham && data.prathamBySubject) {
-          const firstKey = Object.keys(data.prathamBySubject)[0];
-          setSelectedTabId(firstKey || '');
+          const keys = Object.keys(data.prathamBySubject).filter((k) => k !== 'No Topic');
+          if (keys.length === 1) setSelectedSectionId(keys[0]);
         }
         setLoading(false);
       }
@@ -64,55 +156,118 @@ export const CourseDetailScreen: React.FC = () => {
     };
   }, [courseId]);
 
-  const tabs = useMemo(() => {
+  const sections = useMemo<CourseSection[]>(() => {
     if (!course) return [];
     if (course.tabs && course.tabs.length > 0) {
-      return course.tabs.map((t) => ({ id: t.id, label: t.label }));
+      return course.tabs.map((t) => ({
+        id: t.id,
+        label: t.label,
+        subname: t.subname,
+        items: t.items || [],
+      }));
     }
     if (course.isParmar && course.parmarData) {
-      return Object.keys(course.parmarData).map((k) => ({ id: k, label: k }));
+      return Object.keys(course.parmarData).map((k) => ({
+        id: k,
+        label: k,
+        items: buildSectionItems(course, k),
+      }));
     }
     if (course.isPratham && course.prathamBySubject) {
-      return Object.keys(course.prathamBySubject).map((k) => ({ id: k, label: k }));
+      return Object.keys(course.prathamBySubject)
+        .filter((k) => k !== 'No Topic')
+        .map((k) => ({
+          id: k,
+          label: k,
+          items: course.prathamBySubject?.[k] || [],
+        }));
     }
     return [];
   }, [course]);
 
-  const activeLectures = useMemo<LectureItem[]>(() => {
-    if (!course) return [];
-    if (course.tabs && course.tabs.length > 0) {
-      const tab = course.tabs.find((t) => t.id === selectedTabId) || course.tabs[0];
-      return tab ? tab.items : [];
-    }
-    if (course.isParmar && course.parmarData && selectedTabId) {
-      const subj = course.parmarData[selectedTabId];
-      if (!subj) return [];
-      return subj.lectures.map((lec, idx) => ({
-        id: `${selectedTabId}-${idx}`,
-        label: lec.title,
-        url: lec.links?.url || '',
-        type: lec.links?.url?.endsWith('.pdf') ? 'pdf' : 'abyss',
-        links: lec.links,
-        subject: selectedTabId,
-      }));
-    }
-    if (course.isPratham && course.prathamBySubject && selectedTabId) {
-      return course.prathamBySubject[selectedTabId] || [];
-    }
-    return [];
-  }, [course, selectedTabId]);
+  const isMultiSection = sections.length > 1;
+  const activeSection = useMemo(
+    () => sections.find((s) => s.id === selectedSectionId) || (sections.length === 1 ? sections[0] : null),
+    [sections, selectedSectionId]
+  );
 
-  const getLectureKey = (item: LectureItem, index: number) =>
-    item.url || item.links?.url || item.id || `${courseId}-${selectedTabId}-${index}`;
+  // Android Hardware Back: inside a chapter -> go back to Chapters Directory first
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+        if (isMultiSection && selectedSectionId) {
+          triggerSmoothLayout();
+          setSelectedSectionId(null);
+          setSearchQuery('');
+          setMediaFilter('all');
+          return true;
+        }
+        return false;
+      });
+      return () => sub.remove();
+    }, [isMultiSection, selectedSectionId])
+  );
+
+  const handleHeaderBack = () => {
+    if (isMultiSection && selectedSectionId) {
+      triggerSmoothLayout();
+      setSelectedSectionId(null);
+      setSearchQuery('');
+      setMediaFilter('all');
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  const getLectureKey = useCallback(
+    (item: LectureItem, index: number, secId: string) =>
+      item.url || item.links?.url || item.id || `${courseId}-${secId}-${index}`,
+    [courseId]
+  );
+
+  const filteredSections = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return sections;
+    return sections.filter(
+      (s) =>
+        s.label.toLowerCase().includes(q) ||
+        s.items.some((it) => (it.label || '').toLowerCase().includes(q))
+    );
+  }, [sections, searchQuery]);
+
+  const sectionCounts = useMemo(() => {
+    const items = activeSection?.items || [];
+    const pdfs = items.filter(isPdfItem).length;
+    const videos = items.length - pdfs;
+    return { all: items.length, videos, pdfs };
+  }, [activeSection]);
+
+  const activeItems = useMemo<LectureItem[]>(() => {
+    if (!activeSection) return [];
+    let list = activeSection.items;
+    if (mediaFilter === 'videos') {
+      list = list.filter((i) => !isPdfItem(i));
+    } else if (mediaFilter === 'pdfs') {
+      list = list.filter(isPdfItem);
+    }
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(
+      (i) =>
+        (i.label || '').toLowerCase().includes(q) ||
+        (i.subject || '').toLowerCase().includes(q)
+    );
+  }, [activeSection, mediaFilter, searchQuery]);
 
   const handleOpenLecture = (item: LectureItem, index: number) => {
-    const key = getLectureKey(item, index);
+    const secId = activeSection?.id || 'videos';
+    const key = getLectureKey(item, index, secId);
     markLectureWatched(courseId, key);
     recordCourseMemory({
       courseId,
       courseName: course?.name || title,
       lectureTitle: item.label,
-      tabId: selectedTabId || 'videos',
+      tabId: secId,
       url: key,
       timestamp: Date.now(),
     });
@@ -120,9 +275,18 @@ export const CourseDetailScreen: React.FC = () => {
       lecture: item,
       courseId,
       courseTitle: course?.name || title,
-      tabId: selectedTabId,
+      tabId: secId,
     });
   };
+
+  const openSection = (secId: string) => {
+    triggerSmoothLayout();
+    setSelectedSectionId(secId);
+    setSearchQuery('');
+    setMediaFilter('all');
+  };
+
+  const showDirectory = isMultiSection && !selectedSectionId;
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
@@ -130,13 +294,13 @@ export const CourseDetailScreen: React.FC = () => {
       <View style={[styles.topBar, { borderBottomColor: colors.borderSubtle }]}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={handleHeaderBack}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <ArrowLeft size={20} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.topBarTitle, { color: colors.text }]} numberOfLines={1}>
-          {course?.name || title}
+          {activeSection && isMultiSection ? activeSection.label : course?.name || title}
         </Text>
         <TouchableOpacity
           onPress={() => toggleCourseBookmark(courseId)}
@@ -157,101 +321,286 @@ export const CourseDetailScreen: React.FC = () => {
             Loading Course Modules...
           </Text>
         </View>
+      ) : showDirectory ? (
+        /* STEP 1: CHAPTERS / FOLDERS LIST (No horizontal sliding required!) */
+        <FlatList
+          data={filteredSections}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.directoryList}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View style={styles.directoryHeaderWrap}>
+              <View
+                style={[
+                  styles.courseBanner,
+                  { backgroundColor: colors.bgCard, borderColor: colors.border },
+                ]}
+              >
+                <Text style={[styles.courseTitle, { color: colors.text }]}>{course?.name}</Text>
+                {course?.subname ? (
+                  <Text style={[styles.courseSubname, { color: colors.textMuted }]}>
+                    {course.subname}
+                  </Text>
+                ) : null}
+                <View style={styles.metaRow}>
+                  <View style={styles.metaItem}>
+                    <User size={13} color={colors.accent} />
+                    <Text style={[styles.metaText, { color: colors.textMuted }]}>
+                      {course?.teacher || 'Educator'}
+                    </Text>
+                  </View>
+                  <View style={[styles.metaDot, { backgroundColor: colors.border }]} />
+                  <View style={styles.metaItem}>
+                    <Folder size={13} color={colors.govtIndigo} />
+                    <Text style={[styles.metaText, { color: colors.textMuted }]}>
+                      {sections.length} Chapters / Sections
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <View
+                style={[
+                  styles.searchBox,
+                  { backgroundColor: colors.bgCard, borderColor: colors.border },
+                ]}
+              >
+                <Search size={15} color={colors.textDim} />
+                <TextInput
+                  style={[styles.searchInput, { color: colors.text }]}
+                  placeholder="Search chapters or topics..."
+                  placeholderTextColor={colors.textDim}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                    <X size={15} color={colors.textDim} />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <Text style={[styles.directoryHeading, { color: colors.textMuted }]}>
+                SELECT A CHAPTER OR SECTION
+              </Text>
+            </View>
+          }
+          renderItem={({ item: sec, index }) => {
+            const pdfCount = sec.items.filter(isPdfItem).length;
+            const vidCount = sec.items.length - pdfCount;
+            const watchedInSec = sec.items.filter((it, idx) =>
+              Boolean(watchedMap[getLectureKey(it, idx, sec.id)])
+            ).length;
+            const pct = sec.items.length > 0 ? Math.round((watchedInSec / sec.items.length) * 100) : 0;
+
+            return (
+              <TouchableOpacity
+                style={[
+                  styles.folderRow,
+                  { backgroundColor: colors.bgCard, borderColor: colors.border },
+                ]}
+                onPress={() => openSection(sec.id)}
+                activeOpacity={0.78}
+              >
+                <View style={[styles.folderIconBox, { backgroundColor: 'rgba(204,120,92,0.14)' }]}>
+                  <Folder size={20} color={colors.accent} />
+                </View>
+
+                <View style={styles.folderBody}>
+                  <Text style={[styles.folderTitle, { color: colors.text }]} numberOfLines={2}>
+                    {sec.label}
+                  </Text>
+                  <View style={styles.folderMetaRow}>
+                    <View style={styles.folderStatChip}>
+                      <Video size={11} color={colors.accent} />
+                      <Text style={[styles.folderStatText, { color: colors.textMuted }]}>
+                        {vidCount} Lectures
+                      </Text>
+                    </View>
+                    <View style={styles.folderStatChip}>
+                      <FileText size={11} color={colors.govtIndigo} />
+                      <Text style={[styles.folderStatText, { color: colors.textMuted }]}>
+                        {pdfCount} PDFs
+                      </Text>
+                    </View>
+                    {watchedInSec > 0 && (
+                      <Text style={[styles.folderDoneText, { color: colors.green }]}>
+                        • {pct}% done
+                      </Text>
+                    )}
+                  </View>
+                </View>
+
+                <View style={styles.folderIndexRight}>
+                  <Text style={[styles.folderNum, { color: colors.textDim }]}>
+                    {String(index + 1).padStart(2, '0')}
+                  </Text>
+                  <ChevronRight size={17} color={colors.textDim} />
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
       ) : (
+        /* STEP 2: INSIDE SECTION (Lectures + Section PDFs + List/Grid Switcher) */
         <View style={{ flex: 1 }}>
-          {/* Header Card */}
+          {/* Section Sub-Header + Filter & List/Grid Toolbar */}
           <View
             style={[
-              styles.courseHeader,
+              styles.sectionToolbar,
               { backgroundColor: colors.bgCard, borderBottomColor: colors.borderSubtle },
             ]}
           >
-            <Text style={[styles.courseTitle, { color: colors.text }]}>{course?.name}</Text>
-            {course?.subname ? (
-              <Text style={[styles.courseSubname, { color: colors.textMuted }]}>
-                {course.subname}
-              </Text>
-            ) : null}
+            <View style={styles.toolbarTopRow}>
+              {isMultiSection ? (
+                <TouchableOpacity
+                  style={[
+                    styles.allChaptersBtn,
+                    { backgroundColor: colors.bg, borderColor: colors.border },
+                  ]}
+                  onPress={handleHeaderBack}
+                  activeOpacity={0.75}
+                >
+                  <ArrowLeft size={13} color={colors.accent} />
+                  <Text style={[styles.allChaptersText, { color: colors.accent }]}>
+                    All Chapters
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.metaItem}>
+                  <Layers size={13} color={colors.accent} />
+                  <Text style={[styles.metaText, { color: colors.textMuted }]}>
+                    {course?.name}
+                  </Text>
+                </View>
+              )}
 
-            <View style={styles.metaRow}>
-              <View style={styles.metaItem}>
-                <User size={13} color={colors.accent} />
-                <Text style={[styles.metaText, { color: colors.textMuted }]}>
-                  {course?.teacher || 'Educator'}
-                </Text>
+              {/* List / Grid View Switcher */}
+              <View
+                style={[
+                  styles.viewSwitchGroup,
+                  { backgroundColor: colors.bg, borderColor: colors.border },
+                ]}
+              >
+                <TouchableOpacity
+                  style={[
+                    styles.viewSwitchBtn,
+                    viewMode === 'list' && { backgroundColor: colors.accent },
+                  ]}
+                  onPress={() => {
+                    if (viewMode !== 'list') {
+                      triggerSmoothLayout();
+                      setViewMode('list');
+                    }
+                  }}
+                >
+                  <LayoutList
+                    size={15}
+                    color={viewMode === 'list' ? '#ffffff' : colors.textMuted}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.viewSwitchBtn,
+                    viewMode === 'grid' && { backgroundColor: colors.accent },
+                  ]}
+                  onPress={() => {
+                    if (viewMode !== 'grid') {
+                      triggerSmoothLayout();
+                      setViewMode('grid');
+                    }
+                  }}
+                >
+                  <LayoutGrid
+                    size={15}
+                    color={viewMode === 'grid' ? '#ffffff' : colors.textMuted}
+                  />
+                </TouchableOpacity>
               </View>
-              <View style={[styles.metaDot, { backgroundColor: colors.border }]} />
-              <View style={styles.metaItem}>
-                <Layers size={13} color={colors.textDim} />
-                <Text style={[styles.metaText, { color: colors.textMuted }]}>
-                  {activeLectures.length} Lectures in Tab
-                </Text>
-              </View>
+            </View>
+
+            {/* Search inside Chapter */}
+            <View
+              style={[
+                styles.sectionSearchBox,
+                { backgroundColor: colors.bg, borderColor: colors.borderSubtle },
+              ]}
+            >
+              <Search size={14} color={colors.textDim} />
+              <TextInput
+                style={[styles.searchInput, { color: colors.text }]}
+                placeholder="Search lectures or PDFs in this section..."
+                placeholderTextColor={colors.textDim}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <X size={14} color={colors.textDim} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Media Filter Pills: All | Lectures | PDFs & Notes */}
+            <View style={styles.filterPillsRow}>
+              {(
+                [
+                  { key: 'all' as const, label: `All (${sectionCounts.all})` },
+                  { key: 'videos' as const, label: `Lectures (${sectionCounts.videos})` },
+                  { key: 'pdfs' as const, label: `PDFs (${sectionCounts.pdfs})` },
+                ] as const
+              ).map(({ key, label }) => {
+                const active = mediaFilter === key;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={[
+                      styles.filterChip,
+                      {
+                        backgroundColor: active ? colors.accent : colors.bg,
+                        borderColor: active ? colors.accent : colors.border,
+                      },
+                    ]}
+                    onPress={() => {
+                      if (mediaFilter !== key) {
+                        triggerSmoothLayout();
+                        setMediaFilter(key);
+                      }
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        { color: active ? '#ffffff' : colors.textMuted },
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
-          {/* Tab Selector */}
-          {tabs.length > 1 && (
-            <View
-              style={[
-                styles.tabBar,
-                { backgroundColor: colors.bg, borderBottomColor: colors.borderSubtle },
-              ]}
-            >
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.tabList}
-              >
-                {tabs.map((tab) => {
-                  const isActive = selectedTabId === tab.id;
-                  return (
-                    <TouchableOpacity
-                      key={tab.id}
-                      style={[
-                        styles.tabItem,
-                        {
-                          backgroundColor: isActive ? colors.accent : colors.bgCard,
-                          borderColor: isActive ? colors.accent : colors.border,
-                        },
-                      ]}
-                      onPress={() => {
-                        if (!isActive) {
-                          triggerSmoothLayout();
-                          setSelectedTabId(tab.id);
-                        }
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.tabText,
-                          { color: isActive ? '#ffffff' : colors.textMuted },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {tab.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
-
-          {/* Lectures List */}
+          {/* Lectures & PDFs List / 2-Column Grid */}
           <FlatList
-            data={activeLectures}
+            key={viewMode}
+            data={activeItems}
+            numColumns={viewMode === 'grid' ? 2 : 1}
+            columnWrapperStyle={viewMode === 'grid' ? styles.gridRowGap : undefined}
             keyExtractor={(item, index) => item.id || `lec-${index}`}
             contentContainerStyle={styles.lectureList}
             renderItem={({ item, index }) => {
-              const lecKey = getLectureKey(item, index);
+              const secId = activeSection?.id || 'videos';
+              const lecKey = getLectureKey(item, index, secId);
               const isWatched = !!watchedMap[lecKey];
               return (
                 <LectureRow
                   item={item}
                   index={index}
                   isWatched={isWatched}
+                  variant={viewMode}
                   onPress={() => handleOpenLecture(item, index)}
                   onToggleWatched={() => toggleLectureWatched(courseId, lecKey)}
                 />
@@ -261,7 +610,9 @@ export const CourseDetailScreen: React.FC = () => {
               <View style={styles.emptyContainer}>
                 <BookOpen size={32} color={colors.textDim} />
                 <Text style={[styles.emptyText, { color: colors.textDim }]}>
-                  No lectures found in this section.
+                  {mediaFilter === 'pdfs'
+                    ? 'No PDFs or notes uploaded in this section yet.'
+                    : 'No items found in this section.'}
                 </Text>
               </View>
             }
@@ -301,24 +652,34 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 13,
   },
-  courseHeader: {
+  directoryList: {
     padding: spacing.base,
-    borderBottomWidth: 1,
+    paddingBottom: spacing.xxl,
+  },
+  directoryHeaderWrap: {
+    gap: 12,
+    marginBottom: 12,
+  },
+  courseBanner: {
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.base,
   },
   courseTitle: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '800',
-    lineHeight: 26,
+    lineHeight: 25,
     marginBottom: 4,
   },
   courseSubname: {
-    fontSize: 13,
-    marginBottom: spacing.md,
+    fontSize: 12.5,
+    marginBottom: spacing.sm,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+    flexWrap: 'wrap',
   },
   metaItem: {
     flexDirection: 'row',
@@ -332,27 +693,149 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
+    fontWeight: '600',
   },
-  tabBar: {
-    borderBottomWidth: 1,
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    height: 40,
+    borderRadius: radii.md,
+    borderWidth: 1,
   },
-  tabList: {
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    paddingVertical: 0,
+  },
+  directoryHeading: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.7,
+    paddingHorizontal: 2,
+  },
+  folderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 13,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    marginBottom: 9,
+  },
+  folderIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  folderBody: {
+    flex: 1,
+    gap: 4,
+  },
+  folderTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 19,
+  },
+  folderMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flexWrap: 'wrap',
+  },
+  folderStatChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  folderStatText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+  },
+  folderDoneText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  folderIndexRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  folderNum: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  sectionToolbar: {
     paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
-    gap: spacing.sm,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    gap: 9,
   },
-  tabItem: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+  toolbarTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  allChaptersBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: radii.pill,
     borderWidth: 1,
   },
-  tabText: {
+  allChaptersText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  viewSwitchGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 2.5,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    gap: 2,
+  },
+  viewSwitchBtn: {
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: radii.sm,
+  },
+  sectionSearchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 10,
+    height: 36,
+    borderRadius: radii.md,
+    borderWidth: 1,
+  },
+  filterPillsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  filterChip: {
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+  },
+  filterChipText: {
+    fontSize: 11.5,
+    fontWeight: '700',
   },
   lectureList: {
     padding: spacing.base,
+    paddingBottom: spacing.xxl,
+  },
+  gridRowGap: {
+    gap: 10,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -362,5 +845,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 13,
+    textAlign: 'center',
+    paddingHorizontal: 24,
   },
 });
