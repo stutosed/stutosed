@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, PanResponder, Animated, Easing } from 'react-native';
+import { View, StyleSheet, Animated, Easing } from 'react-native';
 import {
   createBottomTabNavigator,
   BottomTabNavigationOptions,
@@ -7,7 +7,6 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { BottomTabParamList, RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
-import { useDrawer } from '../context/DrawerContext';
 import { HomeScreen } from '../screens/HomeScreen';
 import { CoursesScreen } from '../screens/CoursesScreen';
 import { LibraryScreen } from '../screens/LibraryScreen';
@@ -137,34 +136,6 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
 
 export const BottomTabNavigator: React.FC = () => {
   const { colors } = useTheme();
-  const { isOpen, openDrawer } = useDrawer();
-
-  const isOpenRef = useRef(isOpen);
-  isOpenRef.current = isOpen;
-  const openDrawerRef = useRef(openDrawer);
-  openDrawerRef.current = openDrawer;
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (_, gesture) => {
-        if (isOpenRef.current) return false;
-        return (
-          gesture.dx > 22 &&
-          Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.8
-        );
-      },
-      onPanResponderRelease: (_, gesture) => {
-        if (isOpenRef.current) return;
-        if (
-          (gesture.dx > 52 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.5) ||
-          (gesture.dx > 26 && gesture.vx > 0.35)
-        ) {
-          openDrawerRef.current();
-        }
-      },
-    })
-  ).current;
 
   const renderIcon = (
     focused: boolean,
@@ -180,7 +151,7 @@ export const BottomTabNavigator: React.FC = () => {
   );
 
   return (
-    <View style={styles.swipeContainer} {...panResponder.panHandlers}>
+    <View style={styles.swipeContainer}>
       <Tab.Navigator
         backBehavior="history"
         detachInactiveScreens={false}
