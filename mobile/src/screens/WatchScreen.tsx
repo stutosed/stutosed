@@ -8,26 +8,35 @@ import {
   useWindowDimensions,
   BackHandler,
   StatusBar,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { WebView } from 'react-native-webview';
-import type { ShouldStartLoadRequest, WebViewMessageEvent } from 'react-native-webview/lib/WebViewTypes';
+import type {
+  ShouldStartLoadRequest,
+  WebViewMessageEvent,
+} from 'react-native-webview/lib/WebViewTypes';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { RootStackParamList } from '../types';
+import { BlurView } from 'expo-blur';
+import { RootStackParamList, ServerOption } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../lib/config';
+import { resolveMobileMedia, fetchResolvedStreamUrl } from '../lib/streamResolver';
+import { LiquidGlassVideoPlayer } from '../components/LiquidGlassVideoPlayer';
 import { spacing, radii } from '../theme/spacing';
-import { ArrowLeft, RefreshCw, CheckCircle2, Maximize2, Minimize2 } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  RefreshCw,
+  CheckCircle2,
+  Maximize2,
+  Minimize2,
+  Sparkles,
+} from 'lucide-react-native';
 
 type WatchRouteProp = RouteProp<RootStackParamList, 'Watch'>;
-
-function extractYouTubeId(url: string): string | null {
-  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  return m ? m[1] : null;
-}
 
 function escapeHtmlAttr(value: string): string {
   return value
@@ -73,12 +82,36 @@ export const WatchScreen: React.FC = () => {
   const { watchedMap, toggleLectureWatched } = useAuth();
   const { lecture, courseId, courseTitle } = route.params;
 
+  const [selectedServerIdx, setSelectedServerIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [webViewKey, setWebViewKey] = useState(0);
   const [isManualFullscreen, setIsManualFullscreen] = useState(false);
+  const [apiStreamUrl, setApiStreamUrl] = useState<string | null>(null);
+  const [nativeFallbackToWebView, setNativeFallbackToWebView] = useState(false);
 
   const isLandscape = width > height;
   const isExpandedPlayer = isLandscape || isManualFullscreen;
+
+  const servers: ServerOption[] = useMemo(() => {
+    if (!lecture.servers || lecture.servers.length === 0) return [];
+    const seen = new Set<string>();
+    const out: ServerOption[] = [];
+    for (const s of lecture.servers) {
+      const k = s.url?.trim().toLowerCase();
+      if (k && !seen.has(k)) {
+        seen.add(k);
+        out.push(s);
+      }
+    }
+    return out;
+  }, [lecture]);
+
+  const activeServer = servers[selectedServerIdx] || servers[0] || null;
+
+  const mediaConfig = useMemo(
+    () => resolveMobileMedia(lecture, activeServer),
+    [lecture, activeServer]
+  );
 
   // Unlock orientation while watching a lecture, restore portrait cleanly on exit
   useEffect(() => {
@@ -87,6 +120,36 @@ export const WatchScreen: React.FC = () => {
       ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
     };
   }, []);
+
+  // Resolve Vidmoly/Earnvids streams via backend API when needed
+  useEffect(() => {
+    setNativeFallbackToWebView(false);
+    setApiStreamUrl(null);
+
+    if (!mediaConfig.needsApiResolution || !mediaConfig.provider || !mediaConfig.code) {
+      return;
+    }
+
+    const controller = new AbortController();
+    setLoading(true);
+    fetchResolvedStreamUrl(mediaConfig.provider, mediaConfig.code, controller.signal)
+      .then((url) => {
+        if (url) {
+          setApiStreamUrl(url);
+        } else {
+          setNativeFallbackToWebView(true);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (err?.name !== 'AbortError') {
+          setNativeFallbackToWebView(true);
+          setLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [mediaConfig]);
 
   const exitLandscapeFullscreen = useCallback(async () => {
     setIsManualFullscreen(false);
@@ -121,68 +184,21 @@ export const WatchScreen: React.FC = () => {
     return () => sub.remove();
   }, [isManualFullscreen, exitLandscapeFullscreen]);
 
-  const playerConfig = useMemo(() => {
-    const rawUrl = (
-      lecture.links?.url ||
-      lecture.servers?.[0]?.url ||
-      lecture.url ||
-      ''
-    ).trim();
-
-    const lowerUrl = rawUrl.toLowerCase();
-    const firstServerType = (lecture.servers?.[0]?.type || '').toLowerCase();
-    const isAbyss =
-      lowerUrl.includes('abyssplayer.com') ||
-      lowerUrl.includes('abyss.to') ||
-      lecture.type === 'abyss' ||
-      firstServerType === 'abyss';
-
-    if (isAbyss) {
-      let resolved = rawUrl;
-      if (!lowerUrl.includes('player.abyssplayer.com')) {
-        const match = rawUrl.match(/(?:abyss\.to\/|abyssplayer\.com\/|files\/)([a-zA-Z0-9_-]{8,15})/);
-        const fileId = match ? match[1] : lecture.id || '';
-        if (fileId) {
-          resolved = `https://player.abyssplayer.com/${fileId}`;
-        }
-      }
-      return {
-        rawUrl,
-        resolvedUrl: resolved,
-        useIframeWrapper: true,
-      };
-    }
-
-    const ytId = extractYouTubeId(rawUrl);
-    if (ytId) {
-      return {
-        rawUrl,
-        resolvedUrl: `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0`,
-        useIframeWrapper: true,
-      };
-    }
-
-    const isPdf = lecture.type === 'pdf' || lowerUrl.endsWith('.pdf');
-    if (isPdf && rawUrl) {
-      return {
-        rawUrl,
-        resolvedUrl: `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(rawUrl)}`,
-        useIframeWrapper: false,
-      };
-    }
-
-    return {
-      rawUrl,
-      resolvedUrl: rawUrl,
-      useIframeWrapper: false,
-    };
-  }, [lecture]);
-
-  const watchKey = playerConfig.rawUrl || lecture.id || '';
+  const watchKey = mediaConfig.rawUrl || lecture.id || '';
   const isWatched = !!watchedMap[watchKey];
 
+  const finalNativeStreamUrl =
+    mediaConfig.mode === 'native-video' && !nativeFallbackToWebView
+      ? mediaConfig.needsApiResolution
+        ? apiStreamUrl
+        : mediaConfig.resolvedUrl
+      : null;
+
+  const isNativeVideoActive = Boolean(finalNativeStreamUrl);
+  const useIframeWrapper = mediaConfig.mode === 'abyss' || mediaConfig.mode === 'youtube';
+
   const iframeWrapperHtml = useMemo(() => {
-    const safeSrc = escapeHtmlAttr(playerConfig.resolvedUrl);
+    const safeSrc = escapeHtmlAttr(mediaConfig.resolvedUrl);
     return `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -218,7 +234,7 @@ export const WatchScreen: React.FC = () => {
     </script>
   </body>
 </html>`;
-  }, [playerConfig.resolvedUrl]);
+  }, [mediaConfig.resolvedUrl]);
 
   const handleWebViewMessage = async (event: WebViewMessageEvent) => {
     try {
@@ -242,11 +258,10 @@ export const WatchScreen: React.FC = () => {
       return false;
     }
 
-    if (playerConfig.useIframeWrapper) {
+    if (useIframeWrapper) {
       if (reqUrl === 'about:blank' || reqUrl.startsWith(API_BASE_URL.toLowerCase())) {
         return true;
       }
-      // Keep the wrapper page as the top frame so Abyss cannot redirect to its home website
       if (request.isTopFrame) {
         return false;
       }
@@ -297,81 +312,189 @@ export const WatchScreen: React.FC = () => {
           >
             <Maximize2 size={17} color={colors.textMuted} />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.reloadBtn}
-            onPress={() => {
-              setLoading(true);
-              setWebViewKey((k) => k + 1);
-            }}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <RefreshCw size={17} color={colors.textMuted} />
-          </TouchableOpacity>
+          {!isNativeVideoActive && (
+            <TouchableOpacity
+              style={styles.reloadBtn}
+              onPress={() => {
+                setLoading(true);
+                setWebViewKey((k) => k + 1);
+              }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <RefreshCw size={17} color={colors.textMuted} />
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
-      {/* Player Container */}
-      <View style={[styles.playerContainer, playerBoxStyle]}>
-        {loading && (
+      {/* Player Container with Liquid Glass Outer Rim */}
+      <View
+        style={[
+          styles.playerContainer,
+          playerBoxStyle,
+          !isExpandedPlayer && styles.liquidGlassBezel,
+        ]}
+      >
+        {isNativeVideoActive && finalNativeStreamUrl ? (
+          <LiquidGlassVideoPlayer
+            key={`${finalNativeStreamUrl}-${selectedServerIdx}`}
+            sourceUrl={finalNativeStreamUrl}
+            title={lecture.label}
+            isFullscreen={isExpandedPlayer}
+            onToggleFullscreen={toggleManualFullscreen}
+            onPlaybackError={() => {
+              setNativeFallbackToWebView(true);
+              setLoading(true);
+            }}
+          />
+        ) : mediaConfig.needsApiResolution && !nativeFallbackToWebView ? (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={colors.accent} />
             <Text style={[styles.loadingText, { color: colors.textMuted }]}>
-              Connecting to High-Speed Stream...
+              Preparing Liquid Glass Stream...
             </Text>
           </View>
+        ) : (
+          <>
+            {loading && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" color={colors.accent} />
+                <Text style={[styles.loadingText, { color: colors.textMuted }]}>
+                  Connecting to High-Speed Stream...
+                </Text>
+              </View>
+            )}
+
+            <WebView
+              key={`${webViewKey}-${selectedServerIdx}`}
+              source={
+                useIframeWrapper
+                  ? { html: iframeWrapperHtml, baseUrl: `${API_BASE_URL}/` }
+                  : { uri: mediaConfig.resolvedUrl }
+              }
+              style={styles.webView}
+              allowsFullscreenVideo
+              javaScriptEnabled
+              domStorageEnabled
+              mixedContentMode="compatibility"
+              mediaPlaybackRequiresUserAction={false}
+              originWhitelist={['*']}
+              injectedJavaScript={FULLSCREEN_BRIDGE_JS}
+              onMessage={handleWebViewMessage}
+              onLoadEnd={() => setLoading(false)}
+              onShouldStartLoadWithRequest={handleShouldStartLoad}
+              allowsInlineMediaPlayback
+              setSupportMultipleWindows={false}
+            />
+          </>
         )}
 
-        <WebView
-          key={webViewKey}
-          source={
-            playerConfig.useIframeWrapper
-              ? { html: iframeWrapperHtml, baseUrl: `${API_BASE_URL}/` }
-              : { uri: playerConfig.resolvedUrl }
-          }
-          style={styles.webView}
-          allowsFullscreenVideo
-          javaScriptEnabled
-          domStorageEnabled
-          mixedContentMode="compatibility"
-          mediaPlaybackRequiresUserAction={false}
-          originWhitelist={['*']}
-          injectedJavaScript={FULLSCREEN_BRIDGE_JS}
-          onMessage={handleWebViewMessage}
-          onLoadEnd={() => setLoading(false)}
-          onShouldStartLoadWithRequest={handleShouldStartLoad}
-          allowsInlineMediaPlayback
-          setSupportMultipleWindows={false}
-        />
-
-        {/* Subtle Exit Fullscreen Button when user rotated manually */}
+        {/* Liquid Glass Exit Fullscreen Pill */}
         {isManualFullscreen && (
           <TouchableOpacity
-            style={styles.exitFsPill}
+            style={styles.exitFsPillWrap}
             onPress={exitLandscapeFullscreen}
-            activeOpacity={0.8}
+            activeOpacity={0.82}
           >
-            <Minimize2 size={15} color="#ffffff" />
-            <Text style={styles.exitFsText}>Exit Fullscreen</Text>
+            <BlurView
+              intensity={52}
+              tint="dark"
+              blurMethod="dimezisBlurViewSdk31Plus"
+              style={styles.exitFsPill}
+            >
+              <Minimize2 size={14} color="#ffffff" />
+              <Text style={styles.exitFsText}>Exit Fullscreen</Text>
+            </BlurView>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Details Box (Hidden in Landscape / Fullscreen) */}
       {!isExpandedPlayer && (
-        <View style={styles.detailsContainer}>
+        <ScrollView
+          style={styles.detailsContainer}
+          contentContainerStyle={{ paddingBottom: spacing.xl }}
+          showsVerticalScrollIndicator={false}
+        >
           <View
             style={[
               styles.detailCard,
               { backgroundColor: colors.bgCard, borderColor: colors.border },
             ]}
           >
-            <Text style={[styles.cardHeading, { color: colors.accent }]}>Now Playing</Text>
+            <View style={styles.cardTopRow}>
+              <Text style={[styles.cardHeading, { color: colors.accent }]}>Now Playing</Text>
+              <View
+                style={[
+                  styles.modeChip,
+                  {
+                    backgroundColor: isNativeVideoActive
+                      ? 'rgba(204, 120, 92, 0.14)'
+                      : colors.bgCardSubtle,
+                    borderColor: isNativeVideoActive ? 'rgba(204, 120, 92, 0.32)' : colors.borderSubtle,
+                  },
+                ]}
+              >
+                <Sparkles
+                  size={11}
+                  color={isNativeVideoActive ? colors.accent : colors.textMuted}
+                />
+                <Text
+                  style={[
+                    styles.modeChipText,
+                    { color: isNativeVideoActive ? colors.accent : colors.textMuted },
+                  ]}
+                >
+                  {isNativeVideoActive
+                    ? 'Liquid Glass Player • Tap 2x to Skip 10s'
+                    : mediaConfig.mode === 'abyss'
+                    ? 'Abyss Embed Player'
+                    : 'Stream Player'}
+                </Text>
+              </View>
+            </View>
+
             <Text style={[styles.cardLectureLabel, { color: colors.text }]}>{lecture.label}</Text>
             {lecture.subject ? (
               <Text style={[styles.cardSubject, { color: colors.textMuted }]}>
                 Subject: {lecture.subject}
               </Text>
             ) : null}
+
+            {/* Server Switcher Pills when multiple servers exist */}
+            {servers.length > 1 && (
+              <View style={styles.serverRow}>
+                {servers.map((srv, idx) => {
+                  const active = idx === selectedServerIdx;
+                  return (
+                    <TouchableOpacity
+                      key={`${srv.url}-${idx}`}
+                      style={[
+                        styles.serverPill,
+                        {
+                          backgroundColor: active ? colors.accent : colors.bgCardSubtle,
+                          borderColor: active ? colors.accent : colors.border,
+                        },
+                      ]}
+                      onPress={() => {
+                        setSelectedServerIdx(idx);
+                        setLoading(true);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.serverPillText,
+                          { color: active ? '#ffffff' : colors.textMuted },
+                        ]}
+                      >
+                        {srv.name || `Server ${idx + 1}`}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
 
             <View style={styles.badgeRow}>
               <View
@@ -412,7 +535,7 @@ export const WatchScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </ScrollView>
       )}
     </SafeAreaView>
   );
@@ -451,6 +574,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     position: 'relative',
   },
+  liquidGlassBezel: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.16)',
+  },
   webView: {
     flex: 1,
     backgroundColor: '#000000',
@@ -470,25 +597,28 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 12,
   },
-  exitFsPill: {
+  exitFsPillWrap: {
     position: 'absolute',
-    top: 14,
-    right: 16,
-    zIndex: 25,
+    top: 12,
+    right: 14,
+    zIndex: 35,
+  },
+  exitFsPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: 13,
     paddingVertical: 7,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(18, 17, 16, 0.72)',
+    overflow: 'hidden',
+    backgroundColor: 'rgba(20, 20, 22, 0.56)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.28)',
   },
   exitFsText: {
     color: '#ffffff',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   detailsContainer: {
     flex: 1,
@@ -499,12 +629,32 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     padding: spacing.base,
   },
+  cardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 8,
+    flexWrap: 'wrap',
+  },
   cardHeading: {
     fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 6,
+  },
+  modeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+  },
+  modeChipText: {
+    fontSize: 10.5,
+    fontWeight: '700',
   },
   cardLectureLabel: {
     fontSize: 16,
@@ -515,6 +665,22 @@ const styles = StyleSheet.create({
   cardSubject: {
     fontSize: 12,
     marginBottom: spacing.md,
+  },
+  serverRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: spacing.md,
+  },
+  serverPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+  },
+  serverPillText: {
+    fontSize: 11.5,
+    fontWeight: '700',
   },
   badgeRow: {
     flexDirection: 'row',
