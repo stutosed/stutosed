@@ -33,8 +33,18 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: 📱 Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: 📱 Configure Built-in Android SDK
+        run: |
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK_DIR" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$SDK_DIR" >> $GITHUB_ENV
+          SDKMGR="$SDK_DIR/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMGR" ]; then
+            SDKMGR="$(find "$SDK_DIR" -name sdkmanager -type f 2>/dev/null | head -n 1)"
+          fi
+          if [ -n "$SDKMGR" ]; then
+            yes | "$SDKMGR" --licenses > /dev/null || true
+          fi
 
       - name: 🟢 Set up Node.js 22
         uses: actions/setup-node@v4
@@ -77,6 +87,9 @@ jobs:
             cp mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk build_output/stutosed-release.apk
           elif [ -f mobile/android/app/build/outputs/apk/debug/app-debug.apk ]; then
             cp mobile/android/app/build/outputs/apk/debug/app-debug.apk build_output/stutosed-debug.apk
+          else
+            echo "ERROR: No APK file generated!"
+            exit 1
           fi
           ls -lah build_output/
 
