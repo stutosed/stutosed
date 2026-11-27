@@ -85,11 +85,11 @@ export const LectureThumb: React.FC<{
 
   return (
     <div
+      className={isGrid ? 'lecture-thumb-grid-box' : undefined}
       style={{
         position: 'relative',
         width: thumbWidth,
         height: thumbHeight,
-        aspectRatio: isGrid ? '16 / 9' : undefined,
         borderRadius: isGrid ? '0' : '8px',
         overflow: 'hidden',
         flexShrink: 0,

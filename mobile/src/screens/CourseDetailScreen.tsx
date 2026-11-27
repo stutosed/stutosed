@@ -127,7 +127,7 @@ export const CourseDetailScreen: React.FC = () => {
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [mediaFilter, setMediaFilter] = useState<MediaFilter>('all');
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   useEffect(() => {
     let isMounted = true;
@@ -276,6 +276,66 @@ export const CourseDetailScreen: React.FC = () => {
         (i.subject || '').toLowerCase().includes(q)
     );
   }, [activeSection, mediaFilter, searchQuery]);
+
+  type DisplayRow =
+    | { kind: 'header'; id: string; title: string; count: number; isPdf: boolean }
+    | { kind: 'item'; id: string; item: LectureItem; seqIndex: number; isPdf: boolean };
+
+  const displayRows = useMemo<DisplayRow[]>(() => {
+    const videos: Array<{ item: LectureItem; seqIndex: number }> = [];
+    const pdfs: Array<{ item: LectureItem; seqIndex: number }> = [];
+    activeItems.forEach((item, seqIndex) => {
+      if (isPdfItem(item)) pdfs.push({ item, seqIndex });
+      else videos.push({ item, seqIndex });
+    });
+
+    const rows: DisplayRow[] = [];
+    const showHeaders = videos.length > 0 && pdfs.length > 0;
+
+    if (videos.length > 0) {
+      if (showHeaders) {
+        rows.push({
+          kind: 'header',
+          id: 'hdr-videos',
+          title: 'Video Lectures',
+          count: videos.length,
+          isPdf: false,
+        });
+      }
+      videos.forEach(({ item, seqIndex }, idx) => {
+        rows.push({
+          kind: 'item',
+          id: item.id ? `vid-${item.id}-${idx}` : `vid-${seqIndex}`,
+          item,
+          seqIndex,
+          isPdf: false,
+        });
+      });
+    }
+
+    if (pdfs.length > 0) {
+      if (showHeaders) {
+        rows.push({
+          kind: 'header',
+          id: 'hdr-pdfs',
+          title: 'Practice Sheets & Study Notes',
+          count: pdfs.length,
+          isPdf: true,
+        });
+      }
+      pdfs.forEach(({ item, seqIndex }, idx) => {
+        rows.push({
+          kind: 'item',
+          id: item.id ? `pdf-${item.id}-${idx}` : `pdf-${seqIndex}`,
+          item,
+          seqIndex,
+          isPdf: true,
+        });
+      });
+    }
+
+    return rows;
+  }, [activeItems]);
 
   const handleOpenLecture = (item: LectureItem, index: number) => {
     const secId = activeSection?.id || 'videos';
@@ -608,25 +668,65 @@ export const CourseDetailScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Lectures & PDFs List / 2-Column Grid */}
+          {/* Lectures (Full-width square in Grid / row in List) + PDFs (Always Rectangle List below) */}
           <FlatList
             key={viewMode}
-            data={activeItems}
-            numColumns={viewMode === 'grid' ? 2 : 1}
-            columnWrapperStyle={viewMode === 'grid' ? styles.gridRowGap : undefined}
-            keyExtractor={(item, index) => item.id || `lec-${index}`}
+            data={displayRows}
+            numColumns={1}
+            keyExtractor={(row) => row.id}
             contentContainerStyle={styles.lectureList}
-            renderItem={({ item, index }) => {
+            renderItem={({ item: row }) => {
+              if (row.kind === 'header') {
+                return (
+                  <View
+                    style={[
+                      styles.sectionGroupHeader,
+                      { borderBottomColor: colors.borderSubtle, marginTop: row.isPdf ? 14 : 2 },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.sectionGroupIcon,
+                        {
+                          backgroundColor: row.isPdf
+                            ? 'rgba(217, 119, 6, 0.14)'
+                            : `${colors.accent}18`,
+                        },
+                      ]}
+                    >
+                      {row.isPdf ? (
+                        <FileText size={14} color="#d97706" />
+                      ) : (
+                        <Video size={14} color={colors.accent} />
+                      )}
+                    </View>
+                    <Text style={[styles.sectionGroupTitle, { color: colors.text }]}>
+                      {row.title}
+                    </Text>
+                    <View
+                      style={[
+                        styles.sectionGroupCount,
+                        { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
+                      ]}
+                    >
+                      <Text style={[styles.sectionGroupCountText, { color: colors.textMuted }]}>
+                        {row.count}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              }
+
               const secId = activeSection?.id || 'videos';
-              const lecKey = getLectureKey(item, index, secId);
-              const isWatched = isItemWatchedInMap(item, index, secId);
+              const lecKey = getLectureKey(row.item, row.seqIndex, secId);
+              const isWatched = isItemWatchedInMap(row.item, row.seqIndex, secId);
               return (
                 <LectureRow
-                  item={item}
-                  index={index}
+                  item={row.item}
+                  index={row.seqIndex}
                   isWatched={isWatched}
-                  variant={viewMode}
-                  onPress={() => handleOpenLecture(item, index)}
+                  variant={row.isPdf ? 'list' : viewMode}
+                  onPress={() => handleOpenLecture(row.item, row.seqIndex)}
                   onToggleWatched={() => toggleLectureWatched(courseId, lecKey)}
                 />
               );
@@ -858,6 +958,36 @@ const styles = StyleSheet.create({
   lectureList: {
     padding: spacing.base,
     paddingBottom: spacing.xxl,
+  },
+  sectionGroupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingBottom: 8,
+    marginBottom: 12,
+    borderBottomWidth: 1,
+  },
+  sectionGroupIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: radii.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionGroupTitle: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    flex: 1,
+  },
+  sectionGroupCount: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+  },
+  sectionGroupCountText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   gridRowGap: {
     gap: 10,

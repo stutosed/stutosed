@@ -93,22 +93,40 @@ export const LectureRow: React.FC<LectureRowProps> = ({
       ]}
     >
       {/* Always render crisp non-black lecture slide underneath so loading/error never shows black */}
-      <View style={[styles.slideCanvas, isGridMode && { padding: 10 }]}>
-        <View style={[styles.slideTopAccent, { backgroundColor: slideTheme.accent }]} />
-        <View style={[styles.slideGlowOrb, { backgroundColor: slideTheme.glow }]} />
-        <View style={[styles.slideGlowOrbSecondary, { backgroundColor: slideTheme.glow }]} />
+      <View style={[styles.slideCanvas, isGridMode && { padding: 16 }]}>
+        <View style={[styles.slideTopAccent, { backgroundColor: slideTheme.accent, height: isGridMode ? 4 : 3 }]} />
+        <View
+          style={[
+            styles.slideGlowOrb,
+            isGridMode && { width: 130, height: 130, borderRadius: 65, right: -24, bottom: -26 },
+            { backgroundColor: slideTheme.glow },
+          ]}
+        />
+        <View
+          style={[
+            styles.slideGlowOrbSecondary,
+            isGridMode && { width: 84, height: 84, borderRadius: 42, left: -24, top: 28 },
+            { backgroundColor: slideTheme.glow },
+          ]}
+        />
 
         <View style={styles.slideHeaderRow}>
-          <View style={[styles.slideIndexChip, { backgroundColor: slideTheme.pillBg }]}>
-            <Text style={[styles.slideEyebrow, { color: slideTheme.accent }]}>
+          <View
+            style={[
+              styles.slideIndexChip,
+              isGridMode && { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 6 },
+              { backgroundColor: slideTheme.pillBg },
+            ]}
+          >
+            <Text style={[styles.slideEyebrow, isGridMode && { fontSize: 11 }, { color: slideTheme.accent }]}>
               {isPdf ? `PDF ${indexLabel}` : `LEC ${indexLabel}`}
             </Text>
           </View>
-          <View style={[styles.slidePlayMini, isGridMode && { width: 24, height: 24, borderRadius: 12 }]}>
+          <View style={[styles.slidePlayMini, isGridMode && { width: 38, height: 38, borderRadius: 19 }]}>
             {isPdf ? (
-              <FileText size={isGridMode ? 12 : 9} color="#ffffff" />
+              <FileText size={isGridMode ? 16 : 9} color="#ffffff" />
             ) : (
-              <Play size={isGridMode ? 11 : 9} color="#ffffff" fill="#ffffff" style={{ marginLeft: 1 }} />
+              <Play size={isGridMode ? 15 : 9} color="#ffffff" fill="#ffffff" style={{ marginLeft: 1 }} />
             )}
           </View>
         </View>
@@ -116,9 +134,9 @@ export const LectureRow: React.FC<LectureRowProps> = ({
         <Text
           style={[
             styles.slideTitleText,
-            isGridMode && { fontSize: 11.5, lineHeight: 15, paddingRight: 16 },
+            isGridMode && { fontSize: 17, lineHeight: 24, paddingRight: 44 },
           ]}
-          numberOfLines={2}
+          numberOfLines={isGridMode ? 3 : 2}
         >
           {slideHeadline}
         </Text>
@@ -384,29 +402,27 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   gridCard: {
-    flex: 1,
-    maxWidth: '48.8%',
+    width: '100%',
     borderRadius: radii.lg,
     borderWidth: 1,
     overflow: 'hidden',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   gridThumbBox: {
     width: '100%',
-    aspectRatio: 16 / 9,
+    aspectRatio: 1,
     overflow: 'hidden',
     position: 'relative',
   },
   gridBody: {
-    padding: 9,
-    gap: 6,
-    flex: 1,
+    padding: 12,
+    gap: 8,
     justifyContent: 'space-between',
   },
   gridLabel: {
-    fontSize: 12.5,
+    fontSize: 14,
     fontWeight: '700',
-    lineHeight: 17,
+    lineHeight: 20,
   },
   gridFooter: {
     flexDirection: 'row',

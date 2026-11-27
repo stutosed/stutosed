@@ -65,7 +65,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
   const [activeMediaFilter, setActiveMediaFilter] = useState<'all' | 'videos' | 'pdfs'>('all');
   const [filterSearch, setFilterSearch] = useState<string>('');
   const [isSearchExpanded, setIsSearchExpanded] = useState<boolean>(false);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [visibleLimit, setVisibleLimit] = useState<number>(40);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
@@ -86,7 +86,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
   // Load saved view mode preference (defaults to grid)
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('stutosed_lecture_view_mode') as 'list' | 'grid';
+      const saved = localStorage.getItem('stutosed_lecture_view_mode_v2') as 'list' | 'grid';
       if (saved === 'list' || saved === 'grid') setViewMode(saved);
     } catch {}
   }, []);
@@ -94,7 +94,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
   const handleViewModeChange = (mode: 'list' | 'grid') => {
     setViewMode(mode);
     try {
-      localStorage.setItem('stutosed_lecture_view_mode', mode);
+      localStorage.setItem('stutosed_lecture_view_mode_v2', mode);
     } catch {}
   };
 
@@ -808,8 +808,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
             {activeItems.length === 0 ? (
               <div className="no-results">No resources found in this category.</div>
             ) : (() => {
-              const videoItems = renderedItems.filter((i) => i.type !== 'pdf');
-              const pdfItems = renderedItems.filter((i) => i.type === 'pdf');
+              const videoItems = renderedItems.filter((i) => !isPdfItem(i));
+              const pdfItems = renderedItems.filter((i) => isPdfItem(i));
               const hasBoth = videoItems.length > 0 && pdfItems.length > 0;
 
               const renderVideoCard = (item: LectureItem, idx: number) => {
@@ -1347,7 +1347,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                   <div
                     key={item.id || idx}
                     data-lecture-url={item.url}
-                    className={`video-row ${isWatched ? 'watched' : ''}`}
+                    className={`video-row pdf-rect-row ${isWatched ? 'watched' : ''}`}
                     onClick={() => handleItemClick(item, idx)}
                   >
                     <div className="video-num">{idx + 1}</div>
@@ -1519,15 +1519,10 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                         </div>
                       )}
 
-                      {viewMode === 'grid' ? (
-                        <div className="lecture-grid-container">
-                          {pdfItems.map((item, idx) => renderPdfCard(item, idx))}
-                        </div>
-                      ) : (
-                        <div className="video-list">
-                          {pdfItems.map((item, idx) => renderPdfRow(item, idx))}
-                        </div>
-                      )}
+                      {/* PDFs always display as compact rectangle list rows below lectures */}
+                      <div className="video-list">
+                        {pdfItems.map((item, idx) => renderPdfRow(item, idx))}
+                      </div>
                     </div>
                   )}
                 </div>
