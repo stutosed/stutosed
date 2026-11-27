@@ -185,10 +185,12 @@ export const WatchScreen: React.FC = () => {
   const [showUpperOverlay, setShowUpperOverlay] = useState(false);
   const [apiStreamUrl, setApiStreamUrl] = useState<string | null>(null);
   const [nativeFallbackToWebView, setNativeFallbackToWebView] = useState(false);
+  const [embedFallbackToInlineHtml, setEmbedFallbackToInlineHtml] = useState(false);
   const [pdfLoadError, setPdfLoadError] = useState(false);
 
   const { refreshControl } = usePullToRefresh(() => {
     setPdfLoadError(false);
+    setEmbedFallbackToInlineHtml(false);
     setLoading(true);
     setWebViewKey((k) => k + 1);
   });
@@ -378,6 +380,10 @@ export const WatchScreen: React.FC = () => {
     } catch {}
   }, [courseId, currentIdx, lecture.label, courseTitle]);
 
+  useEffect(() => {
+    setEmbedFallbackToInlineHtml(false);
+  }, [currentIdx, selectedServerIdx, lecture?.url]);
+
   const iframeWrapperHtml = useMemo(() => {
     const safeSrc = escapeHtmlAttr(mediaConfig.resolvedUrl);
     return `<!DOCTYPE html>
@@ -416,6 +422,21 @@ export const WatchScreen: React.FC = () => {
   </body>
 </html>`;
   }, [mediaConfig.resolvedUrl]);
+
+  const embedPageUrl = useMemo(() => {
+    if (!mediaConfig.resolvedUrl) return '';
+    return `${API_BASE_URL.replace(/\/+$/, '')}/embed?src=${encodeURIComponent(mediaConfig.resolvedUrl)}`;
+  }, [mediaConfig.resolvedUrl]);
+
+  const webViewSource = useMemo(() => {
+    if (!useIframeWrapper) {
+      return { uri: mediaConfig.resolvedUrl };
+    }
+    if (!embedFallbackToInlineHtml && embedPageUrl) {
+      return { uri: embedPageUrl };
+    }
+    return { html: iframeWrapperHtml, baseUrl: `${API_BASE_URL}/` };
+  }, [useIframeWrapper, embedFallbackToInlineHtml, embedPageUrl, iframeWrapperHtml, mediaConfig.resolvedUrl]);
 
   const handleWebViewMessage = async (event: WebViewMessageEvent) => {
     try {
@@ -822,22 +843,30 @@ export const WatchScreen: React.FC = () => {
             )}
 
             <WebView
-              key={`${webViewKey}-${selectedServerIdx}-${currentIdx}`}
-              source={
-                useIframeWrapper
-                  ? { html: iframeWrapperHtml, baseUrl: `${API_BASE_URL}/` }
-                  : { uri: mediaConfig.resolvedUrl }
-              }
+              key={`${webViewKey}-${selectedServerIdx}-${currentIdx}-${embedFallbackToInlineHtml ? 'html' : 'url'}`}
+              source={webViewSource}
               style={styles.webView}
+              userAgent="Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36"
               allowsFullscreenVideo
               javaScriptEnabled
               domStorageEnabled
-              mixedContentMode="compatibility"
+              thirdPartyCookiesEnabled
+              sharedCookiesEnabled
+              allowsProtectedMedia
+              cacheEnabled
+              mixedContentMode="always"
               mediaPlaybackRequiresUserAction={false}
               originWhitelist={['*']}
               injectedJavaScript={FULLSCREEN_BRIDGE_JS}
               onMessage={handleWebViewMessage}
               onLoadEnd={() => setLoading(false)}
+              onHttpError={({ nativeEvent }) => {
+                if (useIframeWrapper && !embedFallbackToInlineHtml && nativeEvent.statusCode >= 400) {
+                  setEmbedFallbackToInlineHtml(true);
+                  setLoading(true);
+                  setWebViewKey((k) => k + 1);
+                }
+              }}
               onShouldStartLoadWithRequest={handleShouldStartLoad}
               allowsInlineMediaPlayback
               setSupportMultipleWindows={false}
