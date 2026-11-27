@@ -277,66 +277,6 @@ export const CourseDetailScreen: React.FC = () => {
     );
   }, [activeSection, mediaFilter, searchQuery]);
 
-  type DisplayRow =
-    | { kind: 'header'; id: string; title: string; count: number; isPdf: boolean }
-    | { kind: 'item'; id: string; item: LectureItem; seqIndex: number; isPdf: boolean };
-
-  const displayRows = useMemo<DisplayRow[]>(() => {
-    const videos: Array<{ item: LectureItem; seqIndex: number }> = [];
-    const pdfs: Array<{ item: LectureItem; seqIndex: number }> = [];
-    activeItems.forEach((item, seqIndex) => {
-      if (isPdfItem(item)) pdfs.push({ item, seqIndex });
-      else videos.push({ item, seqIndex });
-    });
-
-    const rows: DisplayRow[] = [];
-    const showHeaders = videos.length > 0 && pdfs.length > 0;
-
-    if (videos.length > 0) {
-      if (showHeaders) {
-        rows.push({
-          kind: 'header',
-          id: 'hdr-videos',
-          title: 'Video Lectures',
-          count: videos.length,
-          isPdf: false,
-        });
-      }
-      videos.forEach(({ item, seqIndex }, idx) => {
-        rows.push({
-          kind: 'item',
-          id: item.id ? `vid-${item.id}-${idx}` : `vid-${seqIndex}`,
-          item,
-          seqIndex,
-          isPdf: false,
-        });
-      });
-    }
-
-    if (pdfs.length > 0) {
-      if (showHeaders) {
-        rows.push({
-          kind: 'header',
-          id: 'hdr-pdfs',
-          title: 'Practice Sheets & Study Notes',
-          count: pdfs.length,
-          isPdf: true,
-        });
-      }
-      pdfs.forEach(({ item, seqIndex }, idx) => {
-        rows.push({
-          kind: 'item',
-          id: item.id ? `pdf-${item.id}-${idx}` : `pdf-${seqIndex}`,
-          item,
-          seqIndex,
-          isPdf: true,
-        });
-      });
-    }
-
-    return rows;
-  }, [activeItems]);
-
   const handleOpenLecture = (item: LectureItem, index: number) => {
     const secId = activeSection?.id || 'videos';
     const key = getLectureKey(item, index, secId);
@@ -668,65 +608,25 @@ export const CourseDetailScreen: React.FC = () => {
             </View>
           </View>
 
-          {/* Lectures (Full-width square in Grid / row in List) + PDFs (Always Rectangle List below) */}
+          {/* Lectures & PDFs in exact natural sequence (Videos in grid/list, PDFs in slim rectangle list) */}
           <FlatList
             key={viewMode}
-            data={displayRows}
+            data={activeItems}
             numColumns={1}
-            keyExtractor={(row) => row.id}
+            keyExtractor={(item, index) => (item.id ? `${item.id}-${index}` : `lec-${index}`)}
             contentContainerStyle={styles.lectureList}
-            renderItem={({ item: row }) => {
-              if (row.kind === 'header') {
-                return (
-                  <View
-                    style={[
-                      styles.sectionGroupHeader,
-                      { borderBottomColor: colors.borderSubtle, marginTop: row.isPdf ? 14 : 2 },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.sectionGroupIcon,
-                        {
-                          backgroundColor: row.isPdf
-                            ? 'rgba(217, 119, 6, 0.14)'
-                            : `${colors.accent}18`,
-                        },
-                      ]}
-                    >
-                      {row.isPdf ? (
-                        <FileText size={14} color="#d97706" />
-                      ) : (
-                        <Video size={14} color={colors.accent} />
-                      )}
-                    </View>
-                    <Text style={[styles.sectionGroupTitle, { color: colors.text }]}>
-                      {row.title}
-                    </Text>
-                    <View
-                      style={[
-                        styles.sectionGroupCount,
-                        { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
-                      ]}
-                    >
-                      <Text style={[styles.sectionGroupCountText, { color: colors.textMuted }]}>
-                        {row.count}
-                      </Text>
-                    </View>
-                  </View>
-                );
-              }
-
+            renderItem={({ item, index }) => {
               const secId = activeSection?.id || 'videos';
-              const lecKey = getLectureKey(row.item, row.seqIndex, secId);
-              const isWatched = isItemWatchedInMap(row.item, row.seqIndex, secId);
+              const lecKey = getLectureKey(item, index, secId);
+              const isWatched = isItemWatchedInMap(item, index, secId);
+              const itemIsPdf = isPdfItem(item);
               return (
                 <LectureRow
-                  item={row.item}
-                  index={row.seqIndex}
+                  item={item}
+                  index={index}
                   isWatched={isWatched}
-                  variant={row.isPdf ? 'list' : viewMode}
-                  onPress={() => handleOpenLecture(row.item, row.seqIndex)}
+                  variant={itemIsPdf ? 'list' : viewMode}
+                  onPress={() => handleOpenLecture(item, index)}
                   onToggleWatched={() => toggleLectureWatched(courseId, lecKey)}
                 />
               );

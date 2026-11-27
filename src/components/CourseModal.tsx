@@ -808,10 +808,6 @@ export const CourseModal: React.FC<CourseModalProps> = ({
             {activeItems.length === 0 ? (
               <div className="no-results">No resources found in this category.</div>
             ) : (() => {
-              const videoItems = renderedItems.filter((i) => !isPdfItem(i));
-              const pdfItems = renderedItems.filter((i) => isPdfItem(i));
-              const hasBoth = videoItems.length > 0 && pdfItems.length > 0;
-
               const renderVideoCard = (item: LectureItem, idx: number) => {
                 const isWatched = isLectureWatched(item, watchedUrls);
                 const isYt = isYouTubeItem(item);
@@ -1425,105 +1421,40 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                 );
               };
 
+              if (viewMode === 'list') {
+                return (
+                  <div className="video-list">
+                    {renderedItems.map((item, idx) =>
+                      isPdfItem(item) ? renderPdfRow(item, idx) : renderVideoRow(item, idx)
+                    )}
+                  </div>
+                );
+              }
+
+              // Grid mode: keep exact curriculum sequence (Video -> its PDFs -> next Video -> its PDFs)
+              const runs: Array<{ kind: 'video' | 'pdf'; entries: Array<{ item: LectureItem; idx: number }> }> = [];
+              renderedItems.forEach((item, idx) => {
+                const kind: 'video' | 'pdf' = isPdfItem(item) ? 'pdf' : 'video';
+                const lastRun = runs[runs.length - 1];
+                if (!lastRun || lastRun.kind !== kind) {
+                  runs.push({ kind, entries: [{ item, idx }] });
+                } else {
+                  lastRun.entries.push({ item, idx });
+                }
+              });
+
               return (
-                <div>
-                  {/* VIDEO LECTURES SECTION */}
-                  {videoItems.length > 0 && (
-                    <div style={{ marginBottom: hasBoth ? '32px' : '0' }}>
-                      {hasBoth && (
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            margin: '8px 0 16px',
-                            paddingBottom: '8px',
-                            borderBottom: '1px solid var(--border)',
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: '26px',
-                              height: '26px',
-                              borderRadius: 'var(--r-sm)',
-                              background: 'rgba(59, 130, 246, 0.15)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'var(--accent)',
-                            }}
-                          >
-                            <Video width={15} height={15} />
-                          </div>
-                          <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: 'var(--text)' }}>
-                            Video Lectures
-                          </h3>
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              background: 'var(--bg-card-hover)',
-                              padding: '2px 8px',
-                              borderRadius: 'var(--r-pill)',
-                              color: 'var(--text-muted)',
-                              fontWeight: 600,
-                            }}
-                          >
-                            {videoItems.length}
-                          </span>
-                        </div>
-                      )}
-
-                      {viewMode === 'grid' ? (
-                        <div className="lecture-grid-container">
-                          {videoItems.map((item, idx) => renderVideoCard(item, idx))}
-                        </div>
-                      ) : (
-                        <div className="video-list">
-                          {videoItems.map((item, idx) => renderVideoRow(item, idx))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* PRACTICE SHEETS & STUDY NOTES SECTION */}
-                  {pdfItems.length > 0 && (
-                    <div style={{ marginTop: hasBoth ? '28px' : '0' }}>
-                      {hasBoth && (
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            margin: '8px 0 16px',
-                            paddingBottom: '8px',
-                            borderBottom: '1px solid var(--border)',
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: '26px',
-                              height: '26px',
-                              borderRadius: 'var(--r-sm)',
-                              background: 'rgba(204, 120, 92, 0.15)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'var(--accent)',
-                            }}
-                          >
-                            <FileText width={15} height={15} />
-                          </div>
-                          <h3 style={{ margin: 0, fontSize: '15.5px', fontWeight: 700, color: 'var(--text)' }}>
-                            Practice Sheets & Study Notes
-                          </h3>
-                        </div>
-                      )}
-
-                      {/* PDFs always display as compact rectangle list rows below lectures */}
-                      <div className="video-list">
-                        {pdfItems.map((item, idx) => renderPdfRow(item, idx))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {runs.map((run, rIdx) =>
+                    run.kind === 'video' ? (
+                      <div key={`run-vid-${rIdx}`} className="lecture-grid-container">
+                        {run.entries.map(({ item, idx }) => renderVideoCard(item, idx))}
                       </div>
-                    </div>
+                    ) : (
+                      <div key={`run-pdf-${rIdx}`} className="video-list">
+                        {run.entries.map(({ item, idx }) => renderPdfRow(item, idx))}
+                      </div>
+                    )
                   )}
                 </div>
               );
