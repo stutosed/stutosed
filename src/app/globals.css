@@ -2345,18 +2345,43 @@ svg { flex-shrink: 0; }
   .overlay-tabs { top: var(--nav-h); padding: 8px 16px; }
   .overlay-tab { padding: 6px 12px; font-size: 13px; }
   
-  .overlay-content { padding: 24px 20px 80px; }
+  .overlay-content { padding: 14px 12px 80px; }
   .lecture-grid-container {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 12px;
+    margin-left: -12px;
+    margin-right: -12px;
+  }
+  .lecture-card-grid {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
   }
   .lecture-thumb-grid-box {
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 16 / 9;
   }
-  .video-row { padding: 12px 16px; gap: 12px; border-radius: var(--r-md); }
-  .pdf-rect-row { padding: 10px 12px; gap: 10px; }
+  .video-list {
+    margin-left: -12px;
+    margin-right: -12px;
+    gap: 6px;
+  }
+  .video-row {
+    padding: 10px 12px;
+    gap: 10px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  .pdf-rect-row {
+    padding: 7px 12px !important;
+    gap: 10px !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    min-height: 46px;
+  }
   .pdf-rect-row button span { display: none; }
-  .pdf-rect-row button { padding: 6px 8px !important; }
+  .pdf-rect-row button { padding: 5px 8px !important; }
   .video-num { display: none; }
   .video-icon { width: 34px; height: 34px; font-size: 16px; }
   .video-title { font-size: 13px; }

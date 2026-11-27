@@ -93,19 +93,19 @@ export const LectureRow: React.FC<LectureRowProps> = ({
       ]}
     >
       {/* Always render crisp non-black lecture slide underneath so loading/error never shows black */}
-      <View style={[styles.slideCanvas, isGridMode && { padding: 16 }]}>
-        <View style={[styles.slideTopAccent, { backgroundColor: slideTheme.accent, height: isGridMode ? 4 : 3 }]} />
+      <View style={[styles.slideCanvas, isGridMode && { padding: 13 }]}>
+        <View style={[styles.slideTopAccent, { backgroundColor: slideTheme.accent, height: isGridMode ? 3.5 : 3 }]} />
         <View
           style={[
             styles.slideGlowOrb,
-            isGridMode && { width: 130, height: 130, borderRadius: 65, right: -24, bottom: -26 },
+            isGridMode && { width: 96, height: 96, borderRadius: 48, right: -16, bottom: -18 },
             { backgroundColor: slideTheme.glow },
           ]}
         />
         <View
           style={[
             styles.slideGlowOrbSecondary,
-            isGridMode && { width: 84, height: 84, borderRadius: 42, left: -24, top: 28 },
+            isGridMode && { width: 64, height: 64, borderRadius: 32, left: -18, top: 18 },
             { backgroundColor: slideTheme.glow },
           ]}
         />
@@ -114,19 +114,19 @@ export const LectureRow: React.FC<LectureRowProps> = ({
           <View
             style={[
               styles.slideIndexChip,
-              isGridMode && { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 6 },
+              isGridMode && { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5 },
               { backgroundColor: slideTheme.pillBg },
             ]}
           >
-            <Text style={[styles.slideEyebrow, isGridMode && { fontSize: 11 }, { color: slideTheme.accent }]}>
+            <Text style={[styles.slideEyebrow, isGridMode && { fontSize: 10 }, { color: slideTheme.accent }]}>
               {isPdf ? `PDF ${indexLabel}` : `LEC ${indexLabel}`}
             </Text>
           </View>
-          <View style={[styles.slidePlayMini, isGridMode && { width: 38, height: 38, borderRadius: 19 }]}>
+          <View style={[styles.slidePlayMini, isGridMode && { width: 32, height: 32, borderRadius: 16 }]}>
             {isPdf ? (
-              <FileText size={isGridMode ? 16 : 9} color="#ffffff" />
+              <FileText size={isGridMode ? 14 : 9} color="#ffffff" />
             ) : (
-              <Play size={isGridMode ? 15 : 9} color="#ffffff" fill="#ffffff" style={{ marginLeft: 1 }} />
+              <Play size={isGridMode ? 13 : 9} color="#ffffff" fill="#ffffff" style={{ marginLeft: 1 }} />
             )}
           </View>
         </View>
@@ -134,9 +134,9 @@ export const LectureRow: React.FC<LectureRowProps> = ({
         <Text
           style={[
             styles.slideTitleText,
-            isGridMode && { fontSize: 17, lineHeight: 24, paddingRight: 44 },
+            isGridMode && { fontSize: 14.5, lineHeight: 20, paddingRight: 38 },
           ]}
-          numberOfLines={isGridMode ? 3 : 2}
+          numberOfLines={2}
         >
           {slideHeadline}
         </Text>
@@ -403,26 +403,30 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     width: '100%',
-    borderRadius: radii.lg,
-    borderWidth: 1,
+    borderRadius: 0,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
     overflow: 'hidden',
-    marginBottom: 14,
+    marginBottom: 10,
   },
   gridThumbBox: {
     width: '100%',
-    aspectRatio: 1,
+    aspectRatio: 16 / 9,
     overflow: 'hidden',
     position: 'relative',
   },
   gridBody: {
-    padding: 12,
-    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 5,
     justifyContent: 'space-between',
   },
   gridLabel: {
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '700',
-    lineHeight: 20,
+    lineHeight: 19,
   },
   gridFooter: {
     flexDirection: 'row',
@@ -552,31 +556,35 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   pdfRow: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: spacing.sm,
-    borderWidth: 1,
-    borderRadius: radii.md,
-    marginBottom: spacing.sm,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    borderRadius: 0,
+    marginBottom: 6,
   },
   pdfListIconBox: {
-    width: 44,
-    height: 48,
-    borderRadius: radii.md,
+    width: 34,
+    height: 34,
+    borderRadius: 8,
     backgroundColor: 'rgba(217, 119, 6, 0.12)',
     borderWidth: 1,
     borderColor: 'rgba(217, 119, 6, 0.28)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.md,
-    gap: 2,
+    marginRight: 10,
+    gap: 1,
   },
   pdfListMicroTag: {
     color: '#d97706',
-    fontSize: 8.5,
+    fontSize: 7,
     fontWeight: '800',
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
   },
   pdfGridCard: {
     flex: 1,

@@ -956,15 +956,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   lectureList: {
-    padding: spacing.base,
+    paddingHorizontal: 0,
+    paddingTop: 8,
     paddingBottom: spacing.xxl,
   },
   sectionGroupHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    paddingHorizontal: 12,
     paddingBottom: 8,
-    marginBottom: 12,
+    marginBottom: 10,
     borderBottomWidth: 1,
   },
   sectionGroupIcon: {
