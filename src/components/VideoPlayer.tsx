@@ -113,6 +113,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState<boolean>(false);
+  const [showEmbedUpperBar, setShowEmbedUpperBar] = useState<boolean>(false);
 
   const [showControls, setShowControls] = useState<boolean>(true);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -991,7 +992,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <main className="yt-watch-left-col">
             {/* The Video Box with Fullscreen & Overlay Controls */}
             <div
-              className={`player-box ${isFullscreen ? 'is-fullscreen' : ''} ${!showControls ? 'controls-hidden' : 'controls-visible'}`}
+              className={`player-box ${isFullscreen ? 'is-fullscreen' : ''} ${isEmbedMode ? 'is-embed-mode' : ''} ${!showControls ? 'controls-hidden' : 'controls-visible'}`}
               ref={containerRef}
               onMouseMove={() => {
                 if (showControls) scheduleAutoHide();
@@ -1105,21 +1106,36 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     </button>
                   </div>
                 )}
-                {/* 1. TOP OVERLAY (Fullscreen & In-Video) */}
+                {/* 1. TOP OVERLAY (Fullscreen & In-Video; Upper-layer toggle on Abyss) */}
                 <div
-                  className="player-top-overlay"
+                  className={`player-top-overlay ${isEmbedMode && !showEmbedUpperBar ? 'is-collapsed' : ''}`}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="player-title-block">
-                    <div className="player-course-chip">{courseName}</div>
-                    <h2 className="player-lecture-heading" title={currentItem.label}>
-                      {currentItem.label}
-                    </h2>
-                  </div>
+                  {(!isEmbedMode || showEmbedUpperBar) ? (
+                    <div className="player-title-block">
+                      <div className="player-course-chip">{courseName}</div>
+                      <h2 className="player-lecture-heading" title={currentItem.label}>
+                        {currentItem.label}
+                      </h2>
+                    </div>
+                  ) : (
+                    <div />
+                  )}
 
                   <div className="player-top-actions">
+                    {isEmbedMode && (
+                      <button
+                        type="button"
+                        className="embed-upper-toggle-pill"
+                        onClick={() => setShowEmbedUpperBar((v) => !v)}
+                        title={showEmbedUpperBar ? 'Hide Overlay' : 'Show Lecture Controls'}
+                      >
+                        <span>{showEmbedUpperBar ? 'Hide Bar' : 'Controls'}</span>
+                      </button>
+                    )}
+
                     {/* Server switchers */}
-                    {servers.length > 1 && (
+                    {(!isEmbedMode || showEmbedUpperBar) && servers.length > 1 && (
                       <div className="player-server-group">
                         {servers.map((srv, idx) => (
                           <button
@@ -1138,19 +1154,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     )}
 
                     {/* Close / Exit Fullscreen Button */}
-                    <button
-                      className="player-overlay-close-btn"
-                      onClick={() => {
-                        if (document.fullscreenElement) {
-                          document.exitFullscreen?.();
-                        } else {
-                          onClose();
-                        }
-                      }}
-                      title="Close"
-                    >
-                      ✕
-                    </button>
+                    {(!isEmbedMode || showEmbedUpperBar) && (
+                      <button
+                        className="player-overlay-close-btn"
+                        onClick={() => {
+                          if (document.fullscreenElement) {
+                            document.exitFullscreen?.();
+                          } else {
+                            onClose();
+                          }
+                        }}
+                        title="Close"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1605,41 +1623,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 </div>
                 )}
               </div>
-
-              {isEmbedMode && (
-                <div className="player-embed-glass-bar" onClick={(e) => e.stopPropagation()}>
-                  <div className="player-embed-glass-badge">
-                    <Sparkles width={12} height={12} />
-                    <span>Liquid Glass • Abyss Stream</span>
-                  </div>
-                  <div className="player-embed-glass-actions">
-                    <button
-                      type="button"
-                      className="player-embed-glass-btn"
-                      disabled={currentIndex === 0}
-                      onClick={() => onNavigate(currentIndex - 1)}
-                    >
-                      <span>‹ Prev</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="player-embed-glass-btn"
-                      disabled={currentIndex >= playlist.length - 1}
-                      onClick={() => onNavigate(currentIndex + 1)}
-                    >
-                      <span>Next ›</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="player-embed-glass-btn"
-                      onClick={toggleFullscreen}
-                    >
-                      {isFullscreen ? <Minimize width={12} height={12} /> : <Maximize width={12} height={12} />}
-                      <span>{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* ==================== YOUTUBE-STYLE INFO BAR & ACTION ROW ==================== */}

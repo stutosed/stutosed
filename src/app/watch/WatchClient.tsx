@@ -193,6 +193,7 @@ export default function WatchClient() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [showEmbedUpperBar, setShowEmbedUpperBar] = useState(false);
   const [qualities, setQualities] = useState<{ height: number; index: number }[]>([]);
   const [currentQuality, setCurrentQuality] = useState<number>(-1);
   const [showQualityMenu, setShowQualityMenu] = useState(false);
@@ -1555,18 +1556,36 @@ export default function WatchClient() {
                   </button>
                 </div>
               )}
-              {/* TOP OVERLAY */}
-              {!isOriginalP2PMode && <div className="player-top-overlay" onClick={(e) => e.stopPropagation()}>
-                <div className="player-title-block">
-                  <div className="player-course-chip">{courseInfo.name}</div>
-                  <h2 className="player-lecture-heading" title={currentItem.label}>
-                    {currentItem.label}
-                  </h2>
-                </div>
+              {/* TOP OVERLAY (CRWill-style upper-layer toggle for Abyss/Original P2P too) */}
+              <div
+                className={`player-top-overlay ${isEmbedMode && !showEmbedUpperBar ? 'is-collapsed' : ''}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {(!isEmbedMode || showEmbedUpperBar) ? (
+                  <div className="player-title-block">
+                    <div className="player-course-chip">{courseInfo.name}</div>
+                    <h2 className="player-lecture-heading" title={currentItem.label}>
+                      {currentItem.label}
+                    </h2>
+                  </div>
+                ) : (
+                  <div />
+                )}
 
                 <div className="player-top-actions">
+                  {isEmbedMode && (
+                    <button
+                      type="button"
+                      className="embed-upper-toggle-pill"
+                      onClick={() => setShowEmbedUpperBar((v) => !v)}
+                      title={showEmbedUpperBar ? 'Hide Overlay' : 'Show Lecture Controls'}
+                    >
+                      <span>{showEmbedUpperBar ? 'Hide Bar' : 'Controls'}</span>
+                    </button>
+                  )}
+
                   {/* Multi-server pills */}
-                  {servers.length > 1 && (
+                  {(!isEmbedMode || showEmbedUpperBar) && servers.length > 1 && (
                     <div className="player-server-group">
                       {servers.map((srv, idx) => (
                         <button
@@ -1585,15 +1604,17 @@ export default function WatchClient() {
                   )}
 
                   {/* Fullscreen / Close Button */}
-                  <button
-                    className="player-overlay-close-btn"
-                    onClick={isFullscreen ? toggleFullscreen : handleBackToCourse}
-                    title={isFullscreen ? 'Exit Fullscreen' : 'Back'}
-                  >
-                    ✕
-                  </button>
+                  {(!isEmbedMode || showEmbedUpperBar) && (
+                    <button
+                      className="player-overlay-close-btn"
+                      onClick={isFullscreen ? toggleFullscreen : handleBackToCourse}
+                      title={isFullscreen ? 'Exit Fullscreen' : 'Back'}
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
-              </div>}
+              </div>
 
               {/* CENTER OVERLAY: Only in native video mode */}
               {!isEmbedMode && !isPendingLecture && (
@@ -2149,41 +2170,6 @@ export default function WatchClient() {
               </div>
               )}
             </div>
-
-            {isEmbedMode && !isPendingLecture && (
-              <div className="player-embed-glass-bar" onClick={(e) => e.stopPropagation()}>
-                <div className="player-embed-glass-badge">
-                  <Sparkles width={12} height={12} />
-                  <span>Liquid Glass • Abyss Stream</span>
-                </div>
-                <div className="player-embed-glass-actions">
-                  <button
-                    type="button"
-                    className="player-embed-glass-btn"
-                    disabled={currentIndex === 0}
-                    onClick={() => setCurrentIndex(currentIndex - 1)}
-                  >
-                    <span>‹ Prev</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="player-embed-glass-btn"
-                    disabled={currentIndex >= playlist.length - 1}
-                    onClick={() => setCurrentIndex(currentIndex + 1)}
-                  >
-                    <span>Next ›</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="player-embed-glass-btn"
-                    onClick={toggleFullscreen}
-                  >
-                    {isFullscreen ? <Minimize width={12} height={12} /> : <Maximize width={12} height={12} />}
-                    <span>{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* ==================== INFO & ACTIONS ROW (NO CUT-OFF) ==================== */}
