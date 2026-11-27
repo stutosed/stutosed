@@ -1,23 +1,26 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
+  useWindowDimensions,
+  BackHandler,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { WebView } from 'react-native-webview';
-import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes';
+import type { ShouldStartLoadRequest, WebViewMessageEvent } from 'react-native-webview/lib/WebViewTypes';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../lib/config';
 import { spacing, radii } from '../theme/spacing';
-import { ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react-native';
+import { ArrowLeft, RefreshCw, CheckCircle2, Maximize2, Minimize2 } from 'lucide-react-native';
 
 type WatchRouteProp = RouteProp<RootStackParamList, 'Watch'>;
 
@@ -45,15 +48,78 @@ const AD_BLOCK_HOST_FRAGMENTS = [
   'exoclick',
 ];
 
+const FULLSCREEN_BRIDGE_JS = `
+(function() {
+  if (window.__stutosedFsHooked) return;
+  window.__stutosedFsHooked = true;
+  function notifyFs() {
+    var active = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'fullscreen', active: active }));
+    }
+  }
+  document.addEventListener('fullscreenchange', notifyFs, true);
+  document.addEventListener('webkitfullscreenchange', notifyFs, true);
+  document.addEventListener('mozfullscreenchange', notifyFs, true);
+})();
+true;
+`;
+
 export const WatchScreen: React.FC = () => {
   const route = useRoute<WatchRouteProp>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { width, height } = useWindowDimensions();
   const { colors } = useTheme();
   const { watchedMap, toggleLectureWatched } = useAuth();
   const { lecture, courseId, courseTitle } = route.params;
 
   const [loading, setLoading] = useState(true);
   const [webViewKey, setWebViewKey] = useState(0);
+  const [isManualFullscreen, setIsManualFullscreen] = useState(false);
+
+  const isLandscape = width > height;
+  const isExpandedPlayer = isLandscape || isManualFullscreen;
+
+  // Unlock orientation while watching a lecture, restore portrait cleanly on exit
+  useEffect(() => {
+    ScreenOrientation.unlockAsync().catch(() => {});
+    return () => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
+    };
+  }, []);
+
+  const exitLandscapeFullscreen = useCallback(async () => {
+    setIsManualFullscreen(false);
+    try {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+      setTimeout(() => {
+        ScreenOrientation.unlockAsync().catch(() => {});
+      }, 350);
+    } catch {}
+  }, []);
+
+  const toggleManualFullscreen = useCallback(async () => {
+    if (isExpandedPlayer) {
+      await exitLandscapeFullscreen();
+    } else {
+      setIsManualFullscreen(true);
+      try {
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      } catch {}
+    }
+  }, [isExpandedPlayer, exitLandscapeFullscreen]);
+
+  // Android Back exits landscape fullscreen back to portrait first
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (isManualFullscreen) {
+        exitLandscapeFullscreen();
+        return true;
+      }
+      return false;
+    });
+    return () => sub.remove();
+  }, [isManualFullscreen, exitLandscapeFullscreen]);
 
   const playerConfig = useMemo(() => {
     const rawUrl = (
@@ -130,15 +196,44 @@ export const WatchScreen: React.FC = () => {
   </head>
   <body>
     <iframe
+      id="stutosed-player-frame"
       src="${safeSrc}"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
       allowfullscreen
       webkitallowfullscreen
       mozallowfullscreen
     ></iframe>
+    <script>
+      (function() {
+        function notifyFs() {
+          var active = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+          if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'fullscreen', active: active }));
+          }
+        }
+        document.addEventListener('fullscreenchange', notifyFs, true);
+        document.addEventListener('webkitfullscreenchange', notifyFs, true);
+        document.addEventListener('mozfullscreenchange', notifyFs, true);
+      })();
+    </script>
   </body>
 </html>`;
   }, [playerConfig.resolvedUrl]);
+
+  const handleWebViewMessage = async (event: WebViewMessageEvent) => {
+    try {
+      const payload = JSON.parse(event.nativeEvent.data || '{}');
+      if (payload?.type === 'fullscreen') {
+        if (payload.active) {
+          await ScreenOrientation.lockAsync(
+            ScreenOrientation.OrientationLock.LANDSCAPE
+          ).catch(() => {});
+        } else {
+          await exitLandscapeFullscreen();
+        }
+      }
+    } catch {}
+  };
 
   const handleShouldStartLoad = (request: ShouldStartLoadRequest): boolean => {
     const reqUrl = (request.url || '').toLowerCase();
@@ -161,44 +256,62 @@ export const WatchScreen: React.FC = () => {
     return true;
   };
 
+  const playerBoxStyle = isExpandedPlayer
+    ? { width, height, backgroundColor: '#000000' }
+    : { width, height: (width * 9) / 16, backgroundColor: '#000000' };
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
-      {/* Top Header */}
-      <View
-        style={[
-          styles.topBar,
-          { backgroundColor: colors.bgCard, borderBottomColor: colors.borderSubtle },
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: isExpandedPlayer ? '#000000' : colors.bg }]}
+      edges={isExpandedPlayer ? [] : ['top']}
+    >
+      <StatusBar hidden={isExpandedPlayer} />
+
+      {/* Top Header (Hidden in Landscape / Fullscreen) */}
+      {!isExpandedPlayer && (
+        <View
+          style={[
+            styles.topBar,
+            { backgroundColor: colors.bgCard, borderBottomColor: colors.borderSubtle },
+          ]}
         >
-          <ArrowLeft size={20} color={colors.text} />
-        </TouchableOpacity>
-        <View style={styles.headerInfo}>
-          <Text style={[styles.lectureTitle, { color: colors.text }]} numberOfLines={1}>
-            {lecture.label}
-          </Text>
-          <Text style={[styles.courseSubtitle, { color: colors.textDim }]} numberOfLines={1}>
-            {courseTitle}
-          </Text>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <ArrowLeft size={20} color={colors.text} />
+          </TouchableOpacity>
+          <View style={styles.headerInfo}>
+            <Text style={[styles.lectureTitle, { color: colors.text }]} numberOfLines={1}>
+              {lecture.label}
+            </Text>
+            <Text style={[styles.courseSubtitle, { color: colors.textDim }]} numberOfLines={1}>
+              {courseTitle}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.reloadBtn}
+            onPress={toggleManualFullscreen}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Maximize2 size={17} color={colors.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.reloadBtn}
+            onPress={() => {
+              setLoading(true);
+              setWebViewKey((k) => k + 1);
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <RefreshCw size={17} color={colors.textMuted} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.reloadBtn}
-          onPress={() => {
-            setLoading(true);
-            setWebViewKey((k) => k + 1);
-          }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <RefreshCw size={17} color={colors.textMuted} />
-        </TouchableOpacity>
-      </View>
+      )}
 
       {/* Player Container */}
-      <View style={styles.playerContainer}>
+      <View style={[styles.playerContainer, playerBoxStyle]}>
         {loading && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={colors.accent} />
@@ -222,75 +335,88 @@ export const WatchScreen: React.FC = () => {
           mixedContentMode="compatibility"
           mediaPlaybackRequiresUserAction={false}
           originWhitelist={['*']}
+          injectedJavaScript={FULLSCREEN_BRIDGE_JS}
+          onMessage={handleWebViewMessage}
           onLoadEnd={() => setLoading(false)}
           onShouldStartLoadWithRequest={handleShouldStartLoad}
           allowsInlineMediaPlayback
           setSupportMultipleWindows={false}
         />
+
+        {/* Subtle Exit Fullscreen Button when user rotated manually */}
+        {isManualFullscreen && (
+          <TouchableOpacity
+            style={styles.exitFsPill}
+            onPress={exitLandscapeFullscreen}
+            activeOpacity={0.8}
+          >
+            <Minimize2 size={15} color="#ffffff" />
+            <Text style={styles.exitFsText}>Exit Fullscreen</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Details Box */}
-      <View style={styles.detailsContainer}>
-        <View
-          style={[
-            styles.detailCard,
-            { backgroundColor: colors.bgCard, borderColor: colors.border },
-          ]}
-        >
-          <Text style={[styles.cardHeading, { color: colors.accent }]}>Now Playing</Text>
-          <Text style={[styles.cardLectureLabel, { color: colors.text }]}>{lecture.label}</Text>
-          {lecture.subject ? (
-            <Text style={[styles.cardSubject, { color: colors.textMuted }]}>
-              Subject: {lecture.subject}
-            </Text>
-          ) : null}
-
-          <View style={styles.badgeRow}>
-            <View
-              style={[
-                styles.badgePill,
-                { backgroundColor: colors.bgCardSubtle, borderColor: colors.borderSubtle },
-              ]}
-            >
-              <Text style={[styles.badgePillText, { color: colors.textMuted }]}>
-                Ad-Free Stream
+      {/* Details Box (Hidden in Landscape / Fullscreen) */}
+      {!isExpandedPlayer && (
+        <View style={styles.detailsContainer}>
+          <View
+            style={[
+              styles.detailCard,
+              { backgroundColor: colors.bgCard, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.cardHeading, { color: colors.accent }]}>Now Playing</Text>
+            <Text style={[styles.cardLectureLabel, { color: colors.text }]}>{lecture.label}</Text>
+            {lecture.subject ? (
+              <Text style={[styles.cardSubject, { color: colors.textMuted }]}>
+                Subject: {lecture.subject}
               </Text>
-            </View>
-            <TouchableOpacity
-              style={[
-                styles.badgePill,
-                {
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 5,
-                  backgroundColor: isWatched ? `${colors.green}18` : colors.bgCardSubtle,
-                  borderColor: isWatched ? colors.green : colors.borderSubtle,
-                },
-              ]}
-              onPress={() => toggleLectureWatched(courseId, watchKey)}
-            >
-              <CheckCircle2
-                size={13}
-                color={isWatched ? colors.green : colors.textDim}
-              />
-              <Text
+            ) : null}
+
+            <View style={styles.badgeRow}>
+              <View
                 style={[
-                  styles.badgePillText,
-                  { color: isWatched ? colors.green : colors.textMuted },
+                  styles.badgePill,
+                  { backgroundColor: colors.bgCardSubtle, borderColor: colors.borderSubtle },
                 ]}
               >
-                {isWatched ? 'Completed' : 'Mark Watched'}
-              </Text>
-            </TouchableOpacity>
+                <Text style={[styles.badgePillText, { color: colors.textMuted }]}>
+                  Ad-Free Stream
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.badgePill,
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 5,
+                    backgroundColor: isWatched ? `${colors.green}18` : colors.bgCardSubtle,
+                    borderColor: isWatched ? colors.green : colors.borderSubtle,
+                  },
+                ]}
+                onPress={() => toggleLectureWatched(courseId, watchKey)}
+              >
+                <CheckCircle2
+                  size={13}
+                  color={isWatched ? colors.green : colors.textDim}
+                />
+                <Text
+                  style={[
+                    styles.badgePillText,
+                    { color: isWatched ? colors.green : colors.textMuted },
+                  ]}
+                >
+                  {isWatched ? 'Completed' : 'Mark Watched'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
+      )}
     </SafeAreaView>
   );
 };
-
-const { width } = Dimensions.get('window');
-const playerHeight = (width * 9) / 16;
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -322,8 +448,6 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   playerContainer: {
-    width: '100%',
-    height: playerHeight,
     backgroundColor: '#000000',
     position: 'relative',
   },
@@ -345,6 +469,26 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 12,
+  },
+  exitFsPill: {
+    position: 'absolute',
+    top: 14,
+    right: 16,
+    zIndex: 25,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radii.pill,
+    backgroundColor: 'rgba(18, 17, 16, 0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  exitFsText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   detailsContainer: {
     flex: 1,
