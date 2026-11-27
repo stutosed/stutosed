@@ -29,6 +29,7 @@ import {
   ArrowLeft,
   FolderHeart,
   Play,
+  Trash2,
 } from 'lucide-react-native';
 
 export const LibraryScreen: React.FC = () => {
@@ -39,11 +40,13 @@ export const LibraryScreen: React.FC = () => {
     isSyncing,
     watchedMap,
     bookmarks,
+    savedVideos,
     lastPlayed,
+    removeSavedVideo,
     refreshSessionAndSync,
   } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'bookmarks' | 'history'>('bookmarks');
+  const [activeTab, setActiveTab] = useState<'bookmarks' | 'saved' | 'history'>('bookmarks');
   const [watchedLookup, setWatchedLookup] = useState<Record<string, WatchedLectureMatch>>({});
 
   useFocusEffect(
@@ -168,8 +171,9 @@ export const LibraryScreen: React.FC = () => {
                 styles.tabLabel,
                 { color: activeTab === 'bookmarks' ? colors.text : colors.textMuted },
               ]}
+              numberOfLines={1}
             >
-              Bookmarked Batches
+              Bookmarks
             </Text>
             <View
               style={[
@@ -194,6 +198,55 @@ export const LibraryScreen: React.FC = () => {
           <TouchableOpacity
             style={[
               styles.tabPill,
+              activeTab === 'saved' && {
+                backgroundColor: colors.bgCard,
+                borderColor: colors.border,
+              },
+            ]}
+            onPress={() => {
+              if (activeTab !== 'saved') {
+                triggerSmoothLayout();
+                setActiveTab('saved');
+              }
+            }}
+            activeOpacity={0.8}
+          >
+            <FolderHeart
+              size={14}
+              color={activeTab === 'saved' ? colors.accent : colors.textMuted}
+            />
+            <Text
+              style={[
+                styles.tabLabel,
+                { color: activeTab === 'saved' ? colors.text : colors.textMuted },
+              ]}
+              numberOfLines={1}
+            >
+              Saved
+            </Text>
+            <View
+              style={[
+                styles.countTag,
+                {
+                  backgroundColor:
+                    activeTab === 'saved' ? 'rgba(204,120,92,0.15)' : colors.bg,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.countTagText,
+                  { color: activeTab === 'saved' ? colors.accent : colors.textDim },
+                ]}
+              >
+                {savedVideos.length}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabPill,
               activeTab === 'history' && {
                 backgroundColor: colors.bgCard,
                 borderColor: colors.border,
@@ -207,8 +260,8 @@ export const LibraryScreen: React.FC = () => {
             }}
             activeOpacity={0.8}
           >
-            <FolderHeart
-              size={15}
+            <CheckCircle2
+              size={14}
               color={activeTab === 'history' ? colors.accent : colors.textMuted}
             />
             <Text
@@ -216,8 +269,9 @@ export const LibraryScreen: React.FC = () => {
                 styles.tabLabel,
                 { color: activeTab === 'history' ? colors.text : colors.textMuted },
               ]}
+              numberOfLines={1}
             >
-              Watched Activity
+              Watched
             </Text>
             <View
               style={[
@@ -286,7 +340,78 @@ export const LibraryScreen: React.FC = () => {
           </View>
         )}
 
-        {/* TAB 2: WATCHED ACTIVITY */}
+        {/* TAB 2: SAVED VIDEOS */}
+        {activeTab === 'saved' && (
+          <View style={styles.historyList}>
+            {savedVideos.length > 0 ? (
+              savedVideos.map((vid, idx) => (
+                <TouchableOpacity
+                  key={vid.id || `sv-${idx}`}
+                  style={[
+                    styles.historyRow,
+                    { backgroundColor: colors.bgCard, borderColor: colors.border },
+                  ]}
+                  activeOpacity={0.8}
+                  onPress={() =>
+                    navigation.navigate('Watch', {
+                      lecture: {
+                        id: vid.id,
+                        label: vid.label,
+                        url: vid.url,
+                        type: (vid.type as any) || 'abyss',
+                        fileStoreUrl: vid.fileStoreUrl,
+                        streamBotUrl: vid.streamBotUrl,
+                        servers: vid.servers,
+                        links: vid.links,
+                      },
+                      courseId: vid.courseId,
+                      courseTitle: vid.courseName || 'Course',
+                    })
+                  }
+                >
+                  <Play size={15} color={colors.accent} fill={colors.accent} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.historyLabel, { color: colors.text }]} numberOfLines={1}>
+                      {vid.label}
+                    </Text>
+                    <Text style={[styles.historyTime, { color: colors.textDim }]} numberOfLines={1}>
+                      {vid.courseName || 'Saved Video'}
+                      {vid.subject ? ` • ${vid.subject}` : ''}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e.stopPropagation?.();
+                      removeSavedVideo(vid.id || vid.url);
+                    }}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Trash2 size={15} color={colors.textDim} />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View
+                style={[
+                  styles.emptyStateCard,
+                  { backgroundColor: colors.bgCard, borderColor: colors.border },
+                ]}
+              >
+                <View style={styles.emptyIconCircle}>
+                  <FolderHeart size={28} color={colors.accent} />
+                </View>
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                  No Saved Videos Yet
+                </Text>
+                <Text style={[styles.emptyDesc, { color: colors.textMuted }]}>
+                  Tap Save Video inside the lecture player to pin lectures here for quick access.
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* TAB 3: WATCHED ACTIVITY */}
         {activeTab === 'history' && (
           <View style={styles.historyList}>
             {lastPlayed && lastPlayedCourse && (

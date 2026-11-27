@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { authClient } from '../lib/auth-client';
-import { CourseMemory, UserProfile } from '../types';
+import { CourseMemory, LectureItem, SavedVideoItem, UserProfile } from '../types';
 import {
   purgeLegacyLocalSyncCache,
   pullCloudUserData,
@@ -15,11 +15,14 @@ interface AuthContextValue {
   isSyncing: boolean;
   watchedMap: Record<string, number>;
   bookmarks: string[];
+  savedVideos: SavedVideoItem[];
   lastPlayed: CourseMemory | null;
   markLectureWatched: (courseId: string, lectureUrl: string) => void;
   toggleLectureWatched: (courseId: string, lectureUrl: string) => void;
   recordCourseMemory: (memory: CourseMemory) => void;
   toggleCourseBookmark: (courseId: string) => void;
+  toggleSaveVideo: (lecture: LectureItem, courseId: string, courseName: string) => boolean;
+  removeSavedVideo: (idOrUrl: string) => void;
   refreshSessionAndSync: () => Promise<void>;
   signOutUser: () => Promise<void>;
 }
@@ -31,11 +34,14 @@ const AuthContext = createContext<AuthContextValue>({
   isSyncing: false,
   watchedMap: {},
   bookmarks: [],
+  savedVideos: [],
   lastPlayed: null,
   markLectureWatched: () => {},
   toggleLectureWatched: () => {},
   recordCourseMemory: () => {},
   toggleCourseBookmark: () => {},
+  toggleSaveVideo: () => false,
+  removeSavedVideo: () => {},
   refreshSessionAndSync: async () => {},
   signOutUser: async () => {},
 });
@@ -48,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [watchedMap, setWatchedMap] = useState<Record<string, number>>({});
   const [bookmarks, setBookmarks] = useState<string[]>([]);
+  const [savedVideos, setSavedVideos] = useState<SavedVideoItem[]>([]);
   const [lastPlayed, setLastPlayed] = useState<CourseMemory | null>(null);
 
   // Always keep latest authenticated user ID accessible immediately without stale closures
@@ -89,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setStudentId('');
         setWatchedMap({});
         setBookmarks([]);
+        setSavedVideos([]);
         setLastPlayed(null);
         return;
       }
@@ -98,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const cloud = await pullCloudUserData(authId);
       setWatchedMap(cloud.watchedMap);
       setBookmarks(cloud.bookmarks);
+      setSavedVideos(cloud.savedVideos);
       setLastPlayed(cloud.lastPlayed);
     } finally {
       setIsSyncing(false);
@@ -202,6 +211,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [resolveUserId]
   );
 
+  const toggleSaveVideo = useCallback(
+    (lecture: LectureItem, courseId: string, courseName: string): boolean => {
+      const videoUrl = lecture.url || lecture.links?.url || lecture.servers?.[0]?.url || '';
+      const videoId = lecture.id || videoUrl;
+      if (!videoId) return false;
+
+      const exists = savedVideos.some((v) => v.id === videoId || v.url === videoUrl);
+      const nextSavedState = !exists;
+      const fullItem: SavedVideoItem = {
+        id: videoId,
+        label: lecture.label,
+        url: videoUrl,
+        courseId,
+        courseName,
+        subject: lecture.subject,
+        savedAt: Date.now(),
+        type: lecture.type,
+        fileStoreUrl: lecture.fileStoreUrl,
+        streamBotUrl: lecture.streamBotUrl,
+        servers: lecture.servers,
+        links: lecture.links,
+      };
+
+      setSavedVideos((prev) =>
+        nextSavedState
+          ? [fullItem, ...prev.filter((v) => v.id !== videoId && v.url !== videoUrl)]
+          : prev.filter((v) => v.id !== videoId && v.url !== videoUrl)
+      );
+
+      resolveUserId().then((uid) => {
+        if (uid) {
+          pushSyncAction(uid, 'saveVideo', {
+            videoId,
+            videoData: fullItem,
+            isSaved: nextSavedState,
+          });
+        }
+      });
+      return nextSavedState;
+    },
+    [savedVideos, resolveUserId]
+  );
+
+  const removeSavedVideo = useCallback(
+    (idOrUrl: string) => {
+      if (!idOrUrl) return;
+      const target = savedVideos.find((v) => v.id === idOrUrl || v.url === idOrUrl);
+      setSavedVideos((prev) => prev.filter((v) => v.id !== idOrUrl && v.url !== idOrUrl));
+      resolveUserId().then((uid) => {
+        if (uid && target) {
+          pushSyncAction(uid, 'saveVideo', {
+            videoId: target.id || target.url,
+            videoData: target,
+            isSaved: false,
+          });
+        }
+      });
+    },
+    [savedVideos, resolveUserId]
+  );
+
   const refreshSessionAndSync = useCallback(async () => {
     await refetch();
     const latestSession = await authClient.getSession();
@@ -226,11 +296,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isSyncing,
         watchedMap,
         bookmarks,
+        savedVideos,
         lastPlayed,
         markLectureWatched,
         toggleLectureWatched,
         recordCourseMemory,
         toggleCourseBookmark,
+        toggleSaveVideo,
+        removeSavedVideo,
         refreshSessionAndSync,
         signOutUser,
       }}

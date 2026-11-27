@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from './config';
-import { CourseMemory } from '../types';
+import { CourseMemory, SavedVideoItem } from '../types';
 import { getCourseById } from '../data/coursesData';
 
 const LEGACY_SYNC_KEYS = [
@@ -13,6 +13,7 @@ const LEGACY_SYNC_KEYS = [
 export interface SyncPullResult {
   watchedMap: Record<string, number>;
   bookmarks: string[];
+  savedVideos: SavedVideoItem[];
   lastPlayed: CourseMemory | null;
 }
 
@@ -63,7 +64,7 @@ function hydrateLastPlayedFromCourse(
 export async function pullCloudUserData(userId: string): Promise<SyncPullResult> {
   await purgeLegacyLocalSyncCache();
   if (!userId) {
-    return { watchedMap: {}, bookmarks: [], lastPlayed: null };
+    return { watchedMap: {}, bookmarks: [], savedVideos: [], lastPlayed: null };
   }
 
   try {
@@ -79,12 +80,12 @@ export async function pullCloudUserData(userId: string): Promise<SyncPullResult>
       }
     );
     if (!res.ok) {
-      return { watchedMap: {}, bookmarks: [], lastPlayed: null };
+      return { watchedMap: {}, bookmarks: [], savedVideos: [], lastPlayed: null };
     }
     const json = await res.json();
     const data = json?.data || json;
     if (!data) {
-      return { watchedMap: {}, bookmarks: [], lastPlayed: null };
+      return { watchedMap: {}, bookmarks: [], savedVideos: [], lastPlayed: null };
     }
 
     const watchedMap: Record<string, number> = {};
@@ -99,6 +100,7 @@ export async function pullCloudUserData(userId: string): Promise<SyncPullResult>
     }
 
     const bookmarks: string[] = Array.isArray(data.bookmarks) ? [...data.bookmarks] : [];
+    const savedVideos: SavedVideoItem[] = Array.isArray(data.savedVideos) ? [...data.savedVideos] : [];
 
     let lastPlayed: CourseMemory | null = null;
     if (Array.isArray(data.courseMemory) && data.courseMemory.length > 0) {
@@ -112,10 +114,10 @@ export async function pullCloudUserData(userId: string): Promise<SyncPullResult>
       );
     }
 
-    return { watchedMap, bookmarks, lastPlayed };
+    return { watchedMap, bookmarks, savedVideos, lastPlayed };
   } catch (err) {
     console.warn('[sync] Turso cloud pull failed:', err);
-    return { watchedMap: {}, bookmarks: [], lastPlayed: null };
+    return { watchedMap: {}, bookmarks: [], savedVideos: [], lastPlayed: null };
   }
 }
 

@@ -23,6 +23,8 @@ export interface LectureItem {
   category?: 'videos' | 'pdfs';
   attachmentLinks?: Record<string, string>;
   links?: Record<string, string>;
+  fileStoreUrl?: string;
+  streamBotUrl?: string;
   servers?: ServerOption[];
 }
 
@@ -64,6 +66,22 @@ export interface Course {
   };
 }
 
+export interface SavedVideoItem {
+  id: string;
+  label: string;
+  url: string;
+  courseId: string;
+  courseName: string;
+  courseCategory?: string;
+  subject?: string;
+  savedAt: number;
+  type?: string;
+  fileStoreUrl?: string;
+  streamBotUrl?: string;
+  servers?: ServerOption[];
+  links?: Record<string, string>;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -90,6 +108,8 @@ export type RootStackParamList = {
     courseId: string;
     courseTitle: string;
     tabId?: string;
+    playlist?: LectureItem[];
+    initialIndex?: number;
   };
   GovtExams: undefined;
   Gate: undefined;

@@ -10,6 +10,8 @@ import {
   StatusBar,
   ScrollView,
   Image,
+  Linking,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
@@ -21,12 +23,14 @@ import type {
 } from 'react-native-webview/lib/WebViewTypes';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { BlurView } from 'expo-blur';
-import { RootStackParamList, ServerOption } from '../types';
+import { RootStackParamList, LectureItem, ServerOption } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../lib/config';
+import { loadCourseDetails } from '../data/coursesData';
 import { resolveMobileMedia, fetchResolvedStreamUrl, getWorkerProxyUrl } from '../lib/streamResolver';
 import { LiquidGlassVideoPlayer } from '../components/LiquidGlassVideoPlayer';
+import { LectureRow } from '../components/LectureRow';
 import { spacing, radii } from '../theme/spacing';
 import {
   ArrowLeft,
@@ -37,6 +41,14 @@ import {
   SlidersHorizontal,
   X,
   FileText,
+  Bookmark,
+  BookmarkCheck,
+  FolderPlus,
+  FolderHeart,
+  Share2,
+  Send,
+  ExternalLink,
+  ListVideo,
 } from 'lucide-react-native';
 
 type WatchRouteProp = RouteProp<RootStackParamList, 'Watch'>;
@@ -47,6 +59,14 @@ function escapeHtmlAttr(value: string): string {
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+function isPdfLecture(item: LectureItem): boolean {
+  return (
+    item.type === 'pdf' ||
+    item.category === 'pdfs' ||
+    (item.url || '').toLowerCase().endsWith('.pdf')
+  );
 }
 
 const AD_BLOCK_HOST_FRAGMENTS = [
@@ -82,8 +102,79 @@ export const WatchScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { width, height } = useWindowDimensions();
   const { colors } = useTheme();
-  const { watchedMap, toggleLectureWatched } = useAuth();
-  const { lecture, courseId, courseTitle } = route.params;
+  const {
+    watchedMap,
+    bookmarks,
+    savedVideos,
+    toggleLectureWatched,
+    markLectureWatched,
+    recordCourseMemory,
+    toggleCourseBookmark,
+    toggleSaveVideo,
+  } = useAuth();
+
+  const { lecture: initialLecture, courseId, courseTitle, tabId, playlist: paramPlaylist, initialIndex } =
+    route.params;
+
+  const [playlist, setPlaylist] = useState<LectureItem[]>(
+    paramPlaylist && paramPlaylist.length > 0 ? paramPlaylist : [initialLecture]
+  );
+  const [currentIdx, setCurrentIdx] = useState<number>(
+    paramPlaylist && paramPlaylist.length > 0 ? Math.max(0, initialIndex || 0) : 0
+  );
+
+  // If opened from Home/Library without playlist, hydrate the full section playlist from course catalog
+  useEffect(() => {
+    if (paramPlaylist && paramPlaylist.length > 1) {
+      setPlaylist(paramPlaylist);
+      setCurrentIdx(Math.max(0, initialIndex || 0));
+      return;
+    }
+    if (!courseId || isPdfLecture(initialLecture)) return;
+
+    let active = true;
+    loadCourseDetails(courseId).then((course) => {
+      if (!active || !course) return;
+      let candidateItems: LectureItem[] = [];
+      if (course.tabs && course.tabs.length > 0) {
+        const matchedTab =
+          (tabId ? course.tabs.find((t) => t.id === tabId) : null) ||
+          course.tabs.find((t) =>
+            t.items.some(
+              (it) =>
+                (it.id && it.id === initialLecture.id) ||
+                (it.url && it.url === initialLecture.url)
+            )
+          ) ||
+          course.tabs[0];
+        candidateItems = (matchedTab?.items || []).filter((i) => !isPdfLecture(i));
+      } else if (course.isPratham && course.prathamBySubject) {
+        const list =
+          (tabId ? course.prathamBySubject[tabId] : null) ||
+          Object.values(course.prathamBySubject).find((arr) =>
+            arr.some((it) => it.url === initialLecture.url)
+          ) ||
+          [];
+        candidateItems = list.filter((i) => !isPdfLecture(i));
+      }
+
+      if (candidateItems.length > 0) {
+        const foundIdx = candidateItems.findIndex(
+          (it) =>
+            (initialLecture.id && it.id === initialLecture.id) ||
+            (initialLecture.url && it.url === initialLecture.url)
+        );
+        setPlaylist(candidateItems);
+        if (foundIdx >= 0) setCurrentIdx(foundIdx);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [courseId, tabId, initialLecture, paramPlaylist, initialIndex]);
+
+  const lecture = playlist[currentIdx] || initialLecture;
 
   const [selectedServerIdx, setSelectedServerIdx] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -205,6 +296,11 @@ export const WatchScreen: React.FC = () => {
     lecture.id,
   ].some((k) => Boolean(k && watchedMap[k]));
 
+  const isBookmarked = Boolean(courseId && bookmarks.includes(courseId));
+  const isSaved = savedVideos.some(
+    (v) => v.id === (lecture.id || watchKey) || v.url === watchKey || v.url === lecture.url
+  );
+
   const finalNativeStreamUrl =
     mediaConfig.mode === 'native-video' && !nativeFallbackToWebView
       ? mediaConfig.needsApiResolution
@@ -237,6 +333,42 @@ export const WatchScreen: React.FC = () => {
     const timer = setTimeout(() => setLoading(false), 1800);
     return () => clearTimeout(timer);
   }, [isPdfMode, loading, webViewKey, selectedServerIdx]);
+
+  const handleSelectPlaylistLecture = useCallback(
+    (idx: number) => {
+      const target = playlist[idx];
+      if (!target) return;
+      setCurrentIdx(idx);
+      setSelectedServerIdx(0);
+      setLoading(true);
+      setWebViewKey((k) => k + 1);
+
+      const targetKey =
+        target.url || target.links?.url || target.servers?.[0]?.url || target.id || '';
+      if (targetKey) {
+        markLectureWatched(courseId, targetKey);
+        recordCourseMemory({
+          courseId,
+          courseName: courseTitle,
+          lectureTitle: target.label,
+          tabId: tabId || 'videos',
+          url: targetKey,
+          timestamp: Date.now(),
+        });
+      }
+    },
+    [playlist, courseId, courseTitle, tabId, markLectureWatched, recordCourseMemory]
+  );
+
+  const handleShareLecture = useCallback(async () => {
+    try {
+      const webShareUrl = `https://web.stutosed.workers.dev/watch?course=${encodeURIComponent(courseId)}&index=${currentIdx}`;
+      await Share.share({
+        message: `${lecture.label} — ${courseTitle}\n${webShareUrl}`,
+        title: lecture.label,
+      });
+    } catch {}
+  }, [courseId, currentIdx, lecture.label, courseTitle]);
 
   const iframeWrapperHtml = useMemo(() => {
     const safeSrc = escapeHtmlAttr(mediaConfig.resolvedUrl);
@@ -341,7 +473,15 @@ export const WatchScreen: React.FC = () => {
 
           <View style={styles.headerInfo}>
             <View style={styles.pdfTitleRow}>
-              <View style={[styles.pdfBadgeChip, { backgroundColor: 'rgba(217, 119, 6, 0.14)', borderColor: 'rgba(217, 119, 6, 0.35)' }]}>
+              <View
+                style={[
+                  styles.pdfBadgeChip,
+                  {
+                    backgroundColor: 'rgba(217, 119, 6, 0.14)',
+                    borderColor: 'rgba(217, 119, 6, 0.35)',
+                  },
+                ]}
+              >
                 <FileText size={10} color="#d97706" />
                 <Text style={styles.pdfBadgeText}>PDF</Text>
               </View>
@@ -477,7 +617,12 @@ export const WatchScreen: React.FC = () => {
               )}
 
               {pdfLoadError && !loading && (
-                <View style={[styles.pdfErrorBanner, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+                <View
+                  style={[
+                    styles.pdfErrorBanner,
+                    { backgroundColor: colors.bgCard, borderColor: colors.border },
+                  ]}
+                >
                   <Text style={[styles.pdfErrorText, { color: colors.text }]}>
                     PDF preview load nahi ho paaya. Reload try karein.
                   </Text>
@@ -554,11 +699,11 @@ export const WatchScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Player Container (Original Abyss player edge-to-edge; Liquid Glass for direct streams) */}
+      {/* Player Container */}
       <View style={[styles.playerContainer, playerBoxStyle]}>
         {isNativeVideoActive && finalNativeStreamUrl ? (
           <LiquidGlassVideoPlayer
-            key={`${finalNativeStreamUrl}-${selectedServerIdx}`}
+            key={`${finalNativeStreamUrl}-${selectedServerIdx}-${currentIdx}`}
             sourceUrl={finalNativeStreamUrl}
             title={lecture.label}
             isFullscreen={isExpandedPlayer}
@@ -587,7 +732,7 @@ export const WatchScreen: React.FC = () => {
             )}
 
             <WebView
-              key={`${webViewKey}-${selectedServerIdx}`}
+              key={`${webViewKey}-${selectedServerIdx}-${currentIdx}`}
               source={
                 useIframeWrapper
                   ? { html: iframeWrapperHtml, baseUrl: `${API_BASE_URL}/` }
@@ -608,7 +753,7 @@ export const WatchScreen: React.FC = () => {
               setSupportMultipleWindows={false}
             />
 
-            {/* CRWill-style Upper-Layer Toggle Overlay on Top Edge of Abyss / WebView */}
+            {/* CRWill-style Upper-Layer Toggle Overlay */}
             <View style={styles.upperLayerWrap} pointerEvents="box-none">
               {showUpperOverlay ? (
                 <BlurView
@@ -728,26 +873,57 @@ export const WatchScreen: React.FC = () => {
         )}
       </View>
 
-      {/* Details Box (Hidden in Landscape / Fullscreen) */}
+      {/* Details, Action Dock & Batch Lecture Queue (Hidden in Landscape / Fullscreen) */}
       {!isExpandedPlayer && (
         <ScrollView
           style={styles.detailsContainer}
-          contentContainerStyle={{ paddingBottom: spacing.xl }}
+          contentContainerStyle={{ paddingBottom: spacing.xxl, gap: 14 }}
           showsVerticalScrollIndicator={false}
         >
+          {/* Info & Action Buttons Card (Matching Web Mobile Player) */}
           <View
             style={[
               styles.detailCard,
               { backgroundColor: colors.bgCard, borderColor: colors.border },
             ]}
           >
-            <Text style={[styles.cardHeading, { color: colors.accent }]}>Now Playing</Text>
+            {/* Meta Chips Row */}
+            <View style={styles.metaChipsRow}>
+              <View
+                style={[
+                  styles.metaChip,
+                  { backgroundColor: 'rgba(204,120,92,0.14)', borderColor: 'rgba(204,120,92,0.3)' },
+                ]}
+              >
+                <Text style={[styles.metaChipText, { color: colors.accent }]} numberOfLines={1}>
+                  {courseTitle}
+                </Text>
+              </View>
+              {lecture.subject ? (
+                <View
+                  style={[
+                    styles.metaChip,
+                    { backgroundColor: colors.bgCardSubtle, borderColor: colors.borderSubtle },
+                  ]}
+                >
+                  <Text style={[styles.metaChipText, { color: colors.textMuted }]} numberOfLines={1}>
+                    {lecture.subject}
+                  </Text>
+                </View>
+              ) : null}
+              <View
+                style={[
+                  styles.metaChip,
+                  { backgroundColor: colors.bgCardSubtle, borderColor: colors.borderSubtle },
+                ]}
+              >
+                <Text style={[styles.metaChipText, { color: colors.textDim }]}>
+                  Lecture {currentIdx + 1} of {playlist.length}
+                </Text>
+              </View>
+            </View>
+
             <Text style={[styles.cardLectureLabel, { color: colors.text }]}>{lecture.label}</Text>
-            {lecture.subject ? (
-              <Text style={[styles.cardSubject, { color: colors.textMuted }]}>
-                Subject: {lecture.subject}
-              </Text>
-            ) : null}
 
             {/* Server Switcher Pills when multiple servers exist */}
             {servers.length > 1 && (
@@ -784,45 +960,197 @@ export const WatchScreen: React.FC = () => {
               </View>
             )}
 
-            <View style={styles.badgeRow}>
-              <View
-                style={[
-                  styles.badgePill,
-                  { backgroundColor: colors.bgCardSubtle, borderColor: colors.borderSubtle },
-                ]}
-              >
-                <Text style={[styles.badgePillText, { color: colors.textMuted }]}>
-                  Ad-Free Stream
-                </Text>
-              </View>
+            {/* Web-Matching Action Buttons Dock */}
+            <View style={styles.actionDock}>
+              {courseId ? (
+                <TouchableOpacity
+                  style={[
+                    styles.actionBtn,
+                    {
+                      backgroundColor: isBookmarked ? 'rgba(204,120,92,0.16)' : colors.bgCardSubtle,
+                      borderColor: isBookmarked ? colors.accent : colors.border,
+                    },
+                  ]}
+                  onPress={() => toggleCourseBookmark(courseId)}
+                  activeOpacity={0.8}
+                >
+                  {isBookmarked ? (
+                    <BookmarkCheck size={15} color={colors.accent} />
+                  ) : (
+                    <Bookmark size={15} color={colors.textMuted} />
+                  )}
+                  <Text
+                    style={[
+                      styles.actionBtnText,
+                      { color: isBookmarked ? colors.accent : colors.text },
+                    ]}
+                  >
+                    {isBookmarked ? 'Bookmarked' : 'Bookmark Batch'}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+
               <TouchableOpacity
                 style={[
-                  styles.badgePill,
+                  styles.actionBtn,
                   {
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 5,
+                    backgroundColor: isSaved ? 'rgba(204,120,92,0.16)' : colors.bgCardSubtle,
+                    borderColor: isSaved ? colors.accent : colors.border,
+                  },
+                ]}
+                onPress={() => toggleSaveVideo(lecture, courseId, courseTitle)}
+                activeOpacity={0.8}
+              >
+                {isSaved ? (
+                  <FolderHeart size={15} color={colors.accent} />
+                ) : (
+                  <FolderPlus size={15} color={colors.textMuted} />
+                )}
+                <Text
+                  style={[
+                    styles.actionBtnText,
+                    { color: isSaved ? colors.accent : colors.text },
+                  ]}
+                >
+                  {isSaved ? 'Saved' : 'Save Video'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  {
                     backgroundColor: isWatched ? `${colors.green}18` : colors.bgCardSubtle,
-                    borderColor: isWatched ? colors.green : colors.borderSubtle,
+                    borderColor: isWatched ? colors.green : colors.border,
                   },
                 ]}
                 onPress={() => toggleLectureWatched(courseId, watchKey)}
+                activeOpacity={0.8}
               >
-                <CheckCircle2
-                  size={13}
-                  color={isWatched ? colors.green : colors.textDim}
-                />
+                <CheckCircle2 size={15} color={isWatched ? colors.green : colors.textDim} />
                 <Text
                   style={[
-                    styles.badgePillText,
-                    { color: isWatched ? colors.green : colors.textMuted },
+                    styles.actionBtnText,
+                    { color: isWatched ? colors.green : colors.text },
                   ]}
                 >
-                  {isWatched ? 'Completed' : 'Mark Watched'}
+                  {isWatched ? 'Watched' : 'Mark Watched'}
                 </Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
+                ]}
+                onPress={handleShareLecture}
+                activeOpacity={0.8}
+              >
+                <Share2 size={15} color={colors.textMuted} />
+                <Text style={[styles.actionBtnText, { color: colors.text }]}>Share</Text>
+              </TouchableOpacity>
+
+              {/* Individual Video Link: Get File on Filetosed (Telegram Bot) */}
+              {lecture.fileStoreUrl ? (
+                <TouchableOpacity
+                  style={[
+                    styles.actionBtn,
+                    {
+                      backgroundColor: 'rgba(56, 189, 248, 0.14)',
+                      borderColor: 'rgba(56, 189, 248, 0.42)',
+                    },
+                  ]}
+                  onPress={() => Linking.openURL(lecture.fileStoreUrl!).catch(() => {})}
+                  activeOpacity={0.82}
+                >
+                  <Send size={14} color="#38bdf8" />
+                  <Text style={[styles.actionBtnText, { color: '#38bdf8' }]}>
+                    Get File on Filetosed
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+
+              {/* Individual Video Link: File Stream Bot (Website Link) */}
+              {lecture.streamBotUrl ? (
+                <TouchableOpacity
+                  style={[
+                    styles.actionBtn,
+                    {
+                      backgroundColor: 'rgba(204, 120, 92, 0.15)',
+                      borderColor: 'rgba(204, 120, 92, 0.45)',
+                    },
+                  ]}
+                  onPress={() => Linking.openURL(lecture.streamBotUrl!).catch(() => {})}
+                  activeOpacity={0.82}
+                >
+                  <ExternalLink size={14} color={colors.accent} />
+                  <Text style={[styles.actionBtnText, { color: colors.accent }]}>
+                    File Stream Bot
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
           </View>
+
+          {/* Batch Lecture Queue / Playlist */}
+          {playlist.length > 0 && (
+            <View
+              style={[
+                styles.playlistCard,
+                { backgroundColor: colors.bgCard, borderColor: colors.border },
+              ]}
+            >
+              <View style={[styles.playlistHeader, { borderBottomColor: colors.borderSubtle }]}>
+                <ListVideo size={18} color={colors.accent} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.playlistTitle, { color: colors.text }]}>
+                    Batch Lecture Queue
+                  </Text>
+                  <Text style={[styles.playlistSub, { color: colors.textDim }]} numberOfLines={1}>
+                    {playlist.length} Lectures • {courseTitle}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.playlistItems}>
+                {playlist.map((item, idx) => {
+                  const isCurrent = idx === currentIdx;
+                  const itemKey =
+                    item.url || item.links?.url || item.servers?.[0]?.url || item.id || '';
+                  const itemWatched = [
+                    itemKey,
+                    item.url,
+                    item.links?.url,
+                    ...(item.servers?.map((s) => s.url) || []),
+                    item.id,
+                  ].some((k) => Boolean(k && watchedMap[k]));
+
+                  return (
+                    <View
+                      key={item.id || `pl-${idx}`}
+                      style={[
+                        isCurrent && {
+                          borderRadius: radii.lg,
+                          borderWidth: 1.5,
+                          borderColor: colors.accent,
+                          backgroundColor: 'rgba(204,120,92,0.08)',
+                        },
+                      ]}
+                    >
+                      <LectureRow
+                        item={item}
+                        index={idx}
+                        isWatched={itemWatched}
+                        variant="list"
+                        onPress={() => handleSelectPlaylistLecture(idx)}
+                        onToggleWatched={() => toggleLectureWatched(courseId, itemKey)}
+                      />
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          )}
         </ScrollView>
       )}
     </SafeAreaView>
@@ -980,31 +1308,37 @@ const styles = StyleSheet.create({
   },
   detailCard: {
     borderWidth: 1,
-    borderRadius: radii.lg,
+    borderRadius: radii.xl,
     padding: spacing.base,
   },
-  cardHeading: {
-    fontSize: 11,
+  metaChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 10,
+  },
+  metaChip: {
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    maxWidth: '100%',
+  },
+  metaChipText: {
+    fontSize: 10.5,
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 6,
   },
   cardLectureLabel: {
-    fontSize: 16,
+    fontSize: 16.5,
     fontWeight: '700',
-    lineHeight: 22,
-    marginBottom: 6,
-  },
-  cardSubject: {
-    fontSize: 12,
-    marginBottom: spacing.md,
+    lineHeight: 22.5,
+    marginBottom: 12,
   },
   serverRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: spacing.md,
+    marginBottom: 12,
   },
   serverPill: {
     paddingHorizontal: 12,
@@ -1016,19 +1350,48 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontWeight: '700',
   },
-  badgeRow: {
+  actionDock: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  badgePill: {
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radii.pill,
     borderWidth: 1,
-    borderRadius: radii.sm,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
   },
-  badgePillText: {
-    fontSize: 11,
-    fontWeight: '600',
+  actionBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  playlistCard: {
+    borderWidth: 1,
+    borderRadius: radii.xl,
+    overflow: 'hidden',
+  },
+  playlistHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: spacing.base,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  playlistTitle: {
+    fontSize: 14.5,
+    fontWeight: '700',
+  },
+  playlistSub: {
+    fontSize: 11.5,
+    marginTop: 1,
+  },
+  playlistItems: {
+    padding: spacing.sm,
+    gap: 8,
   },
   pdfTitleRow: {
     flexDirection: 'row',
@@ -1109,11 +1472,6 @@ const styles = StyleSheet.create({
   pdfLoadingTitle: {
     fontSize: 14,
     fontWeight: '700',
-  },
-  pdfLoadingSub: {
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 17,
   },
   pdfErrorBanner: {
     position: 'absolute',

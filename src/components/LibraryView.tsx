@@ -130,6 +130,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       label: v.label,
       url: v.url,
       type: (v.type as any) || 'stream',
+      fileStoreUrl: v.fileStoreUrl,
+      streamBotUrl: v.streamBotUrl,
       servers: v.servers,
       links: v.links,
     }));

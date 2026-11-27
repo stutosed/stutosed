@@ -41,6 +41,8 @@ import {
   Eye,
   BookOpen,
   AlertTriangle,
+  Send,
+  ExternalLink,
 } from 'lucide-react';
 import { ComplaintModal } from '@/components/ComplaintModal';
 
@@ -834,6 +836,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       courseCategory,
       subject: subjectName,
       type: currentItem.type,
+      fileStoreUrl: currentItem.fileStoreUrl,
+      streamBotUrl: currentItem.streamBotUrl,
       servers: currentItem.servers,
       links: currentItem.links,
     });
@@ -1705,6 +1709,44 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   <Share2 width={17} height={17} />
                   <span>{copiedToast ? 'Copied Link!' : 'Share'}</span>
                 </button>
+
+                {/* 5. Get File on Filetosed (Telegram File Store Bot) */}
+                {currentItem.fileStoreUrl && (
+                  <a
+                    href={currentItem.fileStoreUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="yt-action-pill"
+                    style={{
+                      background: 'rgba(56, 189, 248, 0.14)',
+                      borderColor: 'rgba(56, 189, 248, 0.35)',
+                      color: '#38bdf8',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <Send width={16} height={16} />
+                    <span>Get File on Filetosed</span>
+                  </a>
+                )}
+
+                {/* 6. Open in File Stream Bot (Website Stream Link) */}
+                {currentItem.streamBotUrl && (
+                  <a
+                    href={currentItem.streamBotUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="yt-action-pill"
+                    style={{
+                      background: 'rgba(204, 120, 92, 0.14)',
+                      borderColor: 'rgba(204, 120, 92, 0.4)',
+                      color: 'var(--accent)',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <ExternalLink width={16} height={16} />
+                    <span>File Stream Bot</span>
+                  </a>
+                )}
               </div>
 
 

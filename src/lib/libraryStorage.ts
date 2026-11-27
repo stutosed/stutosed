@@ -24,6 +24,8 @@ export interface SavedVideoItem {
   subject?: string;
   savedAt: number;
   type?: string;
+  fileStoreUrl?: string;
+  streamBotUrl?: string;
   servers?: any[];
   links?: Record<string, string>;
 }

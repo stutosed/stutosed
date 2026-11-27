@@ -289,11 +289,18 @@ export const CourseDetailScreen: React.FC = () => {
       url: key,
       timestamp: Date.now(),
     });
+    const sectionVideos = (activeSection?.items || []).filter((i) => !isPdfItem(i));
+    const vidIdx = !isPdfItem(item)
+      ? Math.max(0, sectionVideos.findIndex((i) => i === item || (i.id && i.id === item.id)))
+      : 0;
     navigation.navigate('Watch', {
       lecture: item,
       courseId,
       courseTitle: course?.name || title,
       tabId: secId,
+      ...(!isPdfItem(item) && sectionVideos.length > 0
+        ? { playlist: sectionVideos, initialIndex: vidIdx }
+        : {}),
     });
   };
 

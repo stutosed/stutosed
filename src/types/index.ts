@@ -23,6 +23,8 @@ export interface LectureItem {
   category?: 'videos' | 'pdfs';
   attachmentLinks?: Record<string, string>;
   links?: Record<string, string>;
+  fileStoreUrl?: string;
+  streamBotUrl?: string;
   servers?: ServerOption[];
 }
 
