@@ -2345,39 +2345,29 @@ svg { flex-shrink: 0; }
   .overlay-tabs { top: var(--nav-h); padding: 8px 16px; }
   .overlay-tab { padding: 6px 12px; font-size: 13px; }
   
-  .overlay-content { padding: 14px 12px 80px; }
+  .overlay-content { padding: 14px 10px 80px; }
   .lecture-grid-container {
     grid-template-columns: 1fr;
     gap: 12px;
-    margin-left: -12px;
-    margin-right: -12px;
   }
   .lecture-card-grid {
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
+    border-radius: var(--r-lg) !important;
   }
   .lecture-thumb-grid-box {
     aspect-ratio: 16 / 9;
   }
   .video-list {
-    margin-left: -12px;
-    margin-right: -12px;
-    gap: 6px;
+    gap: 7px;
   }
   .video-row {
     padding: 10px 12px;
     gap: 10px;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
+    border-radius: var(--r-md);
   }
   .pdf-rect-row {
-    padding: 7px 12px !important;
+    padding: 7px 10px !important;
     gap: 10px !important;
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
+    border-radius: var(--r-md) !important;
     min-height: 46px;
   }
   .pdf-rect-row button span { display: none; }
