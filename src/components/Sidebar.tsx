@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Home, BookOpen, Moon, Sun, User, HelpCircle, GraduationCap, Landmark, Sparkles, BookmarkCheck, Atom, Cpu, Layers } from 'lucide-react';
+import { Home, BookOpen, Moon, Sun, User, HelpCircle, GraduationCap, Landmark, Sparkles, BookmarkCheck, Atom, Cpu } from 'lucide-react';
 import { UserProfile } from '@/types';
 import { getInitials, getAvatarGradient } from '@/components/ProfileMenu';
 import { COURSE_CATEGORIES } from '@/config/categories';
@@ -106,14 +106,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <Home width={18} height={18} strokeWidth={2} />
             <span>Home</span>
-          </button>
-
-          <button
-            onClick={() => handleNav('courses')}
-            className={`nav-link ${activeView === 'courses' ? 'active' : ''}`}
-          >
-            <Layers width={18} height={18} strokeWidth={2} style={{ color: activeView === 'courses' ? 'var(--accent)' : 'inherit' }} />
-            <span>All Courses</span>
           </button>
 
           <button

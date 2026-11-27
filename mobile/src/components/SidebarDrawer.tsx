@@ -22,7 +22,6 @@ import { spacing, radii } from '../theme/spacing';
 import {
   Home,
   Landmark,
-  Layers,
   Cpu,
   BookmarkCheck,
   User,
@@ -313,13 +312,6 @@ export const SidebarDrawer: React.FC = () => {
                   icon: Home,
                   iconColor: colors.textMuted,
                   onPress: () => navigateTab('HomeTab'),
-                },
-                {
-                  key: 'CoursesTab',
-                  label: 'All Courses',
-                  icon: Layers,
-                  iconColor: colors.accent,
-                  onPress: () => navigateTab('CoursesTab'),
                 },
                 {
                   key: 'GovtExams',
