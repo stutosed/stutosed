@@ -19,8 +19,8 @@ import { useDrawer } from '../context/DrawerContext';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { Header } from '../components/Header';
 import {
-  isDailyReminderEnabled,
-  setDailyStudyReminder,
+  isStudyReminderEnabled,
+  setStudyReminderEnabled,
   sendTestLocalNotification,
 } from '../lib/notifications';
 import { spacing, radii } from '../theme/spacing';
@@ -61,16 +61,16 @@ export const ProfileScreen: React.FC = () => {
   const [reminderEnabled, setReminderEnabled] = useState(false);
 
   useEffect(() => {
-    isDailyReminderEnabled().then(setReminderEnabled).catch(() => {});
+    isStudyReminderEnabled().then(setReminderEnabled).catch(() => {});
   }, []);
 
   const handleToggleReminder = async (next: boolean) => {
-    const applied = await setDailyStudyReminder(next);
+    const applied = await setStudyReminderEnabled(next);
     setReminderEnabled(applied);
     if (next && !applied) {
       Alert.alert(
         'Permission Required',
-        'Please allow notifications for stutosed in your phone settings to enable daily reminders.'
+        'Please allow notifications for stutosed in your phone settings to enable 4-hour reminders.'
       );
     }
   };
@@ -190,10 +190,10 @@ export const ProfileScreen: React.FC = () => {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.menuTitle, { color: colors.text }]}>
-                  Daily Study Reminder (8:00 PM)
+                  Study Reminder (Every 4 Hours)
                 </Text>
                 <Text style={[styles.menuSubtitle, { color: colors.textDim }]}>
-                  Evening reminder to continue your lectures &amp; notes
+                  Reminds you every 4 hours to watch lectures &amp; revise notes
                 </Text>
               </View>
             </View>

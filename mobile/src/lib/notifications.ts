@@ -6,8 +6,9 @@ import Constants from 'expo-constants';
 import { API_BASE_URL } from './config';
 
 export const NOTIFICATION_CHANNEL_ID = 'stutosed_updates';
-const DAILY_REMINDER_ID = 'stutosed-daily-study-reminder';
-const DAILY_REMINDER_PREF_KEY = 'stutosed-daily-reminder-enabled';
+const STUDY_REMINDER_ID = 'stutosed-4hr-study-reminder';
+const REMINDER_PREF_KEY = 'stutosed-4hr-reminder-enabled';
+const FOUR_HOURS_SECONDS = 4 * 60 * 60;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -41,25 +42,95 @@ export async function ensureNotificationChannelAndPermissions(): Promise<boolean
   return status === 'granted';
 }
 
+export async function isStudyReminderEnabled(): Promise<boolean> {
+  try {
+    const raw = await AsyncStorage.getItem(REMINDER_PREF_KEY);
+    // Default ON unless explicitly disabled by user
+    return raw !== 'false';
+  } catch {
+    return true;
+  }
+}
+
+export async function setStudyReminderEnabled(enabled: boolean): Promise<boolean> {
+  try {
+    await Notifications.cancelScheduledNotificationAsync(STUDY_REMINDER_ID).catch(() => {});
+    // Also clean up any earlier daily reminder id if present
+    await Notifications.cancelScheduledNotificationAsync('stutosed-daily-study-reminder').catch(() => {});
+
+    if (!enabled) {
+      await AsyncStorage.setItem(REMINDER_PREF_KEY, 'false');
+      return false;
+    }
+
+    const granted = await ensureNotificationChannelAndPermissions();
+    if (!granted) {
+      await AsyncStorage.setItem(REMINDER_PREF_KEY, 'false');
+      return false;
+    }
+
+    await Notifications.scheduleNotificationAsync({
+      identifier: STUDY_REMINDER_ID,
+      content: {
+        title: 'Time to Study on stutosed',
+        body: 'Quick check-in: watch a lecture or revise your PDF notes to keep your streak alive.',
+        sound: 'default',
+        ...(Platform.OS === 'android' ? { channelId: NOTIFICATION_CHANNEL_ID } : {}),
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: FOUR_HOURS_SECONDS,
+        repeats: true,
+        ...(Platform.OS === 'android' ? { channelId: NOTIFICATION_CHANNEL_ID } : {}),
+      },
+    });
+
+    await AsyncStorage.setItem(REMINDER_PREF_KEY, 'true');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function ensureDefaultFourHourReminder(): Promise<void> {
+  try {
+    const enabled = await isStudyReminderEnabled();
+    if (!enabled) return;
+
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    const alreadyScheduled = scheduled.some((item) => item.identifier === STUDY_REMINDER_ID);
+    if (!alreadyScheduled) {
+      await setStudyReminderEnabled(true);
+    }
+  } catch {}
+}
+
 /**
- * Requests notification permission, registers Expo Push Token with Turso when Firebase/EAS is configured,
- * and safely ignores missing-FCM errors on local/offline APK builds so local reminders still work.
+ * Initializes basic local notifications + auto-schedules the 4-hour study reminder,
+ * and safely registers Expo Push Token when EAS/FCM config is present.
  */
 export async function registerForPushNotificationsAsync(
   userId?: string | null
 ): Promise<string | null> {
   try {
     const granted = await ensureNotificationChannelAndPermissions();
-    if (!granted || !Device.isDevice || Platform.OS === 'web') {
+    if (!granted || Platform.OS === 'web') {
+      return null;
+    }
+
+    await ensureDefaultFourHourReminder();
+
+    if (!Device.isDevice) {
       return null;
     }
 
     const projectId =
       Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+    if (!projectId) {
+      return null;
+    }
 
-    const tokenRes = await Notifications.getExpoPushTokenAsync(
-      projectId ? { projectId } : undefined
-    );
+    const tokenRes = await Notifications.getExpoPushTokenAsync({ projectId });
     const token = tokenRes?.data;
     if (!token) return null;
 
@@ -76,54 +147,7 @@ export async function registerForPushNotificationsAsync(
 
     return token;
   } catch {
-    // Graceful no-op when testing locally or before google-services.json / EAS projectId is linked
     return null;
-  }
-}
-
-export async function isDailyReminderEnabled(): Promise<boolean> {
-  try {
-    const raw = await AsyncStorage.getItem(DAILY_REMINDER_PREF_KEY);
-    return raw === 'true';
-  } catch {
-    return false;
-  }
-}
-
-export async function setDailyStudyReminder(enabled: boolean): Promise<boolean> {
-  try {
-    await Notifications.cancelScheduledNotificationAsync(DAILY_REMINDER_ID).catch(() => {});
-
-    if (!enabled) {
-      await AsyncStorage.setItem(DAILY_REMINDER_PREF_KEY, 'false');
-      return false;
-    }
-
-    const granted = await ensureNotificationChannelAndPermissions();
-    if (!granted) {
-      await AsyncStorage.setItem(DAILY_REMINDER_PREF_KEY, 'false');
-      return false;
-    }
-
-    await Notifications.scheduleNotificationAsync({
-      identifier: DAILY_REMINDER_ID,
-      content: {
-        title: 'Time to Study on stutosed!',
-        body: 'Continue your batch lectures and practice PDFs to stay ahead on your streak.',
-        sound: 'default',
-        ...(Platform.OS === 'android' ? { channelId: NOTIFICATION_CHANNEL_ID } : {}),
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DAILY,
-        hour: 20,
-        minute: 0,
-      },
-    });
-
-    await AsyncStorage.setItem(DAILY_REMINDER_PREF_KEY, 'true');
-    return true;
-  } catch {
-    return false;
   }
 }
 
@@ -134,8 +158,8 @@ export async function sendTestLocalNotification(): Promise<boolean> {
 
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'stutosed Notifications Active',
-        body: 'You are ready to receive batch updates and daily study reminders.',
+        title: 'stutosed Study Reminder Active',
+        body: 'Basic notifications are active. You will be reminded every 4 hours.',
         sound: 'default',
         ...(Platform.OS === 'android' ? { channelId: NOTIFICATION_CHANNEL_ID } : {}),
       },
