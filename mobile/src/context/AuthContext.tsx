@@ -7,6 +7,7 @@ import {
   pullCloudUserData,
   pushSyncAction,
 } from '../lib/progressSync';
+import { registerForPushNotificationsAsync } from '../lib/notifications';
 
 interface AuthContextValue {
   user: UserProfile | null;
@@ -103,6 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       activeUserIdRef.current = authId;
       setStudentId(authId);
+      registerForPushNotificationsAsync(authId).catch(() => {});
       const cloud = await pullCloudUserData(authId);
       setWatchedMap(cloud.watchedMap);
       setBookmarks(cloud.bookmarks);

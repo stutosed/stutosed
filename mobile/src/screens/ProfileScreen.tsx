@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Switch,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +18,11 @@ import { useAuth } from '../context/AuthContext';
 import { useDrawer } from '../context/DrawerContext';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { Header } from '../components/Header';
+import {
+  isDailyReminderEnabled,
+  setDailyStudyReminder,
+  sendTestLocalNotification,
+} from '../lib/notifications';
 import { spacing, radii } from '../theme/spacing';
 import {
   LogOut,
@@ -26,6 +33,8 @@ import {
   Sparkles,
   HelpCircle,
   Scale,
+  Bell,
+  BellRing,
 } from 'lucide-react-native';
 
 function getInitials(name: string): string {
@@ -49,6 +58,32 @@ export const ProfileScreen: React.FC = () => {
 
   const displayName = user?.full_name || 'Student';
   const { refreshControl } = usePullToRefresh();
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+
+  useEffect(() => {
+    isDailyReminderEnabled().then(setReminderEnabled).catch(() => {});
+  }, []);
+
+  const handleToggleReminder = async (next: boolean) => {
+    const applied = await setDailyStudyReminder(next);
+    setReminderEnabled(applied);
+    if (next && !applied) {
+      Alert.alert(
+        'Permission Required',
+        'Please allow notifications for stutosed in your phone settings to enable daily reminders.'
+      );
+    }
+  };
+
+  const handleTestNotification = async () => {
+    const ok = await sendTestLocalNotification();
+    if (!ok) {
+      Alert.alert(
+        'Permission Required',
+        'Notification permission is required to preview alerts.'
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
@@ -138,6 +173,58 @@ export const ProfileScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
           )}
+        </View>
+
+        {/* Study Notifications */}
+        <Text style={[styles.sectionHeading, { color: colors.textMuted }]}>NOTIFICATIONS</Text>
+        <View
+          style={[
+            styles.menuCard,
+            { backgroundColor: colors.bgCard, borderColor: colors.border },
+          ]}
+        >
+          <View style={styles.menuItem}>
+            <View style={styles.menuLeft}>
+              <View style={[styles.menuIconBox, { backgroundColor: 'rgba(204,120,92,0.14)' }]}>
+                <Bell size={18} color={colors.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.menuTitle, { color: colors.text }]}>
+                  Daily Study Reminder (8:00 PM)
+                </Text>
+                <Text style={[styles.menuSubtitle, { color: colors.textDim }]}>
+                  Evening reminder to continue your lectures &amp; notes
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={reminderEnabled}
+              onValueChange={handleToggleReminder}
+              trackColor={{ false: colors.border, true: colors.accent }}
+              thumbColor="#ffffff"
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.menuItem, { borderTopWidth: 1, borderTopColor: colors.borderSubtle }]}
+            onPress={handleTestNotification}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <View style={[styles.menuIconBox, { backgroundColor: 'rgba(56,189,248,0.14)' }]}>
+                <BellRing size={18} color="#38bdf8" />
+              </View>
+              <View>
+                <Text style={[styles.menuTitle, { color: colors.text }]}>
+                  Send Test Notification
+                </Text>
+                <Text style={[styles.menuSubtitle, { color: colors.textDim }]}>
+                  Verify notification banner &amp; sound on this device
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={colors.textDim} />
+          </TouchableOpacity>
         </View>
 
         {/* Support & Legal */}

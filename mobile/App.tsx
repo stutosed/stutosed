@@ -1,12 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import * as Notifications from 'expo-notifications';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Drawer } from 'react-native-drawer-layout';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { navigationRef } from './src/navigation/navigationRef';
+import { registerForPushNotificationsAsync } from './src/lib/notifications';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { AuthProvider } from './src/context/AuthContext';
 import { DrawerProvider, useDrawer } from './src/context/DrawerContext';
@@ -53,6 +55,26 @@ const AppShell: React.FC = () => {
       };
 
   const renderDrawer = useCallback(() => <SidebarDrawer />, []);
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().catch(() => {});
+
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      try {
+        const data = response?.notification?.request?.content?.data as
+          | { courseId?: string; title?: string }
+          | undefined;
+        if (data?.courseId && navigationRef.isReady()) {
+          navigationRef.navigate('CourseDetail', {
+            courseId: String(data.courseId),
+            title: String(data.title || 'Course'),
+          });
+        }
+      } catch {}
+    });
+
+    return () => sub.remove();
+  }, []);
 
   return (
     <NavigationContainer
