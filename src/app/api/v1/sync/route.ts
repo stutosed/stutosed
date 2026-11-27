@@ -53,7 +53,11 @@ export const POST = withApi(
 
     switch (action) {
       case 'watch':
-        await tursoRepo.upsertWatchHistory(userId, payload.courseId, payload.lectureUrl);
+        if (payload.isWatched === false) {
+          await tursoRepo.removeWatchHistory(userId, payload.lectureUrl);
+        } else {
+          await tursoRepo.upsertWatchHistory(userId, payload.courseId, payload.lectureUrl);
+        }
         break;
 
       case 'progress':
@@ -77,8 +81,8 @@ export const POST = withApi(
         await tursoRepo.upsertCourseMemory(
           userId,
           payload.courseId,
-          payload.lastTabId,
-          payload.lastLectureUrl
+          payload.lastTabId ?? payload.subjectName ?? 'videos',
+          payload.lastLectureUrl ?? payload.lectureUrl
         );
         break;
 

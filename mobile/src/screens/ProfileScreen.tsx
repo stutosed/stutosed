@@ -46,7 +46,7 @@ export const ProfileScreen: React.FC = () => {
     signOutUser,
   } = useAuth();
 
-  const displayName = user?.full_name || 'Advik';
+  const displayName = user?.full_name || 'Student';
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
@@ -80,7 +80,7 @@ export const ProfileScreen: React.FC = () => {
                 {displayName}
               </Text>
               <Text style={[styles.userEmail, { color: colors.textMuted }]} numberOfLines={1}>
-                {user ? user.email : 'student@stutosed.in'}
+                {user ? user.email : 'Sign in to sync across devices'}
               </Text>
               <View style={styles.syncStatusRow}>
                 <ShieldCheck size={12} color={user ? colors.green : colors.orange} />
@@ -90,7 +90,7 @@ export const ProfileScreen: React.FC = () => {
                     { color: user ? colors.green : colors.orange },
                   ]}
                 >
-                  {user ? 'Cloud Sync Active' : `Demo Mode • ID: ${studentId.slice(0, 10)}`}
+                  {user ? 'Turso Cloud Sync Active' : 'Not Signed In'}
                 </Text>
               </View>
             </View>

@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Course, LectureItem } from '@/types';
 import { INITIAL_COURSES } from '@/lib/coursesData';
 import { getSubjectThumbnail } from '@/lib/subjectThumbnails';
+import { LectureThumb } from '@/components/LectureThumb';
+import { isLectureWatched } from '@/lib/progressSync';
 import {
   getBookmarkedCourseIds,
   toggleCourseBookmark,
@@ -201,6 +203,19 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                           <div key={vid.id || idx} className="saved-video-row">
                             <div className="saved-video-left">
                               <span className="saved-video-idx">#{idx + 1}</span>
+                              <LectureThumb
+                                item={{
+                                  id: vid.id,
+                                  label: vid.label,
+                                  url: vid.url,
+                                  type: (vid.type as any) || 'stream',
+                                  servers: vid.servers,
+                                  links: vid.links,
+                                }}
+                                index={idx}
+                                isWatched={isLectureWatched(vid.url)}
+                                variant="compact"
+                              />
                               <div className="saved-video-info">
                                 <div className="saved-video-title">{vid.label}</div>
                                 {vid.subject && (

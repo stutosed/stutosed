@@ -7,6 +7,7 @@ import { UserProfile } from '@/types';
 import { User, Mail, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ShieldCheck, ArrowRight } from 'lucide-react';
 import { getAvatarGradient, getInitials } from '@/components/ProfileMenu';
 import { authClient } from '@/lib/auth-client';
+import { setActiveSyncUser, purgeLegacyLocalSyncCache } from '@/lib/progressSync';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,33 +37,29 @@ export default function LoginPage() {
   }, [password]);
 
   useEffect(() => {
-    authClient.getSession().then((sessionRes) => {
-      if (sessionRes?.data?.user) {
-        const u = sessionRes.data.user;
-        const profile: UserProfile = {
-          id: u.id,
-          email: u.email,
-          full_name: u.name || 'Student',
-          avatar_url: u.image || '/profile_icon.jpg',
-        };
-        setUser(profile);
-        localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
-        return;
-      }
-      try {
-        const savedUser = localStorage.getItem('stutosed_user_profile');
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
+    purgeLegacyLocalSyncCache();
+    authClient
+      .getSession()
+      .then((sessionRes) => {
+        if (sessionRes?.data?.user) {
+          const u = sessionRes.data.user;
+          const profile: UserProfile = {
+            id: u.id,
+            email: u.email,
+            full_name: u.name || 'Student',
+            avatar_url: u.image || '/profile_icon.jpg',
+          };
+          setUser(profile);
+          setActiveSyncUser(profile);
+          return;
         }
-      } catch {}
-    }).catch(() => {
-      try {
-        const savedUser = localStorage.getItem('stutosed_user_profile');
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
-        }
-      } catch {}
-    });
+        setActiveSyncUser(null);
+        setUser(null);
+      })
+      .catch(() => {
+        setActiveSyncUser(null);
+        setUser(null);
+      });
   }, []);
 
   const handleGoogleLogin = async () => {
@@ -128,8 +125,7 @@ export default function LoginPage() {
           full_name: cleanName,
           avatar_url: res.data?.user?.image || '/profile_icon.jpg',
         };
-        localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
-        localStorage.setItem('stutosed_user_name', cleanName);
+        setActiveSyncUser(profile);
         setUser(profile);
         setMessage({ text: 'Welcome! Account created successfully.', type: 'success' });
         setTimeout(() => {
@@ -153,8 +149,7 @@ export default function LoginPage() {
           full_name: res.data?.user?.name || cleanName,
           avatar_url: res.data?.user?.image || '/profile_icon.jpg',
         };
-        localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
-        localStorage.setItem('stutosed_user_name', profile.full_name || 'Student');
+        setActiveSyncUser(profile);
         setUser(profile);
         setMessage({ text: 'Welcome back! Signed in successfully.', type: 'success' });
         setTimeout(() => {
@@ -172,12 +167,12 @@ export default function LoginPage() {
     try {
       await authClient.signOut();
     } catch {}
-    localStorage.removeItem('stutosed_user_profile');
+    setActiveSyncUser(null);
     setUser(null);
     setMessage({ text: 'Signed out successfully.', type: 'success' });
   };
 
-  const userName = user?.full_name || 'Advik';
+  const userName = user?.full_name || 'Student';
   const initials = getInitials(userName);
   const avatarBg = getAvatarGradient(userName);
 
@@ -308,7 +303,7 @@ export default function LoginPage() {
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. Advik"
+                      placeholder="e.g. Aarav Sharma"
                       style={{ width: '100%', height: '42px', padding: '10px 14px 10px 36px', borderRadius: 'var(--r-md)', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: '14px', outline: 'none' }}
                     />
                   </div>
@@ -326,7 +321,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="advik@stutosed.com"
+                    placeholder="you@example.com"
                     style={{ width: '100%', height: '42px', padding: '10px 14px 10px 36px', borderRadius: 'var(--r-md)', background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: '14px', outline: 'none' }}
                   />
                 </div>

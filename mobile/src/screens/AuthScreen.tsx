@@ -464,7 +464,7 @@ export const AuthScreen: React.FC = () => {
                   <User size={15} color={colors.textDim} />
                   <TextInput
                     style={[styles.input, { color: colors.text }]}
-                    placeholder="e.g. Advik"
+                    placeholder="e.g. Aarav Sharma"
                     placeholderTextColor={colors.textDim}
                     value={fullName}
                     onChangeText={setFullName}
@@ -486,7 +486,7 @@ export const AuthScreen: React.FC = () => {
                 <Mail size={15} color={colors.textDim} />
                 <TextInput
                   style={[styles.input, { color: colors.text }]}
-                  placeholder="advik@stutosed.com"
+                  placeholder="you@example.com"
                   placeholderTextColor={colors.textDim}
                   value={email}
                   onChangeText={setEmail}

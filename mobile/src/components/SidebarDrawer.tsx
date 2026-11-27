@@ -51,12 +51,13 @@ export const SidebarDrawer: React.FC = () => {
   const [activeRouteName, setActiveRouteName] = useState<string>('HomeTab');
   const slideX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const navStagger = useRef(
-    Array.from({ length: 7 }, () => new Animated.Value(0))
-  ).current;
+  const isAnimatingOutRef = useRef(false);
+  const modalVisibleRef = useRef(modalVisible);
+  modalVisibleRef.current = modalVisible;
 
   useEffect(() => {
     if (isOpen) {
+      isAnimatingOutRef.current = false;
       try {
         if (navigationRef.isReady()) {
           const current = navigationRef.getCurrentRoute();
@@ -75,59 +76,55 @@ export const SidebarDrawer: React.FC = () => {
         }
       } catch {}
 
-      setModalVisible(true);
+      slideX.stopAnimation();
+      backdropOpacity.stopAnimation();
       slideX.setValue(-DRAWER_WIDTH);
       backdropOpacity.setValue(0);
-      navStagger.forEach((v) => v.setValue(0));
+      setModalVisible(true);
 
-      Animated.parallel([
-        Animated.spring(slideX, {
-          toValue: 0,
-          damping: 25,
-          stiffness: 260,
-          mass: 0.85,
-          useNativeDriver: true,
-        }),
-        Animated.timing(backdropOpacity, {
-          toValue: 1,
-          duration: 250,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.stagger(
-          32,
-          navStagger.map((v) =>
-            Animated.timing(v, {
-              toValue: 1,
-              duration: 210,
-              delay: 50,
-              easing: Easing.out(Easing.cubic),
-              useNativeDriver: true,
-            })
-          )
-        ),
-      ]).start();
-    } else if (modalVisible) {
+      const frameId = requestAnimationFrame(() => {
+        Animated.parallel([
+          Animated.timing(slideX, {
+            toValue: 0,
+            duration: 220,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(backdropOpacity, {
+            toValue: 1,
+            duration: 220,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
+
+      return () => cancelAnimationFrame(frameId);
+    } else if (modalVisibleRef.current && !isAnimatingOutRef.current) {
+      isAnimatingOutRef.current = true;
+      slideX.stopAnimation();
+      backdropOpacity.stopAnimation();
       Animated.parallel([
         Animated.timing(slideX, {
           toValue: -DRAWER_WIDTH,
-          duration: 195,
+          duration: 185,
           easing: Easing.in(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(backdropOpacity, {
           toValue: 0,
-          duration: 185,
+          duration: 175,
           easing: Easing.in(Easing.quad),
           useNativeDriver: true,
         }),
       ]).start(({ finished }) => {
+        isAnimatingOutRef.current = false;
         if (finished) {
           setModalVisible(false);
         }
       });
     }
-  }, [isOpen, modalVisible, slideX, backdropOpacity, navStagger]);
+  }, [isOpen, slideX, backdropOpacity]);
 
   const userName = user?.full_name || user?.email?.split('@')[0] || 'Student';
   const initials = getInitials(userName);
@@ -178,31 +175,78 @@ export const SidebarDrawer: React.FC = () => {
   const drawerPanResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponderCapture: (_, gesture) =>
-        gesture.dx < -16 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.5,
+      onMoveShouldSetPanResponder: (_, gesture) =>
+        gesture.dx < -14 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.6,
+      onPanResponderGrant: () => {
+        slideX.stopAnimation();
+        backdropOpacity.stopAnimation();
+      },
       onPanResponderMove: (_, gesture) => {
         const clampedX = Math.max(-DRAWER_WIDTH, Math.min(0, gesture.dx));
         slideX.setValue(clampedX);
-        backdropOpacity.setValue(1 + clampedX / DRAWER_WIDTH);
+        backdropOpacity.setValue(Math.max(0, 1 + clampedX / DRAWER_WIDTH));
       },
       onPanResponderRelease: (_, gesture) => {
-        if (gesture.dx < -65 || gesture.vx < -0.4) {
-          closeDrawerRef.current();
+        const clampedX = Math.max(-DRAWER_WIDTH, Math.min(0, gesture.dx));
+        if (gesture.dx < -60 || gesture.vx < -0.38) {
+          const remainingRatio = 1 + clampedX / DRAWER_WIDTH;
+          const duration = Math.max(85, Math.round(170 * remainingRatio));
+          isAnimatingOutRef.current = true;
+          slideX.stopAnimation();
+          backdropOpacity.stopAnimation();
+          Animated.parallel([
+            Animated.timing(slideX, {
+              toValue: -DRAWER_WIDTH,
+              duration,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }),
+            Animated.timing(backdropOpacity, {
+              toValue: 0,
+              duration,
+              easing: Easing.out(Easing.quad),
+              useNativeDriver: true,
+            }),
+          ]).start(() => {
+            isAnimatingOutRef.current = false;
+            setModalVisible(false);
+            closeDrawerRef.current();
+          });
         } else {
+          slideX.stopAnimation();
+          backdropOpacity.stopAnimation();
           Animated.parallel([
             Animated.timing(slideX, {
               toValue: 0,
-              duration: 180,
+              duration: 165,
               easing: Easing.out(Easing.cubic),
               useNativeDriver: true,
             }),
             Animated.timing(backdropOpacity, {
               toValue: 1,
-              duration: 160,
+              duration: 150,
               useNativeDriver: true,
             }),
           ]).start();
         }
+      },
+      onPanResponderTerminate: () => {
+        if (isAnimatingOutRef.current) return;
+        slideX.stopAnimation();
+        backdropOpacity.stopAnimation();
+        Animated.parallel([
+          Animated.timing(slideX, {
+            toValue: 0,
+            duration: 150,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(backdropOpacity, {
+            toValue: 1,
+            duration: 140,
+            useNativeDriver: true,
+          }),
+        ]).start();
       },
     })
   ).current;
@@ -312,47 +356,32 @@ export const SidebarDrawer: React.FC = () => {
                   iconColor: colors.textMuted,
                   onPress: () => navigateScreen('Help'),
                 },
-              ].map((item, idx) => {
-                const animVal = navStagger[idx];
+              ].map((item) => {
                 const isActive = activeRouteName === item.key;
                 const IconComp = item.icon;
                 return (
-                  <Animated.View
+                  <TouchableOpacity
                     key={item.key}
-                    style={{
-                      opacity: animVal,
-                      transform: [
-                        {
-                          translateX: animVal.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [-14, 0],
-                          }),
-                        },
-                      ],
-                    }}
+                    style={[
+                      styles.navItem,
+                      isActive && { backgroundColor: 'rgba(204, 120, 92, 0.11)' },
+                    ]}
+                    onPress={item.onPress}
+                    activeOpacity={0.7}
                   >
-                    <TouchableOpacity
+                    <IconComp
+                      size={18}
+                      color={isActive ? colors.accent : item.iconColor}
+                    />
+                    <Text
                       style={[
-                        styles.navItem,
-                        isActive && { backgroundColor: 'rgba(204, 120, 92, 0.11)' },
+                        styles.navLabel,
+                        { color: isActive ? colors.accent : colors.text },
                       ]}
-                      onPress={item.onPress}
-                      activeOpacity={0.7}
                     >
-                      <IconComp
-                        size={18}
-                        color={isActive ? colors.accent : item.iconColor}
-                      />
-                      <Text
-                        style={[
-                          styles.navLabel,
-                          { color: isActive ? colors.accent : colors.text },
-                        ]}
-                      >
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  </Animated.View>
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
                 );
               })}
             </ScrollView>

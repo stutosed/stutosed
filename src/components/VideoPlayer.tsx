@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Hls from 'hls.js';
 import { LectureItem, ServerOption } from '@/types';
+import { LectureThumb } from '@/components/LectureThumb';
 import { getWorkerProxyUrl } from '@/lib/proxyConfig';
 import { getLectureTopicDescription } from '@/lib/topicDescriptions';
 import {
@@ -15,6 +16,9 @@ import {
   syncLectureWatched,
   syncCourseMemory,
   syncVideoProgress,
+  isLectureWatched,
+  getVideoProgressSeconds,
+  pullCloudUserData,
 } from '@/lib/progressSync';
 import {
   Bookmark,
@@ -143,18 +147,28 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3];
 
-  // Sync Library states
+  // Hydrate library & Turso watch states without localStorage caching
   useEffect(() => {
-    if (courseId) {
-      setIsBookmarked(isCourseBookmarked(courseId));
-    }
-    if (currentItem?.url) {
-      setIsSaved(isVideoSaved(currentItem.url));
-      try {
-        const watched = JSON.parse(localStorage.getItem('stutosed_watched_lectures') || '[]');
-        setIsWatched(watched.includes(currentItem.url));
-      } catch {}
-    }
+    pullCloudUserData().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const syncStateFromMemory = () => {
+      if (courseId) {
+        setIsBookmarked(isCourseBookmarked(courseId));
+      }
+      if (currentItem?.url) {
+        setIsSaved(isVideoSaved(currentItem.url));
+        setIsWatched(isLectureWatched(currentItem.url));
+      }
+    };
+    syncStateFromMemory();
+    window.addEventListener('stutosed_progress_updated', syncStateFromMemory);
+    window.addEventListener('stutosed_library_updated', syncStateFromMemory);
+    return () => {
+      window.removeEventListener('stutosed_progress_updated', syncStateFromMemory);
+      window.removeEventListener('stutosed_library_updated', syncStateFromMemory);
+    };
   }, [courseId, currentItem]);
 
   // Reset states & trigger loading notice when lecture index or server changes
@@ -453,25 +467,20 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }, [videoSourceUrl, playbackSpeed]);
 
-  // Progress Memory: Resume where left off & record watch progress
+  // Progress Memory: Resume where left off & record watch progress in Turso
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !currentItem) return;
 
-    const progressKey = `stutosed_progress_${currentItem.id || currentItem.url}`;
+    const progressKey = currentItem.id || currentItem.url;
 
     const handleLoadedMetadata = () => {
       setDuration(video.duration || 0);
-      try {
-        const saved = localStorage.getItem(progressKey);
-        if (saved) {
-          const savedTime = parseFloat(saved);
-          if (savedTime > 5 && video.duration && savedTime < video.duration - 15) {
-            video.currentTime = savedTime;
-            setCurrentTime(savedTime);
-          }
-        }
-      } catch {}
+      const savedTime = getVideoProgressSeconds(progressKey);
+      if (savedTime > 5 && video.duration && savedTime < video.duration - 15) {
+        video.currentTime = savedTime;
+        setCurrentTime(savedTime);
+      }
     };
 
     let lastSave = 0;
@@ -1725,6 +1734,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                           <span className="yt-item-number">{idx + 1}</span>
                         )}
                       </div>
+
+                      <LectureThumb
+                        item={lec}
+                        index={idx}
+                        isWatched={isLectureWatched(lec.url)}
+                        variant="compact"
+                      />
 
                       <div className="yt-item-info">
                         <div className="yt-item-title">{lec.label}</div>

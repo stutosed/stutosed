@@ -78,7 +78,7 @@ export const Header: React.FC = () => {
     }
   }, [menuOpen, popupOpacity, popupScale, popupY]);
 
-  const userName = user?.full_name || user?.email?.split('@')[0] || 'Advik';
+  const userName = user?.full_name || user?.email?.split('@')[0] || 'Student';
   const initials = getInitials(userName);
 
   const handleNavigateTab = (tab: 'HomeTab' | 'CoursesTab' | 'LibraryTab' | 'ProfileTab') => {

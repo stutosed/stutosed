@@ -19,7 +19,14 @@ import { INITIAL_COURSES, getTotalStats, getCourseById, getCoursesByCategory, lo
 import { getSubjectThumbnail, getDynamicThumbnailUrl } from '@/lib/subjectThumbnails';
 import { Course, LectureItem, UserProfile } from '@/types';
 import { getWorkerProxyUrl, resolveDirectMediaUrl } from '@/lib/proxyConfig';
-import { pullCloudUserData, syncLectureWatched } from '@/lib/progressSync';
+import {
+  pullCloudUserData,
+  syncLectureWatched,
+  setActiveSyncUser,
+  purgeLegacyLocalSyncCache,
+  getWatchedLecturesMap,
+  getLastPlayedMemory,
+} from '@/lib/progressSync';
 import { authClient } from '@/lib/auth-client';
 import {
   BookOpen,
@@ -52,9 +59,6 @@ import {
   Atom,
   Cpu,
 } from 'lucide-react';
-
-const WATCHED_KEY = 'onafbu_watched_v1';
-const LAST_PLAYED_KEY = 'stutosed_last_played_v1';
 
 // Animated Counter Sub-Component for Hero Stats
 const StatCounter: React.FC<{ value: number; label: string; suffix?: string }> = ({
@@ -204,7 +208,7 @@ export default function HomePage() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAuthCompulsory, setIsAuthCompulsory] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [userName, setUserName] = useState<string>('Advik');
+  const [userName, setUserName] = useState<string>('Student');
   const [memberSince, setMemberSince] = useState<string>('August 2026');
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
   const [nameInput, setNameInput] = useState<string>('');
@@ -332,25 +336,8 @@ export default function HomePage() {
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
 
-      const savedWatched = JSON.parse(localStorage.getItem(WATCHED_KEY) || '{}');
-      setWatchedUrls(new Set(Object.keys(savedWatched)));
-
-      const savedName = localStorage.getItem('stutosed_user_name');
-      if (savedName) setUserName(savedName);
-
-      const savedMemberSince = localStorage.getItem('stutosed_member_since');
-      if (savedMemberSince) {
-        setMemberSince(savedMemberSince);
-      } else {
-        const monthYear = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        setMemberSince(monthYear);
-        localStorage.setItem('stutosed_member_since', monthYear);
-      }
-
-      const savedLast = localStorage.getItem(LAST_PLAYED_KEY);
-      if (savedLast) {
-        setLastPlayed(JSON.parse(savedLast));
-      }
+      purgeLegacyLocalSyncCache();
+      setMemberSince(new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }));
 
       // Restore view & course from URL query params or sessionStorage on refresh
       if (typeof window !== 'undefined') {
@@ -485,29 +472,17 @@ export default function HomePage() {
     } catch {}
   }, []);
 
-  // Student Profile loader (Local State & Offline-First backed by Better Auth)
+  // Better Auth session & Turso cloud state loader (never caches synced data locally)
   useEffect(() => {
-    try {
-      const savedName = localStorage.getItem('stutosed_user_name') || 'Advik';
-      setUserName(savedName);
-      setMemberSince('October 2026');
+    let cancelled = false;
+    purgeLegacyLocalSyncCache();
 
-      const savedProfile = localStorage.getItem('stutosed_user_profile');
-      if (savedProfile) {
-        setUser(JSON.parse(savedProfile));
-      } else {
-        setUser({
-          id: 'local_student',
-          email: 'student@stutosed.in',
-          full_name: savedName,
-          avatar_url: undefined,
-        });
-      }
-
-      // Check live Better Auth session
-      authClient.getSession().then((sessionRes) => {
-        if (sessionRes?.data?.user) {
-          const u = sessionRes.data.user;
+    authClient
+      .getSession()
+      .then(async (sessionRes) => {
+        if (cancelled) return;
+        const u = sessionRes?.data?.user;
+        if (u) {
           const profile: UserProfile = {
             id: u.id,
             email: u.email,
@@ -516,38 +491,41 @@ export default function HomePage() {
           };
           setUser(profile);
           setUserName(profile.full_name || 'Student');
-          localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
+          setActiveSyncUser(profile);
+          await pullCloudUserData(profile.id);
+          if (cancelled) return;
+          setWatchedUrls(new Set(Object.keys(getWatchedLecturesMap())));
+          setLastPlayed(getLastPlayedMemory());
+        } else {
+          setActiveSyncUser(null);
+          setUser(null);
+          setUserName('Student');
+          setWatchedUrls(new Set());
+          setLastPlayed(null);
         }
-      }).catch(() => {});
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setActiveSyncUser(null);
+        setUser(null);
+        setUserName('Student');
+      });
 
-      pullCloudUserData()
-        .then(() => {
-          try {
-            const savedWatched = JSON.parse(localStorage.getItem(WATCHED_KEY) || '{}');
-            setWatchedUrls(new Set(Object.keys(savedWatched)));
-            const savedLast = localStorage.getItem(LAST_PLAYED_KEY);
-            if (savedLast) setLastPlayed(JSON.parse(savedLast));
-          } catch {}
-        })
-        .catch(() => {});
-    } catch {}
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Synchronize watched progress from background cloud sync, other tabs, and window/app focus
+  // Synchronize watched progress from in-memory Turso store & window/app focus
   useEffect(() => {
     const handleProgressUpdate = () => {
-      try {
-        const savedWatched = JSON.parse(localStorage.getItem(WATCHED_KEY) || '{}');
-        setWatchedUrls(new Set(Object.keys(savedWatched)));
-        const savedLast = localStorage.getItem(LAST_PLAYED_KEY);
-        if (savedLast) setLastPlayed(JSON.parse(savedLast));
-      } catch {}
+      setWatchedUrls(new Set(Object.keys(getWatchedLecturesMap())));
+      setLastPlayed(getLastPlayedMemory());
     };
 
     window.addEventListener('stutosed_progress_updated', handleProgressUpdate);
-    window.addEventListener('storage', handleProgressUpdate);
 
-    // Auto-sync when tab becomes visible or focused (e.g. user switching between mobile & PC)
+    // Auto-sync from Turso when tab becomes visible or focused (e.g. switching between mobile & PC)
     const handleFocus = () => {
       if (document.visibilityState === 'visible') {
         pullCloudUserData()
@@ -560,7 +538,6 @@ export default function HomePage() {
 
     return () => {
       window.removeEventListener('stutosed_progress_updated', handleProgressUpdate);
-      window.removeEventListener('storage', handleProgressUpdate);
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleFocus);
     };
@@ -797,20 +774,13 @@ export default function HomePage() {
   const selectedCourseRef = useRef(selectedCourse);
   selectedCourseRef.current = selectedCourse;
 
-  // Mark URL as watched (Local + Database Cloud) - Memoized with guard against redundant renders
+  // Mark URL as watched (In-Memory + Turso Cloud) - Memoized with guard against redundant renders
   const handleMarkWatched = useCallback((url: string, courseId?: string, label?: string) => {
     if (!url) return;
     setWatchedUrls((prev) => {
       if (prev.has(url)) return prev;
       const next = new Set(prev);
       next.add(url);
-
-      try {
-        const savedWatched = JSON.parse(localStorage.getItem(WATCHED_KEY) || '{}');
-        savedWatched[url] = Date.now();
-        localStorage.setItem(WATCHED_KEY, JSON.stringify(savedWatched));
-      } catch {}
-
       return next;
     });
 
@@ -892,9 +862,6 @@ export default function HomePage() {
           timestamp: Date.now(),
         };
         setLastPlayed(memoryObj);
-        try {
-          localStorage.setItem(LAST_PLAYED_KEY, JSON.stringify(memoryObj));
-        } catch {}
       }
 
       // If YouTube URL, open directly in YouTube in a new tab
@@ -1086,9 +1053,11 @@ export default function HomePage() {
           onSelectView={(v) => handleViewChange(v)}
           onSignOut={() => {
             authClient.signOut().catch(() => {});
-            localStorage.removeItem('stutosed_user_profile');
+            setActiveSyncUser(null);
             setUser(null);
-            setUserName('Advik');
+            setUserName('Student');
+            setWatchedUrls(new Set());
+            setLastPlayed(null);
             setIsAuthCompulsory(false);
             setIsAuthOpen(false);
           }}
@@ -2180,16 +2149,11 @@ export default function HomePage() {
                       />
                       <button
                         onClick={() => {
-                          const clean = nameInput.trim() || 'Advik';
+                          const clean = nameInput.trim() || 'Student';
                           setUserName(clean);
-                          try {
-                            localStorage.setItem('stutosed_user_name', clean);
-                            if (user) {
-                              const updated = { ...user, full_name: clean };
-                              setUser(updated);
-                              localStorage.setItem('stutosed_user_profile', JSON.stringify(updated));
-                            }
-                          } catch {}
+                          if (user) {
+                            setUser({ ...user, full_name: clean });
+                          }
                           setIsEditingName(false);
                         }}
                         style={{
@@ -2268,9 +2232,12 @@ export default function HomePage() {
                 {user ? (
                   <button
                     onClick={() => {
-                      localStorage.removeItem('stutosed_user_profile');
+                      authClient.signOut().catch(() => {});
+                      setActiveSyncUser(null);
                       setUser(null);
-                      setUserName('Advik');
+                      setUserName('Student');
+                      setWatchedUrls(new Set());
+                      setLastPlayed(null);
                       setIsAuthCompulsory(false);
                       setIsAuthOpen(false);
                     }}
@@ -2766,9 +2733,12 @@ export default function HomePage() {
         onClose={() => setIsAuthOpen(false)}
         user={user}
         onSignOut={() => {
-          localStorage.removeItem('stutosed_user_profile');
+          authClient.signOut().catch(() => {});
+          setActiveSyncUser(null);
           setUser(null);
-          setUserName('Advik');
+          setUserName('Student');
+          setWatchedUrls(new Set());
+          setLastPlayed(null);
           setIsAuthCompulsory(false);
           setIsAuthOpen(false);
         }}

@@ -1,312 +1,395 @@
 'use client';
 
 /**
- * Turso Database Cloud Progress & Library Sync Engine
- * Synchronizes student watch history, video playback positions, course memory,
- * and library bookmarks with Turso Edge SQLite Database via /api/v1/sync,
- * with an instant 0ms localStorage optimistic cache.
+ * Turso Database Cloud Progress & Library Sync Engine (Turso-Only, Zero localStorage Sync Cache)
+ * All synced student state (watch history, video progress, course memory, bookmarks, saved videos)
+ * lives strictly in Turso SQLite via /api/v1/sync and is held only in memory for the active session.
  */
 
-import { SavedVideoItem } from '@/lib/libraryStorage';
+import type { SavedVideoItem } from '@/lib/libraryStorage';
+import type { UserProfile } from '@/types';
 import { apiClient } from '@/lib/api-client';
+import { authClient } from '@/lib/auth-client';
+import { getCourseById } from '@/lib/coursesData';
 
-const WATCHED_KEY_V1 = 'onafbu_watched_v1';
-const WATCHED_KEY_LEGACY = 'stutosed_watched_lectures';
-const LAST_PLAYED_KEY_V1 = 'stutosed_last_played_v1';
-const LAST_PLAYED_KEY_LEGACY = 'stutosed_last_played';
-const BOOKMARK_KEY = 'stutosed_bookmarked_courses';
-const SAVED_VIDEOS_KEY = 'stutosed_saved_videos';
+export interface LastPlayedMemory {
+  courseId: string;
+  courseName: string;
+  courseThumb: string;
+  lectureTitle: string;
+  url: string;
+  timestamp: number;
+}
+
+interface CloudSyncResponse {
+  watchHistory: Array<{ lecture_url: string; course_id: string; watched_at: string }>;
+  videoProgress: Array<{ lecture_id: string; seconds: number; duration?: number }>;
+  bookmarks: string[];
+  savedVideos: SavedVideoItem[];
+  courseMemory: Array<{ course_id: string; last_tab_id: string; last_lecture_url: string; updated_at: string }>;
+  profile: UserProfile | null;
+}
+
+const LEGACY_SYNC_KEYS = [
+  'onafbu_watched_v1',
+  'stutosed_watched_lectures',
+  'stutosed_last_played_v1',
+  'stutosed_last_played',
+  'last_played',
+  'stutosed_bookmarked_courses',
+  'stutosed_saved_videos',
+  'stutosed_student_id',
+  'stutosed_user_profile',
+  'stutosed_user_name',
+  'stutosed_member_since',
+];
 
 const progressThrottleMap = new Map<string, number>();
 
-/**
- * Gets or initializes student user ID
- */
-export function getOrCreateStudentId(): string {
-  if (typeof window === 'undefined') return 'guest';
-  try {
-    const profileRaw = localStorage.getItem('stutosed_user_profile');
-    if (profileRaw) {
-      const p = JSON.parse(profileRaw);
-      if (p.id) return p.id;
-    }
-    let localId = localStorage.getItem('stutosed_student_id');
-    if (!localId) {
-      localId = 'std_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-      localStorage.setItem('stutosed_student_id', localId);
-    }
-    return localId;
-  } catch {
-    return 'guest_student';
+// Strictly in-memory session state populated from Turso (never persisted to localStorage)
+let activeSyncUserId: string | null = null;
+let pendingSessionPromise: Promise<string | null> | null = null;
+let cloudWatchedMap: Record<string, number> = {};
+let cloudVideoProgress: Record<string, number> = {};
+let cloudBookmarks: string[] = [];
+let cloudSavedVideos: SavedVideoItem[] = [];
+let cloudLastPlayed: LastPlayedMemory | null = null;
+
+function notifyProgressUpdated() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('stutosed_progress_updated'));
+  }
+}
+
+function notifyLibraryUpdated() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('stutosed_library_updated'));
   }
 }
 
 /**
- * 1. RECORD LECTURE WATCHED
+ * Removes any legacy synced data from localStorage so no user sync state stays cached locally.
+ */
+export function purgeLegacyLocalSyncCache(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    for (const key of LEGACY_SYNC_KEYS) {
+      localStorage.removeItem(key);
+    }
+    const keysToDelete: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('stutosed_progress_')) {
+        keysToDelete.push(key);
+      }
+    }
+    for (const key of keysToDelete) {
+      localStorage.removeItem(key);
+    }
+  } catch {}
+}
+
+export function clearInMemoryCloudState(): void {
+  cloudWatchedMap = {};
+  cloudVideoProgress = {};
+  cloudBookmarks = [];
+  cloudSavedVideos = [];
+  cloudLastPlayed = null;
+  progressThrottleMap.clear();
+  notifyProgressUpdated();
+  notifyLibraryUpdated();
+}
+
+export function setActiveSyncUser(user: UserProfile | null): void {
+  activeSyncUserId = user?.id || null;
+  pendingSessionPromise = null;
+  purgeLegacyLocalSyncCache();
+  if (!activeSyncUserId) {
+    clearInMemoryCloudState();
+  }
+}
+
+export async function resolveAuthenticatedUserId(): Promise<string | null> {
+  if (typeof window === 'undefined') return null;
+  if (activeSyncUserId) return activeSyncUserId;
+  if (!pendingSessionPromise) {
+    pendingSessionPromise = authClient
+      .getSession()
+      .then((res) => {
+        const uid = res?.data?.user?.id || null;
+        activeSyncUserId = uid;
+        return uid;
+      })
+      .catch(() => null)
+      .finally(() => {
+        pendingSessionPromise = null;
+      });
+  }
+  return pendingSessionPromise;
+}
+
+export function getOrCreateStudentId(): string {
+  return activeSyncUserId || '';
+}
+
+// =========================================================================
+// IN-MEMORY GETTERS (HYDRATED FROM TURSO)
+// =========================================================================
+export function getWatchedLecturesMap(): Record<string, number> {
+  return { ...cloudWatchedMap };
+}
+
+export function isLectureWatched(url: string): boolean {
+  return Boolean(url && cloudWatchedMap[url]);
+}
+
+export function getLastPlayedMemory(): LastPlayedMemory | null {
+  return cloudLastPlayed;
+}
+
+export function getVideoProgressSeconds(lectureId: string): number {
+  return lectureId ? cloudVideoProgress[lectureId] || 0 : 0;
+}
+
+export function getCloudBookmarks(): string[] {
+  return [...cloudBookmarks];
+}
+
+export function setCloudBookmarksLocal(nextBookmarks: string[]): void {
+  cloudBookmarks = Array.from(new Set(nextBookmarks));
+  notifyLibraryUpdated();
+}
+
+export function getCloudSavedVideos(): SavedVideoItem[] {
+  return [...cloudSavedVideos];
+}
+
+export function setCloudSavedVideosLocal(nextSaved: SavedVideoItem[]): void {
+  cloudSavedVideos = [...nextSaved];
+  notifyLibraryUpdated();
+}
+
+async function postSync(userId: string, action: string, payload: Record<string, unknown>): Promise<void> {
+  try {
+    await apiClient('/api/v1/sync', {
+      method: 'POST',
+      body: JSON.stringify({ userId, action, payload }),
+    });
+  } catch (err) {
+    console.warn(`[progressSync] Turso ${action} sync failed:`, err);
+  }
+}
+
+/**
+ * 1. SYNC WATCH HISTORY (MARK / UNMARK LECTURE)
  */
 export async function syncLectureWatched(
   courseId: string,
   lectureUrl: string,
-  lectureTitle?: string
+  label?: string,
+  isWatched = true
 ): Promise<void> {
   if (typeof window === 'undefined' || !lectureUrl) return;
 
-  const now = Date.now();
+  if (isWatched) {
+    cloudWatchedMap[lectureUrl] = Date.now();
+  } else {
+    delete cloudWatchedMap[lectureUrl];
+  }
+  notifyProgressUpdated();
 
-  try {
-    const watchedMap = JSON.parse(localStorage.getItem(WATCHED_KEY_V1) || '{}');
-    watchedMap[lectureUrl] = now;
-    localStorage.setItem(WATCHED_KEY_V1, JSON.stringify(watchedMap));
+  const userId = await resolveAuthenticatedUserId();
+  if (!userId) return;
 
-    const legacyList = JSON.parse(localStorage.getItem(WATCHED_KEY_LEGACY) || '[]');
-    if (!legacyList.includes(lectureUrl)) {
-      legacyList.push(lectureUrl);
-      localStorage.setItem(WATCHED_KEY_LEGACY, JSON.stringify(legacyList));
-    }
-
-    window.dispatchEvent(new Event('stutosed_progress_updated'));
-  } catch {}
-
-  // Sync to Turso database asynchronously
-  try {
-    const userId = getOrCreateStudentId();
-    apiClient('/api/v1/sync', {
-      method: 'POST',
-      body: JSON.stringify({
-        userId,
-        action: 'watch',
-        payload: { courseId, lectureUrl, lectureTitle },
-      }),
-    }).catch(() => {});
-  } catch {}
+  await postSync(userId, 'watch', {
+    courseId: courseId || 'unknown',
+    lectureUrl,
+    label,
+    isWatched,
+  });
 }
 
 /**
- * 2. RECORD COURSE MEMORY (LAST PLAYED)
+ * 2. SYNC COURSE MEMORY (LAST PLAYED LECTURE & CONTINUE WATCHING)
  */
 export async function syncCourseMemory(
   courseId: string,
-  tabId: string,
+  subjectName: string,
   lectureUrl: string,
-  extraMeta?: { courseName?: string; courseThumb?: string; lectureTitle?: string }
+  meta?: {
+    courseName?: string;
+    courseThumb?: string;
+    lectureTitle?: string;
+  }
 ): Promise<void> {
-  if (typeof window === 'undefined' || !courseId || !lectureUrl) return;
+  if (typeof window === 'undefined' || !lectureUrl) return;
 
-  const mem = {
-    courseId,
-    courseName: extraMeta?.courseName || '',
-    courseThumb: extraMeta?.courseThumb || '',
-    lectureTitle: extraMeta?.lectureTitle || '',
+  cloudLastPlayed = {
+    courseId: courseId || '',
+    courseName: meta?.courseName || '',
+    courseThumb: meta?.courseThumb || '',
+    lectureTitle: meta?.lectureTitle || '',
     url: lectureUrl,
     timestamp: Date.now(),
   };
+  notifyProgressUpdated();
 
-  try {
-    localStorage.setItem(LAST_PLAYED_KEY_V1, JSON.stringify(mem));
-    localStorage.setItem(LAST_PLAYED_KEY_LEGACY, JSON.stringify(mem));
-  } catch {}
+  const userId = await resolveAuthenticatedUserId();
+  if (!userId) return;
 
-  try {
-    const userId = getOrCreateStudentId();
-    apiClient('/api/v1/sync', {
-      method: 'POST',
-      body: JSON.stringify({
-        userId,
-        action: 'memory',
-        payload: {
-          courseId,
-          lastTabId: tabId || 'videos',
-          lastLectureUrl: lectureUrl,
-        },
-      }),
-    }).catch(() => {});
-  } catch {}
+  await postSync(userId, 'memory', {
+    courseId: courseId || 'unknown',
+    lastTabId: subjectName || 'videos',
+    lastLectureUrl: lectureUrl,
+  });
 }
 
 /**
- * 3. RECORD VIDEO PLAYBACK PROGRESS (TIMESTAMP SECONDS)
+ * 3. SYNC VIDEO PLAYBACK PROGRESS (RESUME SECONDS)
  */
 export async function syncVideoProgress(
-  lectureKey: string,
+  lectureId: string,
   seconds: number,
   duration?: number
 ): Promise<void> {
-  if (typeof window === 'undefined' || !lectureKey || seconds < 3) return;
+  if (typeof window === 'undefined' || !lectureId || isNaN(seconds)) return;
 
-  const storageKey = `stutosed_progress_${lectureKey}`;
-
-  try {
-    localStorage.setItem(storageKey, String(Math.floor(seconds)));
-  } catch {}
+  const floored = Math.floor(seconds);
+  cloudVideoProgress[lectureId] = floored;
 
   const now = Date.now();
-  const lastSync = progressThrottleMap.get(lectureKey) || 0;
-  if (now - lastSync < 6000) return; // Throttled every 6 seconds
-  progressThrottleMap.set(lectureKey, now);
+  const lastPush = progressThrottleMap.get(lectureId) || 0;
+  if (now - lastPush < 8000) return;
+  progressThrottleMap.set(lectureId, now);
 
-  try {
-    const userId = getOrCreateStudentId();
-    apiClient('/api/v1/sync', {
-      method: 'POST',
-      body: JSON.stringify({
-        userId,
-        action: 'progress',
-        payload: {
-          lectureId: lectureKey,
-          seconds: Math.floor(seconds),
-          duration: duration ? Math.floor(duration) : undefined,
-        },
-      }),
-    }).catch(() => {});
-  } catch {}
+  const userId = await resolveAuthenticatedUserId();
+  if (!userId) return;
+
+  await postSync(userId, 'progress', {
+    lectureId,
+    seconds: floored,
+    duration: duration ? Math.floor(duration) : undefined,
+  });
 }
 
 /**
- * 4. SYNC BOOKMARKS
+ * 4. SYNC COURSE BOOKMARK (LIBRARY)
  */
 export async function syncBookmark(courseId: string, isBookmarked: boolean): Promise<void> {
   if (typeof window === 'undefined' || !courseId) return;
 
-  try {
-    const localBookmarks: string[] = JSON.parse(localStorage.getItem(BOOKMARK_KEY) || '[]');
-    const bmSet = new Set(localBookmarks);
-    if (isBookmarked) {
-      bmSet.add(courseId);
-    } else {
-      bmSet.delete(courseId);
-    }
-    localStorage.setItem(BOOKMARK_KEY, JSON.stringify(Array.from(bmSet)));
-    window.dispatchEvent(new Event('stutosed_library_updated'));
-  } catch {}
+  if (isBookmarked) {
+    cloudBookmarks = Array.from(new Set([...cloudBookmarks, courseId]));
+  } else {
+    cloudBookmarks = cloudBookmarks.filter((id) => id !== courseId);
+  }
+  notifyLibraryUpdated();
 
-  try {
-    const userId = getOrCreateStudentId();
-    apiClient('/api/v1/sync', {
-      method: 'POST',
-      body: JSON.stringify({
-        userId,
-        action: 'bookmark',
-        payload: { courseId, isBookmarked },
-      }),
-    }).catch(() => {});
-  } catch {}
+  const userId = await resolveAuthenticatedUserId();
+  if (!userId) return;
+
+  await postSync(userId, 'bookmark', { courseId, isBookmarked });
 }
 
 /**
- * 5. SYNC SAVED VIDEO
+ * 5. SYNC SAVED VIDEO (LIBRARY PLAYLIST)
  */
 export async function syncSavedVideo(video: SavedVideoItem, isSaved: boolean): Promise<void> {
-  if (typeof window === 'undefined' || !video?.id) return;
+  if (typeof window === 'undefined' || !video) return;
 
-  try {
-    const localSaved: SavedVideoItem[] = JSON.parse(localStorage.getItem(SAVED_VIDEOS_KEY) || '[]');
-    const videoKey = video.id || video.url;
-    let updated: SavedVideoItem[];
-    if (isSaved) {
-      const exists = localSaved.some((v) => (v.id || v.url) === videoKey);
-      if (!exists) {
-        updated = [...localSaved, video];
-      } else {
-        updated = localSaved;
-      }
-    } else {
-      updated = localSaved.filter((v) => (v.id || v.url) !== videoKey);
+  const videoId = video.id || video.url;
+  if (isSaved) {
+    const exists = cloudSavedVideos.some((v) => v.id === videoId || v.url === video.url);
+    if (!exists) {
+      cloudSavedVideos = [video, ...cloudSavedVideos];
     }
-    localStorage.setItem(SAVED_VIDEOS_KEY, JSON.stringify(updated));
-    window.dispatchEvent(new Event('stutosed_library_updated'));
-  } catch {}
+  } else {
+    cloudSavedVideos = cloudSavedVideos.filter((v) => v.id !== videoId && v.url !== video.url);
+  }
+  notifyLibraryUpdated();
 
-  try {
-    const userId = getOrCreateStudentId();
-    apiClient('/api/v1/sync', {
-      method: 'POST',
-      body: JSON.stringify({
-        userId,
-        action: 'saveVideo',
-        payload: {
-          videoId: video.id || video.url,
-          videoData: video,
-          isSaved,
-        },
-      }),
-    }).catch(() => {});
-  } catch {}
+  const userId = await resolveAuthenticatedUserId();
+  if (!userId) return;
+
+  await postSync(userId, 'saveVideo', {
+    videoId,
+    videoData: video,
+    isSaved,
+  });
 }
 
 /**
- * 6. PULL USER DATA FROM TURSO
+ * 6. PULL FULL CLOUD STATE DIRECTLY FROM TURSO (NO LOCAL CACHE MERGE)
  */
-export async function pullCloudUserData(): Promise<void> {
+export async function pullCloudUserData(explicitUserId?: string): Promise<void> {
   if (typeof window === 'undefined') return;
+  purgeLegacyLocalSyncCache();
 
   try {
-    const userId = getOrCreateStudentId();
-    const data = await apiClient<{
-      watchHistory: { lecture_url: string }[];
-      videoProgress: { lecture_id: string; seconds: number }[];
-      bookmarks: string[];
-      savedVideos: SavedVideoItem[];
-      courseMemory: { course_id: string; last_tab_id: string; last_lecture_url: string; updated_at: string }[];
-    }>(`/api/v1/sync?userId=${encodeURIComponent(userId)}`);
-
-    if (data) {
-      // 1. Merge Watch History
-      if (data.watchHistory && data.watchHistory.length > 0) {
-        let localMap: Record<string, number> = {};
-        try {
-          localMap = JSON.parse(localStorage.getItem(WATCHED_KEY_V1) || '{}');
-        } catch {}
-        for (const item of data.watchHistory) {
-          if (item.lecture_url && !localMap[item.lecture_url]) {
-            localMap[item.lecture_url] = Date.now();
-          }
-        }
-        localStorage.setItem(WATCHED_KEY_V1, JSON.stringify(localMap));
-      }
-
-      // 2. Merge Bookmarks
-      if (data.bookmarks && data.bookmarks.length > 0) {
-        let localBm: string[] = [];
-        try {
-          localBm = JSON.parse(localStorage.getItem(BOOKMARK_KEY) || '[]');
-        } catch {}
-        const mergedBm = Array.from(new Set([...localBm, ...data.bookmarks]));
-        localStorage.setItem(BOOKMARK_KEY, JSON.stringify(mergedBm));
-      }
-
-      // 3. Merge Saved Videos
-      if (data.savedVideos && data.savedVideos.length > 0) {
-        let localSaved: SavedVideoItem[] = [];
-        try {
-          localSaved = JSON.parse(localStorage.getItem(SAVED_VIDEOS_KEY) || '[]');
-        } catch {}
-        const seen = new Set(localSaved.map((v) => v.id || v.url));
-        for (const v of data.savedVideos) {
-          if (v && !seen.has(v.id || v.url)) {
-            localSaved.push(v);
-            seen.add(v.id || v.url);
-          }
-        }
-        localStorage.setItem(SAVED_VIDEOS_KEY, JSON.stringify(localSaved));
-      }
-
-      // 4. Merge Video Progress
-      if (data.videoProgress && data.videoProgress.length > 0) {
-        for (const p of data.videoProgress) {
-          if (p.lecture_id && p.seconds) {
-            const key = `stutosed_progress_${p.lecture_id}`;
-            const cur = localStorage.getItem(key);
-            if (!cur || parseFloat(cur) < p.seconds) {
-              localStorage.setItem(key, String(p.seconds));
-            }
-          }
-        }
-      }
-
-      window.dispatchEvent(new Event('stutosed_library_updated'));
-      window.dispatchEvent(new Event('stutosed_progress_updated'));
+    const userId = explicitUserId || (await resolveAuthenticatedUserId());
+    if (!userId) {
+      clearInMemoryCloudState();
+      return;
     }
+
+    const data = await apiClient<CloudSyncResponse>(
+      `/api/v1/sync?userId=${encodeURIComponent(userId)}`
+    );
+    if (!data) return;
+
+    const nextWatched: Record<string, number> = {};
+    if (Array.isArray(data.watchHistory)) {
+      for (const w of data.watchHistory) {
+        if (w.lecture_url) {
+          nextWatched[w.lecture_url] = w.watched_at
+            ? new Date(w.watched_at).getTime() || Date.now()
+            : Date.now();
+        }
+      }
+    }
+    cloudWatchedMap = nextWatched;
+
+    cloudBookmarks = Array.isArray(data.bookmarks) ? [...data.bookmarks] : [];
+    cloudSavedVideos = Array.isArray(data.savedVideos) ? [...data.savedVideos] : [];
+
+    const nextProgress: Record<string, number> = {};
+    if (Array.isArray(data.videoProgress)) {
+      for (const p of data.videoProgress) {
+        if (p.lecture_id && p.seconds > 0) {
+          nextProgress[p.lecture_id] = p.seconds;
+        }
+      }
+    }
+    cloudVideoProgress = nextProgress;
+
+    if (Array.isArray(data.courseMemory) && data.courseMemory.length > 0) {
+      const top = data.courseMemory[0];
+      const course = top.course_id ? getCourseById(top.course_id) : undefined;
+      let lectureTitle = '';
+      if (course?.tabs) {
+        for (const tab of course.tabs) {
+          const hit = tab.items?.find((item) => item.url === top.last_lecture_url);
+          if (hit) {
+            lectureTitle = hit.label;
+            break;
+          }
+        }
+      }
+      cloudLastPlayed = {
+        courseId: top.course_id,
+        courseName: course?.name || top.course_id,
+        courseThumb: course?.thumb || '',
+        lectureTitle: lectureTitle || 'Resume Lecture',
+        url: top.last_lecture_url,
+        timestamp: top.updated_at ? new Date(top.updated_at).getTime() || Date.now() : Date.now(),
+      };
+    } else {
+      cloudLastPlayed = null;
+    }
+
+    notifyProgressUpdated();
+    notifyLibraryUpdated();
   } catch (err) {
-    // Graceful offline fallback
+    console.warn('[progressSync] Failed pulling Turso cloud data:', err);
   }
 }

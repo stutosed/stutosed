@@ -17,6 +17,9 @@ import {
   syncLectureWatched,
   syncCourseMemory,
   syncVideoProgress,
+  pullCloudUserData,
+  isLectureWatched,
+  getVideoProgressSeconds,
 } from '@/lib/progressSync';
 import {
   Bookmark,
@@ -40,9 +43,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { ComplaintModal } from '@/components/ComplaintModal';
-
-const WATCHED_KEY = 'onafbu_watched_v1';
-const LAST_PLAYED_KEY = 'stutosed_last_played_v1';
+import { LectureThumb } from '@/components/LectureThumb';
 
 // Helper to extract Vidmoly code
 function extractVidmolyCode(url: string): string | null {
@@ -409,26 +410,29 @@ export default function WatchClient() {
 
   const currentItem = playlist[currentIndex] || null;
 
-  // Sync Library & Bookmark states
+  // Sync Library, Bookmark & Turso Watch states
   useEffect(() => {
-    if (courseInfo.id) {
-      setIsBookmarked(isCourseBookmarked(courseInfo.id));
-    }
-  }, [courseInfo.id]);
+    pullCloudUserData().catch(() => {});
+  }, []);
 
   useEffect(() => {
-    if (currentItem) {
-      const saved = isVideoSaved(currentItem.id || currentItem.url);
-      setIsSaved(saved);
-
-      try {
-        const savedWatched = JSON.parse(localStorage.getItem(WATCHED_KEY) || '{}');
-        setIsWatched(Boolean(savedWatched[currentItem.url]));
-      } catch {
-        setIsWatched(false);
+    const refreshFromCloud = () => {
+      if (courseInfo.id) {
+        setIsBookmarked(isCourseBookmarked(courseInfo.id));
       }
-    }
-  }, [currentItem]);
+      if (currentItem) {
+        setIsSaved(isVideoSaved(currentItem.id || currentItem.url));
+        setIsWatched(isLectureWatched(currentItem.url));
+      }
+    };
+    refreshFromCloud();
+    window.addEventListener('stutosed_progress_updated', refreshFromCloud);
+    window.addEventListener('stutosed_library_updated', refreshFromCloud);
+    return () => {
+      window.removeEventListener('stutosed_progress_updated', refreshFromCloud);
+      window.removeEventListener('stutosed_library_updated', refreshFromCloud);
+    };
+  }, [courseInfo.id, currentItem]);
 
   // Mark watched & remember last played (Local + Database Cloud)
   useEffect(() => {
@@ -848,17 +852,11 @@ export default function WatchClient() {
 
     const handleLoadedMetadata = () => {
       setDuration(video.duration || 0);
-      try {
-        const progressKey = `stutosed_progress_${currentItem.id || currentItem.url}`;
-        const saved = localStorage.getItem(progressKey);
-        if (saved) {
-          const savedTime = parseFloat(saved);
-          if (savedTime > 5 && video.duration && savedTime < video.duration - 15) {
-            video.currentTime = savedTime;
-            setCurrentTime(savedTime);
-          }
-        }
-      } catch {}
+      const savedTime = getVideoProgressSeconds(currentItem.id || currentItem.url);
+      if (savedTime > 5 && video.duration && savedTime < video.duration - 15) {
+        video.currentTime = savedTime;
+        setCurrentTime(savedTime);
+      }
     };
 
     let lastSave = 0;
@@ -2260,6 +2258,13 @@ export default function WatchClient() {
                         <span className="watch-row-num">{idx + 1}</span>
                       )}
                     </div>
+
+                    <LectureThumb
+                      item={lec}
+                      index={idx}
+                      isWatched={isLectureWatched(lec.url)}
+                      variant="compact"
+                    />
 
                     <div className="watch-row-info">
                       <div className="watch-row-title">{lec.label}</div>

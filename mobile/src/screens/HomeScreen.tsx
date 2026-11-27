@@ -85,7 +85,7 @@ export const HomeScreen: React.FC = () => {
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const exploreYRef = useRef<number>(0);
 
-  const userName = user?.full_name || user?.email?.split('@')[0] || 'Advik';
+  const userName = user?.full_name || user?.email?.split('@')[0] || 'Student';
   const firstName = userName.split(' ')[0];
   const initials = getInitials(userName);
   const greetingData = useMemo(() => getTimeGreetingData(firstName), [firstName]);

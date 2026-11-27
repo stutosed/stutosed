@@ -70,6 +70,20 @@ export async function upsertWatchHistory(
   }
 }
 
+export async function removeWatchHistory(
+  userId: string,
+  lectureUrl: string
+): Promise<void> {
+  try {
+    await turso.execute({
+      sql: 'DELETE FROM user_watch_history WHERE user_id = ? AND lecture_url = ?',
+      args: [userId, lectureUrl],
+    });
+  } catch (err) {
+    console.error('[turso] removeWatchHistory error:', err);
+  }
+}
+
 /**
  * 2. VIDEO PROGRESS (SEEK SECONDS)
  */

@@ -143,38 +143,25 @@ export const BottomTabNavigator: React.FC = () => {
   isOpenRef.current = isOpen;
   const openDrawerRef = useRef(openDrawer);
   openDrawerRef.current = openDrawer;
-  const swipeTriggeredRef = useRef(false);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponderCapture: (_, gesture) => {
+      onMoveShouldSetPanResponder: (_, gesture) => {
         if (isOpenRef.current) return false;
         return (
           gesture.dx > 22 &&
-          Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.7
+          Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.8
         );
       },
-      onPanResponderGrant: () => {
-        swipeTriggeredRef.current = false;
-      },
-      onPanResponderMove: (_, gesture) => {
-        if (!swipeTriggeredRef.current && gesture.dx > 40) {
-          swipeTriggeredRef.current = true;
-          openDrawerRef.current();
-        }
-      },
       onPanResponderRelease: (_, gesture) => {
+        if (isOpenRef.current) return;
         if (
-          !swipeTriggeredRef.current &&
-          (gesture.dx > 50 || (gesture.dx > 28 && gesture.vx > 0.35))
+          (gesture.dx > 52 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.5) ||
+          (gesture.dx > 26 && gesture.vx > 0.35)
         ) {
           openDrawerRef.current();
         }
-        swipeTriggeredRef.current = false;
-      },
-      onPanResponderTerminate: () => {
-        swipeTriggeredRef.current = false;
       },
     })
   ).current;

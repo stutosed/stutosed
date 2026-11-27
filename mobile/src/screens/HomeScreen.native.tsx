@@ -192,7 +192,7 @@ export const HomeScreen: React.FC = () => {
     }
   }, [refreshSessionAndSync, loadDashboardData]);
 
-  const userName = user?.full_name || user?.email?.split('@')[0] || 'Advik';
+  const userName = user?.full_name || user?.email?.split('@')[0] || 'Student';
   const firstName = userName.split(' ')[0];
   const initials = getInitials(userName);
 

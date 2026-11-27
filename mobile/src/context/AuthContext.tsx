@@ -2,13 +2,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { authClient } from '../lib/auth-client';
 import { CourseMemory, UserProfile } from '../types';
 import {
-  getOrCreateStudentId,
-  loadLocalLearningState,
+  purgeLegacyLocalSyncCache,
   pullCloudUserData,
   pushSyncAction,
-  saveBookmarksLocally,
-  saveLastPlayedLocally,
-  saveWatchedLocally,
 } from '../lib/progressSync';
 
 interface AuthContextValue {
@@ -29,7 +25,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
-  studentId: 'guest_student',
+  studentId: '',
   isLoading: true,
   isSyncing: false,
   watchedMap: {},
@@ -46,7 +42,7 @@ const AuthContext = createContext<AuthContextValue>({
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { data: sessionData, isPending, refetch } = authClient.useSession();
 
-  const [studentId, setStudentId] = useState<string>('guest_student');
+  const [studentId, setStudentId] = useState<string>('');
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [watchedMap, setWatchedMap] = useState<Record<string, number>>({});
   const [bookmarks, setBookmarks] = useState<string[]>([]);
@@ -56,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ? {
         id: sessionData.user.id,
         email: sessionData.user.email,
-        full_name: sessionData.user.name || sessionData.user.email.split('@')[0],
+        full_name: sessionData.user.name || 'Student',
         avatar_url: sessionData.user.image || undefined,
       }
     : null;
@@ -64,15 +60,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const syncNow = useCallback(async (authId?: string | null) => {
     setIsSyncing(true);
     try {
-      const local = await loadLocalLearningState();
-      setWatchedMap(local.watchedMap);
-      setBookmarks(local.bookmarks);
-      setLastPlayed(local.lastPlayed);
+      await purgeLegacyLocalSyncCache();
+      if (!authId) {
+        setStudentId('');
+        setWatchedMap({});
+        setBookmarks([]);
+        setLastPlayed(null);
+        return;
+      }
 
-      const resolvedId = await getOrCreateStudentId(authId);
-      setStudentId(resolvedId);
-
-      const cloud = await pullCloudUserData(resolvedId);
+      setStudentId(authId);
+      const cloud = await pullCloudUserData(authId);
       setWatchedMap(cloud.watchedMap);
       setBookmarks(cloud.bookmarks);
       setLastPlayed(cloud.lastPlayed);
@@ -90,12 +88,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const markLectureWatched = useCallback(
     (courseId: string, lectureUrl: string) => {
       if (!lectureUrl) return;
-      setWatchedMap((prev) => {
-        const next = { ...prev, [lectureUrl]: Date.now() };
-        saveWatchedLocally(next);
-        return next;
-      });
-      pushSyncAction(studentId, 'watch', { courseId, lectureUrl });
+      setWatchedMap((prev) => ({ ...prev, [lectureUrl]: Date.now() }));
+      if (studentId) {
+        pushSyncAction(studentId, 'watch', { courseId, lectureUrl, isWatched: true });
+      }
     },
     [studentId]
   );
@@ -105,13 +101,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!lectureUrl) return;
       setWatchedMap((prev) => {
         const next = { ...prev };
-        if (next[lectureUrl]) {
+        const willBeWatched = !next[lectureUrl];
+        if (!willBeWatched) {
           delete next[lectureUrl];
         } else {
           next[lectureUrl] = Date.now();
-          pushSyncAction(studentId, 'watch', { courseId, lectureUrl });
         }
-        saveWatchedLocally(next);
+        if (studentId) {
+          pushSyncAction(studentId, 'watch', {
+            courseId,
+            lectureUrl,
+            isWatched: willBeWatched,
+          });
+        }
         return next;
       });
     },
@@ -120,30 +122,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const recordCourseMemory = useCallback(
     (memory: CourseMemory) => {
-      if (!memory.courseId || !memory.url) return;
       setLastPlayed(memory);
-      saveLastPlayedLocally(memory);
-      pushSyncAction(studentId, 'memory', {
-        courseId: memory.courseId,
-        lastTabId: memory.tabId || 'videos',
-        lastLectureUrl: memory.url,
-      });
+      if (studentId) {
+        pushSyncAction(studentId, 'memory', {
+          courseId: memory.courseId,
+          lastTabId: memory.tabId || 'videos',
+          lastLectureUrl: memory.url,
+        });
+      }
     },
     [studentId]
   );
 
   const toggleCourseBookmark = useCallback(
     (courseId: string) => {
+      if (!courseId) return;
       setBookmarks((prev) => {
         const isBookmarked = prev.includes(courseId);
         const next = isBookmarked
           ? prev.filter((id) => id !== courseId)
           : [...prev, courseId];
-        saveBookmarksLocally(next);
-        pushSyncAction(studentId, 'bookmark', {
-          courseId,
-          isBookmarked: !isBookmarked,
-        });
+        if (studentId) {
+          pushSyncAction(studentId, 'bookmark', {
+            courseId,
+            isBookmarked: !isBookmarked,
+          });
+        }
         return next;
       });
     },
@@ -161,6 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await authClient.signOut();
     } catch {}
+    await purgeLegacyLocalSyncCache();
     await syncNow(null);
   }, [syncNow]);
 

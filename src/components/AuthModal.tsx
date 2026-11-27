@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { X, Mail, Lock, User, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { UserProfile } from '@/types';
 import { authClient } from '@/lib/auth-client';
+import { setActiveSyncUser, pullCloudUserData } from '@/lib/progressSync';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -108,8 +109,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           full_name: cleanName,
           avatar_url: res.data?.user?.image || undefined,
         };
-        localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
-        localStorage.setItem('stutosed_user_name', cleanName);
+        setActiveSyncUser(profile);
+        await pullCloudUserData(profile.id);
         setMessage({ text: 'Account created successfully! Welcome to Stutosed.', type: 'success' });
         setTimeout(() => {
           onClose();
@@ -133,8 +134,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           full_name: res.data?.user?.name || cleanName,
           avatar_url: res.data?.user?.image || undefined,
         };
-        localStorage.setItem('stutosed_user_profile', JSON.stringify(profile));
-        localStorage.setItem('stutosed_user_name', profile.full_name || 'Student');
+        setActiveSyncUser(profile);
+        await pullCloudUserData(profile.id);
         setMessage({ text: 'Signed in successfully! Welcome back.', type: 'success' });
         setTimeout(() => {
           onClose();
@@ -407,7 +408,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         required
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        placeholder="e.g. Advik"
+                        placeholder="e.g. Aarav Sharma"
                         className="auth-input-field"
                       />
                     </div>
@@ -426,7 +427,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="advik@stutosed.com"
+                      placeholder="you@example.com"
                       className="auth-input-field"
                     />
                   </div>
