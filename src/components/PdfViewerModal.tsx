@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { LectureItem, ServerOption } from '@/types';
-import { ExternalLink, Download, X, ChevronLeft, ChevronRight, FileText, RefreshCw, Eye } from 'lucide-react';
+import { ExternalLink, Download, X, ChevronLeft, ChevronRight, FileText, RefreshCw, Eye, Send } from 'lucide-react';
 import { getWorkerProxyUrl, resolveDirectMediaUrl } from '@/lib/proxyConfig';
 
 interface PdfViewerModalProps {
@@ -22,20 +22,34 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   currentIndex = 0,
   onNavigate,
 }) => {
+  const servers: ServerOption[] = item.servers && item.servers.length > 0 ? item.servers : [];
+  const [selectedServerIdx, setSelectedServerIdx] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [viewerMode, setViewerMode] = useState<'proxy' | 'google' | 'direct'>('proxy');
   const timerRef = useRef<any>(null);
 
-  const servers: ServerOption[] = item.servers && item.servers.length > 0 ? item.servers : [];
+  // Reset to primary server (e.g. Archive PDF when present) on item switch
+  useEffect(() => {
+    setSelectedServerIdx(0);
+  }, [item]);
 
-  // View link: prefer publicbotshub or item url
+  const activeServer = servers[selectedServerIdx] || servers[0];
   const botServer = servers.find(
     (s) =>
       s.name?.toUpperCase().includes('PUBLICBOTSHUB') ||
       s.name?.toUpperCase().includes('ESTE') ||
       s.url?.includes('publicbotshub')
   );
-  let viewUrl = resolveDirectMediaUrl(botServer?.downloadUrl || botServer?.url || item.url || '');
+  const viewUrl = resolveDirectMediaUrl(
+    activeServer?.downloadUrl || activeServer?.url || item.url || botServer?.downloadUrl || botServer?.url || ''
+  );
+  const isArchiveUrl = viewUrl.toLowerCase().includes('archive.org');
+  const [viewerMode, setViewerMode] = useState<'proxy' | 'google' | 'direct'>(
+    isArchiveUrl ? 'direct' : 'proxy'
+  );
+
+  useEffect(() => {
+    setViewerMode(isArchiveUrl ? 'direct' : 'proxy');
+  }, [item, selectedServerIdx, isArchiveUrl]);
 
   // Check if it's an image resource
   const isImageResource =
@@ -48,9 +62,9 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   const proxiedPdfUrl = getWorkerProxyUrl(viewUrl, 'pdf');
   const googleDocsViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(viewUrl)}&embedded=true`;
 
-  // Download redirects to publicbotshub link or direct URL
+  // Download resolves active PDF URL / downloadUrl cleanly
   const downloadRedirectUrl = resolveDirectMediaUrl(
-    botServer?.downloadUrl || botServer?.url || item.downloadUrl || viewUrl
+    activeServer?.downloadUrl || activeServer?.url || item.downloadUrl || viewUrl
   );
 
   // Auto-dismiss loading spinner after 1.5s max so it never covers the iframe
@@ -64,15 +78,53 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [item, viewerMode]);
+  }, [item, viewerMode, selectedServerIdx]);
 
   const handleOpenFullscreen = () => {
-    window.open(proxiedPdfUrl, '_blank');
+    window.open(isArchiveUrl ? viewUrl : proxiedPdfUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleDownload = async () => {
     const filename = `${item.label.replace(/[^a-zA-Z0-9_\-\s]/g, '').trim().replace(/\s+/g, '_') || 'document'}.pdf`;
-    const downloadApiUrl = getWorkerProxyUrl(viewUrl, 'pdf');
+    const targetUrl = downloadRedirectUrl || viewUrl;
+    if (!targetUrl) return;
+
+    // Direct open/download for Archive.org (blocks CORS & worker 403) or direct .pdf hosts
+    if (targetUrl.toLowerCase().includes('archive.org')) {
+      const a = document.createElement('a');
+      a.href = targetUrl;
+      a.download = filename;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    if (targetUrl.includes('catbox.moe') || targetUrl.toLowerCase().includes('.pdf')) {
+      try {
+        const res = await fetch(targetUrl);
+        if (res.ok) {
+          const blob = await res.blob();
+          const blobUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(blobUrl);
+          return;
+        }
+      } catch {
+        // Fallback below
+      }
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const downloadApiUrl = getWorkerProxyUrl(targetUrl, 'pdf');
     try {
       const res = await fetch(downloadApiUrl);
       if (!res.ok) throw new Error('Download error');
@@ -86,7 +138,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
       document.body.removeChild(a);
       window.URL.revokeObjectURL(blobUrl);
     } catch {
-      window.open(downloadApiUrl, '_blank');
+      window.open(downloadApiUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -212,8 +264,41 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
             </div>
           </div>
 
-          {/* Engine Selector & Close */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Source Selector, Engine Selector & Close */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {servers.length > 1 && (
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  background: 'var(--bg)',
+                  padding: '2px 4px',
+                  borderRadius: '100px',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                {servers.map((srv, idx) => (
+                  <button
+                    key={`web-pdf-srv-${idx}`}
+                    onClick={() => setSelectedServerIdx(idx)}
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      borderRadius: '100px',
+                      background: selectedServerIdx === idx ? 'var(--accent)' : 'transparent',
+                      color: selectedServerIdx === idx ? '#ffffff' : 'var(--text-muted)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {srv.name || `Source ${idx + 1}`}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {!isImageResource && (
               <div
                 style={{
@@ -226,21 +311,21 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
                 }}
               >
                 <button
-                  onClick={() => setViewerMode('proxy')}
+                  onClick={() => setViewerMode(isArchiveUrl ? 'direct' : 'proxy')}
                   style={{
                     padding: '4px 10px',
                     fontSize: '11px',
                     fontWeight: 700,
                     borderRadius: '100px',
-                    background: viewerMode === 'proxy' ? 'var(--accent)' : 'transparent',
-                    color: viewerMode === 'proxy' ? '#ffffff' : 'var(--text-muted)',
+                    background: viewerMode !== 'google' ? 'var(--accent)' : 'transparent',
+                    color: viewerMode !== 'google' ? '#ffffff' : 'var(--text-muted)',
                     border: 'none',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
-                  title="Native proxy reader"
+                  title={isArchiveUrl ? 'Archive Direct PDF Reader' : 'Native proxy reader'}
                 >
-                  Proxy Reader
+                  {isArchiveUrl ? 'Archive Reader' : 'Proxy Reader'}
                 </button>
                 <button
                   onClick={() => setViewerMode('google')}
@@ -355,7 +440,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
             </div>
           ) : (
             <iframe
-              key={`${item.id}-${viewerMode}`}
+              key={`${item.id}-${selectedServerIdx}-${viewerMode}`}
               src={getActiveViewerUrl()}
               onLoad={() => setIsLoading(false)}
               style={{
@@ -429,7 +514,55 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {item.fileStoreUrl && (
+              <a
+                href={item.fileStoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 14px',
+                  borderRadius: 'var(--r-pill)',
+                  border: '1px solid rgba(0, 136, 204, 0.45)',
+                  background: 'rgba(0, 136, 204, 0.12)',
+                  color: '#0088cc',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  minHeight: '34px',
+                }}
+              >
+                <Send size={13} /> Get File on Filetosed
+              </a>
+            )}
+
+            {item.streamBotUrl && (
+              <a
+                href={item.streamBotUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 14px',
+                  borderRadius: 'var(--r-pill)',
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg)',
+                  color: 'var(--text)',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  minHeight: '34px',
+                }}
+              >
+                <ExternalLink size={13} /> File Stream Bot
+              </a>
+            )}
+
             <button
               onClick={handleOpenFullscreen}
               style={{

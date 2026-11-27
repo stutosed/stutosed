@@ -55,6 +55,7 @@ const SECURE_HOST_SIGNATURES = [
   'c3RyZWFtcDJwLmNvbQ==', // streamp2p.com
   // Exact-host specific subdomains (No wildcards permitted)
   'ZmlsZXMuY2F0Ym94Lm1vZQ==', // files.catbox.moe
+  'YXJjaGl2ZS5vcmc=', // archive.org
   'aHJhbmtlci1ub2RlLnMzLmFwLXNvdXRoLTEuYW1hem9uYXdzLmNvbQ==', // hranker-node.s3.ap-south-1.amazonaws.com
   'ZDE0djR2ODBjcGpodDcuY2xvdWRmcm9udC5uZXQ=', // d14v4v80cpjht7.cloudfront.net
   'ZDI4eG5pOTc3OGhvZmwuY2xvdWRmcm9udC5uZXQ=', // d28xni9778hofl.cloudfront.net

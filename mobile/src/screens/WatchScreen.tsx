@@ -47,6 +47,7 @@ import {
   FolderHeart,
   Share2,
   Send,
+  Download,
   ExternalLink,
   ListVideo,
 } from 'lucide-react-native';
@@ -524,20 +525,21 @@ export const WatchScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Source Switcher when multiple PDF sources exist */}
-        {!isPdfImageNote && servers.length > 1 && (
-          <View
-            style={[
-              styles.pdfToolbar,
-              { backgroundColor: colors.bgCardSubtle, borderBottomColor: colors.borderSubtle },
-            ]}
+        {/* PDF Source Switcher & Quick Action Buttons (Download + Filetosed Bot + Stream Bot) */}
+        <View
+          style={[
+            styles.pdfToolbar,
+            { backgroundColor: colors.bgCardSubtle, borderBottomColor: colors.borderSubtle },
+          ]}
+        >
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.pdfToolbarScroll}
           >
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.pdfToolbarScroll}
-            >
-              {servers.map((srv, idx) => {
+            {!isPdfImageNote &&
+              servers.length > 1 &&
+              servers.map((srv, idx) => {
                 const active = idx === selectedServerIdx;
                 return (
                   <TouchableOpacity
@@ -567,9 +569,69 @@ export const WatchScreen: React.FC = () => {
                   </TouchableOpacity>
                 );
               })}
-            </ScrollView>
-          </View>
-        )}
+
+            {Boolean(lecture.downloadUrl || pdfDirectUrl || pdfProxiedUrl) && (
+              <TouchableOpacity
+                style={[
+                  styles.pdfEngineChip,
+                  {
+                    backgroundColor: colors.accent,
+                    borderColor: colors.accent,
+                  },
+                ]}
+                onPress={() => {
+                  const dl = lecture.downloadUrl || pdfDirectUrl || pdfProxiedUrl;
+                  if (dl) Linking.openURL(dl).catch(() => {});
+                }}
+              >
+                <Download size={12} color="#ffffff" />
+                <Text style={[styles.pdfEngineText, { color: '#ffffff' }]}>
+                  Download PDF
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {Boolean(lecture.fileStoreUrl) && (
+              <TouchableOpacity
+                style={[
+                  styles.pdfEngineChip,
+                  {
+                    backgroundColor: 'rgba(0, 136, 204, 0.14)',
+                    borderColor: 'rgba(0, 136, 204, 0.38)',
+                  },
+                ]}
+                onPress={() => {
+                  if (lecture.fileStoreUrl) Linking.openURL(lecture.fileStoreUrl).catch(() => {});
+                }}
+              >
+                <Send size={12} color="#0088cc" />
+                <Text style={[styles.pdfEngineText, { color: '#0088cc' }]}>
+                  Get File on Filetosed
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {Boolean(lecture.streamBotUrl) && (
+              <TouchableOpacity
+                style={[
+                  styles.pdfEngineChip,
+                  {
+                    backgroundColor: colors.bgCard,
+                    borderColor: colors.border,
+                  },
+                ]}
+                onPress={() => {
+                  if (lecture.streamBotUrl) Linking.openURL(lecture.streamBotUrl).catch(() => {});
+                }}
+              >
+                <ExternalLink size={12} color={colors.textMuted} />
+                <Text style={[styles.pdfEngineText, { color: colors.text }]}>
+                  File Stream Bot
+                </Text>
+              </TouchableOpacity>
+            )}
+          </ScrollView>
+        </View>
 
         {/* Full-Height PDF Reading Canvas */}
         <View style={[styles.pdfCanvas, { backgroundColor: colors.bg }]}>
@@ -626,7 +688,7 @@ export const WatchScreen: React.FC = () => {
                   <Text style={[styles.pdfErrorText, { color: colors.text }]}>
                     PDF preview load nahi ho paaya. Reload try karein.
                   </Text>
-                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                     <TouchableOpacity
                       style={[styles.pdfFallbackBtn, { backgroundColor: colors.accent }]}
                       onPress={() => {
@@ -637,6 +699,27 @@ export const WatchScreen: React.FC = () => {
                     >
                       <Text style={styles.pdfFallbackBtnText}>Reload PDF</Text>
                     </TouchableOpacity>
+                    {Boolean(lecture.downloadUrl || pdfDirectUrl) && (
+                      <TouchableOpacity
+                        style={[styles.pdfFallbackBtn, { backgroundColor: '#1f2937' }]}
+                        onPress={() => {
+                          const dl = lecture.downloadUrl || pdfDirectUrl;
+                          if (dl) Linking.openURL(dl).catch(() => {});
+                        }}
+                      >
+                        <Text style={styles.pdfFallbackBtnText}>Download PDF</Text>
+                      </TouchableOpacity>
+                    )}
+                    {Boolean(lecture.fileStoreUrl) && (
+                      <TouchableOpacity
+                        style={[styles.pdfFallbackBtn, { backgroundColor: '#0088cc' }]}
+                        onPress={() => {
+                          if (lecture.fileStoreUrl) Linking.openURL(lecture.fileStoreUrl).catch(() => {});
+                        }}
+                      >
+                        <Text style={styles.pdfFallbackBtnText}>Get File on Filetosed</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               )}
