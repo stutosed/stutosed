@@ -14,6 +14,8 @@ import { AuthProvider } from './src/context/AuthContext';
 import { DrawerProvider, useDrawer } from './src/context/DrawerContext';
 import { SidebarDrawer, DRAWER_WIDTH } from './src/components/SidebarDrawer';
 import { PrivacyTermsModal } from './src/components/PrivacyTermsModal';
+import { AppUpdateModal } from './src/components/AppUpdateModal';
+import { syncRemoteCoursesCatalog } from './src/data/coursesData';
 
 const AppShell: React.FC = () => {
   const { width } = useWindowDimensions();
@@ -58,6 +60,7 @@ const AppShell: React.FC = () => {
 
   useEffect(() => {
     registerForPushNotificationsAsync().catch(() => {});
+    syncRemoteCoursesCatalog().catch(() => {});
 
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       try {
@@ -108,6 +111,7 @@ const AppShell: React.FC = () => {
         initialTab={privacyModal.tab}
         onClose={closePrivacyModal}
       />
+      <AppUpdateModal />
     </NavigationContainer>
   );
 };

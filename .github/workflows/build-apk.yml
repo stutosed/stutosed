@@ -78,18 +78,40 @@ jobs:
           cd mobile/android
           ./gradlew assembleDebug --no-daemon
 
-      - name: 🔍 Find and Rename APK
+      - name: 🔍 Find, Sign (v1/v2/v3) and Rename APK
         run: |
           mkdir -p build_output
+          SRC_APK=""
           if [ -f mobile/android/app/build/outputs/apk/release/app-release.apk ]; then
-            cp mobile/android/app/build/outputs/apk/release/app-release.apk build_output/stutosed-release.apk
+            SRC_APK="mobile/android/app/build/outputs/apk/release/app-release.apk"
           elif [ -f mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk ]; then
-            cp mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk build_output/stutosed-release.apk
+            SRC_APK="mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk"
           elif [ -f mobile/android/app/build/outputs/apk/debug/app-debug.apk ]; then
-            cp mobile/android/app/build/outputs/apk/debug/app-debug.apk build_output/stutosed-debug.apk
+            SRC_APK="mobile/android/app/build/outputs/apk/debug/app-debug.apk"
           else
             echo "ERROR: No APK file generated!"
             exit 1
+          fi
+
+          OUT_APK="build_output/stutosed-release.apk"
+          cp "$SRC_APK" "$OUT_APK"
+
+          APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -name apksigner -type f 2>/dev/null | sort -V | tail -n 1)"
+          ZIPALIGN="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -name zipalign -type f 2>/dev/null | sort -V | tail -n 1)"
+          if [ -n "$ZIPALIGN" ]; then
+            "$ZIPALIGN" -f 4 "$OUT_APK" "${OUT_APK}.aligned" && mv "${OUT_APK}.aligned" "$OUT_APK"
+          fi
+          if [ -n "$APKSIGNER" ] && [ -f mobile/android/app/debug.keystore ]; then
+            "$APKSIGNER" sign \
+              --ks mobile/android/app/debug.keystore \
+              --ks-pass pass:android \
+              --ks-key-alias androiddebugkey \
+              --key-pass pass:android \
+              --v1-signing-enabled true \
+              --v2-signing-enabled true \
+              --v3-signing-enabled true \
+              "$OUT_APK"
+            "$APKSIGNER" verify --verbose "$OUT_APK"
           fi
           ls -lah build_output/
 

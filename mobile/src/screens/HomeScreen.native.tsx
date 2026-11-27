@@ -25,6 +25,8 @@ import {
   countCourseStats,
   isGovernmentCategory,
   getTotalStats,
+  useCatalogVersion,
+  syncRemoteCoursesCatalog,
 } from '../data/coursesData';
 import {
   loadStudyMinutesToday,
@@ -119,6 +121,7 @@ export const HomeScreen: React.FC = () => {
   const [studyMinutesToday, setStudyMinutesToday] = useState(0);
   const [dailyMinutesMap, setDailyMinutesMap] = useState<Record<string, number>>({});
   const [resumeCourseDetails, setResumeCourseDetails] = useState<Course | null>(null);
+  const catalogVersion = useCatalogVersion();
 
   const pulseAnim = useRef(new Animated.Value(0.45)).current;
 
@@ -186,7 +189,11 @@ export const HomeScreen: React.FC = () => {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([refreshSessionAndSync(), loadDashboardData()]);
+      await Promise.all([
+        syncRemoteCoursesCatalog().catch(() => {}),
+        refreshSessionAndSync(),
+        loadDashboardData(),
+      ]);
     } finally {
       setRefreshing(false);
     }
@@ -201,7 +208,10 @@ export const HomeScreen: React.FC = () => {
     [watchedMap, dailyMinutesMap]
   );
 
-  const totalCatalogStats = useMemo(() => getTotalStats(), []);
+  const totalCatalogStats = useMemo(() => {
+    void catalogVersion;
+    return getTotalStats();
+  }, [catalogVersion]);
 
   const govtBatchesCount = useMemo(
     () => INITIAL_COURSES.filter((c) => isGovernmentCategory(c.category)).length,

@@ -2,10 +2,11 @@ import React, { useState, useCallback } from 'react';
 import { RefreshControl } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { syncRemoteCoursesCatalog } from '../data/coursesData';
 
 /**
  * Reusable pull-to-refresh hook for mobile screens.
- * Refreshes user session & cloud watch history and runs an optional screen-specific reloader.
+ * Refreshes live courses catalog, user session & cloud watch history, and runs an optional screen-specific reloader.
  */
 export function usePullToRefresh(extraTask?: () => Promise<void> | void) {
   const [refreshing, setRefreshing] = useState(false);
@@ -16,6 +17,7 @@ export function usePullToRefresh(extraTask?: () => Promise<void> | void) {
     setRefreshing(true);
     try {
       await Promise.all([
+        syncRemoteCoursesCatalog().catch(() => {}),
         refreshSessionAndSync().catch(() => {}),
         extraTask ? Promise.resolve(extraTask()).catch(() => {}) : Promise.resolve(),
       ]);

@@ -22,6 +22,7 @@ import {
   INITIAL_COURSES,
   countCourseStats,
   isGovernmentCategory,
+  useCatalogVersion,
 } from '../data/coursesData';
 import { spacing, radii } from '../theme/spacing';
 import {
@@ -168,6 +169,7 @@ function matchCourseDiscipline(course: Course, def: DisciplineDef): boolean {
 export const GovtExamsScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { colors } = useTheme();
+  const catalogVersion = useCatalogVersion();
 
   const [selectedDiscipline, setSelectedDiscipline] = useState<GovtDisciplineId | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -236,8 +238,11 @@ export const GovtExamsScreen: React.FC = () => {
   );
 
   const govtCourses = useMemo(
-    () => INITIAL_COURSES.filter((c) => isGovernmentCategory(c.category)),
-    []
+    () => {
+      void catalogVersion;
+      return INITIAL_COURSES.filter((c) => isGovernmentCategory(c.category));
+    },
+    [catalogVersion]
   );
 
   const activeDef = useMemo(

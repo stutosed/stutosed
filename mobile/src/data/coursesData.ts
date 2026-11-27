@@ -1,13 +1,73 @@
+import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Course, LectureItem } from '../types';
+import { API_BASE_URL } from '../lib/config';
 import manifestData from './courses-manifest.json';
 
-const courseDetailsCache = new Map<string, Course>();
+const REMOTE_MANIFEST_KEY = '@stutosed/remote-manifest-v1';
+const REMOTE_COURSE_PREFIX = '@stutosed/remote-course-v1:';
 
-export const INITIAL_COURSES: Course[] = ((manifestData as unknown as Course[]) || []).filter(
-  (c) => c.id !== 'beu-1st-year' && (c.category || '').toLowerCase() !== 'beu'
+const courseDetailsCache = new Map<string, Course>();
+const catalogListeners = new Set<() => void>();
+let catalogVersion = 0;
+
+function filterVisibleCourses(list: Course[]): Course[] {
+  return (list || []).filter(
+    (c) => c && c.id !== 'beu-1st-year' && (c.category || '').toLowerCase() !== 'beu'
+  );
+}
+
+export const INITIAL_COURSES: Course[] = filterVisibleCourses(
+  (manifestData as unknown as Course[]) || []
 );
 
-// Static course registry matching exact filenames in ./courses/ for Metro bundler
+function notifyCatalogUpdated() {
+  catalogVersion += 1;
+  catalogListeners.forEach((fn) => {
+    try {
+      fn();
+    } catch {}
+  });
+}
+
+export function subscribeCatalogChange(listener: () => void): () => void {
+  catalogListeners.add(listener);
+  return () => {
+    catalogListeners.delete(listener);
+  };
+}
+
+/**
+ * React hook that triggers re-render whenever live remote courses finish updating.
+ */
+export function useCatalogVersion(): number {
+  const [ver, setVer] = useState(catalogVersion);
+  useEffect(() => {
+    setVer(catalogVersion);
+    return subscribeCatalogChange(() => setVer(catalogVersion));
+  }, []);
+  return ver;
+}
+
+function applyManifestList(nextCourses: Course[]) {
+  const cleaned = filterVisibleCourses(nextCourses);
+  if (cleaned.length === 0) return;
+  INITIAL_COURSES.splice(0, INITIAL_COURSES.length, ...cleaned);
+  notifyCatalogUpdated();
+}
+
+// Hydrate any cached remote courses immediately in background
+AsyncStorage.getItem(REMOTE_MANIFEST_KEY)
+  .then((raw) => {
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      applyManifestList(parsed as Course[]);
+    }
+  })
+  .catch(() => {});
+
+// Static course registry matching exact filenames in ./courses/ for Metro offline fallback
 const COURSE_MODULES: Record<string, () => Promise<{ default: Course }>> = {
   'aarambh-batch-100hr-sw': () => import('./courses/aarambh-batch-100hr-sw.json') as any,
   'banking-quant-hero': () => import('./courses/banking-quant-hero.json') as any,
@@ -35,6 +95,41 @@ const COURSE_MODULES: Record<string, () => Promise<{ default: Course }>> = {
   'vocab-mastery-vod': () => import('./courses/vocab-mastery-vod.json') as any,
 };
 
+async function fetchJsonWithTimeout<T>(url: string, timeoutMs = 8000): Promise<T | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return (json?.data ?? json) as T;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Pulls live courses catalog from website backend so new courses & batches appear
+ * in mobile app automatically without rebuilding/reinstalling the APK.
+ */
+export async function syncRemoteCoursesCatalog(): Promise<boolean> {
+  const data = await fetchJsonWithTimeout<{ courses?: Course[] }>(
+    `${API_BASE_URL}/api/v1/courses?_ts=${Date.now()}`
+  );
+  if (data?.courses && Array.isArray(data.courses) && data.courses.length > 0) {
+    applyManifestList(data.courses);
+    AsyncStorage.setItem(REMOTE_MANIFEST_KEY, JSON.stringify(data.courses)).catch(() => {});
+    return true;
+  }
+  return false;
+}
+
 export function getCourseById(id: string): Course | undefined {
   if (!id) return undefined;
   return courseDetailsCache.get(id) || INITIAL_COURSES.find((c) => c.id === id);
@@ -55,16 +150,47 @@ export function getCoursesByCategory(categoryId: string): Course[] {
   );
 }
 
-export async function loadCourseDetails(courseId: string): Promise<Course | null> {
+export async function loadCourseDetails(
+  courseId: string,
+  forceRefresh = false
+): Promise<Course | null> {
   if (!courseId) return null;
-  if (courseDetailsCache.has(courseId)) {
+  if (!forceRefresh && courseDetailsCache.has(courseId)) {
     return courseDetailsCache.get(courseId)!;
   }
+
+  // 1. Fetch live course JSON from backend when online / refreshing
+  const remoteCourse = await fetchJsonWithTimeout<Course>(
+    `${API_BASE_URL}/api/v1/courses/${encodeURIComponent(courseId)}?_ts=${Date.now()}`,
+    9000
+  );
+  if (remoteCourse && remoteCourse.id) {
+    courseDetailsCache.set(courseId, remoteCourse);
+    AsyncStorage.setItem(
+      `${REMOTE_COURSE_PREFIX}${courseId}`,
+      JSON.stringify(remoteCourse)
+    ).catch(() => {});
+    return remoteCourse;
+  }
+
+  // 2. Fallback to cached remote course JSON
+  try {
+    const cachedRaw = await AsyncStorage.getItem(`${REMOTE_COURSE_PREFIX}${courseId}`);
+    if (cachedRaw) {
+      const cachedCourse = JSON.parse(cachedRaw) as Course;
+      if (cachedCourse?.id) {
+        courseDetailsCache.set(courseId, cachedCourse);
+        return cachedCourse;
+      }
+    }
+  } catch {}
+
+  // 3. Offline fallback to static APK-bundled JSON
   try {
     const loader = COURSE_MODULES[courseId];
     if (loader) {
-      const module = await loader();
-      const course = (module.default || module) as Course;
+      const mod = await loader();
+      const course = (mod.default || mod) as Course;
       courseDetailsCache.set(courseId, course);
       return course;
     }
@@ -143,7 +269,7 @@ export interface WatchedLectureMatch {
 
 /**
  * Resolves watchedMap keys (URLs or generated lecture keys) back to human-readable
- * lecture titles & course metadata across local course JSON catalogs.
+ * lecture titles & course metadata across local & remote course catalogs.
  */
 export async function resolveWatchedLecturesMap(
   watchKeys: string[]

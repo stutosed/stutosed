@@ -131,7 +131,7 @@ export const CourseDetailScreen: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   const reloadCourseDetails = useCallback(async () => {
-    const data = await loadCourseDetails(courseId);
+    const data = await loadCourseDetails(courseId, true);
     if (data) setCourse(data);
   }, [courseId]);
 

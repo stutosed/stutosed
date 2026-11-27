@@ -19,6 +19,7 @@ import {
   getCourseById,
   resolveWatchedLecturesMap,
   WatchedLectureMatch,
+  useCatalogVersion,
 } from '../data/coursesData';
 import { triggerSmoothLayout } from '../lib/layoutAnim';
 import { spacing, radii } from '../theme/spacing';
@@ -49,6 +50,7 @@ export const LibraryScreen: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'saved' | 'history'>('bookmarks');
   const [watchedLookup, setWatchedLookup] = useState<Record<string, WatchedLectureMatch>>({});
+  const catalogVersion = useCatalogVersion();
   const { refreshControl } = usePullToRefresh();
 
   useFocusEffect(
@@ -79,11 +81,13 @@ export const LibraryScreen: React.FC = () => {
     };
   }, [watchedMap]);
   const bookmarkedCourses = useMemo(
-    () =>
-      bookmarks
+    () => {
+      void catalogVersion;
+      return bookmarks
         .map((id) => getCourseById(id))
-        .filter((c): c is NonNullable<typeof c> => Boolean(c)),
-    [bookmarks]
+        .filter((c): c is NonNullable<typeof c> => Boolean(c));
+    },
+    [bookmarks, catalogVersion]
   );
 
   const lastPlayedCourse = useMemo(

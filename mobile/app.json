@@ -3,13 +3,13 @@
     "name": "stutosed",
     "slug": "stutosed",
     "scheme": "stutosed",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "android": {
       "package": "in.stutosed.app",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#121110",
         "foregroundImage": "./assets/android-icon-foreground.png",
