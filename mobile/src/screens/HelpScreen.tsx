@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { useDrawer } from '../context/DrawerContext';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { spacing, radii } from '../theme/spacing';
 import {
   ArrowLeft,
@@ -28,6 +29,7 @@ export const HelpScreen: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { openPrivacyModal } = useDrawer();
+  const { refreshControl } = usePullToRefresh();
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
@@ -51,7 +53,11 @@ export const HelpScreen: React.FC = () => {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
         {/* Frequently Asked Questions */}
         <View
           style={[

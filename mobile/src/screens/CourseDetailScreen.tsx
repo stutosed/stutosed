@@ -15,6 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, Course, LectureItem } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { spacing, radii } from '../theme/spacing';
 import { triggerSmoothLayout } from '../lib/layoutAnim';
 import { loadCourseDetails } from '../data/coursesData';
@@ -128,6 +129,13 @@ export const CourseDetailScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mediaFilter, setMediaFilter] = useState<MediaFilter>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+
+  const reloadCourseDetails = useCallback(async () => {
+    const data = await loadCourseDetails(courseId);
+    if (data) setCourse(data);
+  }, [courseId]);
+
+  const { refreshControl } = usePullToRefresh(reloadCourseDetails);
 
   useEffect(() => {
     let isMounted = true;
@@ -353,6 +361,7 @@ export const CourseDetailScreen: React.FC = () => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.directoryList}
           showsVerticalScrollIndicator={false}
+          refreshControl={refreshControl}
           ListHeaderComponent={
             <View style={styles.directoryHeaderWrap}>
               <View
@@ -615,6 +624,7 @@ export const CourseDetailScreen: React.FC = () => {
             numColumns={1}
             keyExtractor={(item, index) => (item.id ? `${item.id}-${index}` : `lec-${index}`)}
             contentContainerStyle={styles.lectureList}
+            refreshControl={refreshControl}
             renderItem={({ item, index }) => {
               const secId = activeSection?.id || 'videos';
               const lecKey = getLectureKey(item, index, secId);

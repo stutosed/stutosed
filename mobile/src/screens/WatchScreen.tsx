@@ -26,6 +26,7 @@ import { BlurView } from 'expo-blur';
 import { RootStackParamList, LectureItem, ServerOption } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { API_BASE_URL } from '../lib/config';
 import { loadCourseDetails } from '../data/coursesData';
 import { resolveMobileMedia, fetchResolvedStreamUrl, getWorkerProxyUrl } from '../lib/streamResolver';
@@ -185,6 +186,12 @@ export const WatchScreen: React.FC = () => {
   const [apiStreamUrl, setApiStreamUrl] = useState<string | null>(null);
   const [nativeFallbackToWebView, setNativeFallbackToWebView] = useState(false);
   const [pdfLoadError, setPdfLoadError] = useState(false);
+
+  const { refreshControl } = usePullToRefresh(() => {
+    setPdfLoadError(false);
+    setLoading(true);
+    setWebViewKey((k) => k + 1);
+  });
 
   const isLandscape = width > height;
   const isExpandedPlayer = isLandscape || isManualFullscreen;
@@ -962,6 +969,7 @@ export const WatchScreen: React.FC = () => {
           style={styles.detailsContainer}
           contentContainerStyle={{ paddingBottom: spacing.xxl, gap: 14 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={refreshControl}
         >
           {/* Info & Action Buttons Card (Matching Web Mobile Player) */}
           <View

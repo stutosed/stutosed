@@ -26,6 +26,7 @@ import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useDrawer } from '../context/DrawerContext';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { BrandSpike } from '../components/BrandSpike';
 import { authClient } from '../lib/auth-client';
 import { API_BASE_URL } from '../lib/config';
@@ -58,6 +59,7 @@ export const AuthScreen: React.FC = () => {
   const { colors } = useTheme();
   const { refreshSessionAndSync } = useAuth();
   const { openPrivacyModal } = useDrawer();
+  const { refreshControl } = usePullToRefresh();
 
   const [isSignUp, setIsSignUp] = useState(route.params?.mode === 'signup');
   const [fullName, setFullName] = useState('');
@@ -461,6 +463,7 @@ export const AuthScreen: React.FC = () => {
             contentContainerStyle={styles.cardBody}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            refreshControl={refreshControl}
           >
             {/* Glowing Rotating Brand Emblem */}
             <View style={styles.brandHeader}>

@@ -12,6 +12,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { Header } from '../components/Header';
 import { CourseCard } from '../components/CourseCard';
 import {
@@ -48,6 +49,7 @@ export const LibraryScreen: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'saved' | 'history'>('bookmarks');
   const [watchedLookup, setWatchedLookup] = useState<Record<string, WatchedLectureMatch>>({});
+  const { refreshControl } = usePullToRefresh();
 
   useFocusEffect(
     useCallback(() => {
@@ -96,6 +98,7 @@ export const LibraryScreen: React.FC = () => {
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
       >
         {/* Top Back Row & Sync */}
         <View style={styles.topRow}>

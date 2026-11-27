@@ -14,6 +14,7 @@ import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useDrawer } from '../context/DrawerContext';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { Header } from '../components/Header';
 import { spacing, radii } from '../theme/spacing';
 import {
@@ -47,11 +48,16 @@ export const ProfileScreen: React.FC = () => {
   } = useAuth();
 
   const displayName = user?.full_name || 'Student';
+  const { refreshControl } = usePullToRefresh();
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
       <Header />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
         <Text style={[styles.pageTitle, { color: colors.text }]}>Profile & Settings</Text>
 
         {/* User Account Card */}

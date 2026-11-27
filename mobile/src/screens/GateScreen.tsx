@@ -17,6 +17,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, Course, LectureItem } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { Header } from '../components/Header';
 import { loadCourseDetails } from '../data/coursesData';
 import { LectureRow } from '../components/LectureRow';
@@ -129,6 +130,13 @@ export const GateScreen: React.FC = () => {
     return all.filter((item) => item.label.toLowerCase().includes(q));
   }, [course, searchQuery]);
 
+  const reloadGateCourse = useCallback(async () => {
+    const loaded = await loadCourseDetails('gate-ece-made-easy-signal-system');
+    if (loaded) setCourse(loaded);
+  }, []);
+
+  const { refreshControl } = usePullToRefresh(reloadGateCourse);
+
   const onHeaderBackPress = () => {
     const handled = handleBackStep();
     if (!handled) {
@@ -149,6 +157,7 @@ export const GateScreen: React.FC = () => {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
       >
         <Animated.View
           style={{

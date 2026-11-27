@@ -15,6 +15,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, Course } from '../types';
 import { useTheme } from '../context/ThemeContext';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { Header } from '../components/Header';
 import { CourseCard } from '../components/CourseCard';
 import {
@@ -270,6 +271,8 @@ export const GovtExamsScreen: React.FC = () => {
     });
   }, [activeDef, disciplineCourses, govtCourses, selectedTeacher, searchQuery]);
 
+  const { refreshControl } = usePullToRefresh();
+
   const openCourse = (course: Course) => {
     navigation.navigate('CourseDetail', {
       courseId: course.id,
@@ -286,6 +289,7 @@ export const GovtExamsScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
       >
         <Animated.View
           style={{

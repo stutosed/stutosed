@@ -16,6 +16,7 @@ import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useDrawer } from '../context/DrawerContext';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { Header } from '../components/Header';
 import { BrandSpike } from '../components/BrandSpike';
 import { getCourseById } from '../data/coursesData';
@@ -84,6 +85,7 @@ export const HomeScreen: React.FC = () => {
 
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const exploreYRef = useRef<number>(0);
+  const { refreshControl } = usePullToRefresh();
 
   const userName = user?.full_name || user?.email?.split('@')[0] || 'Student';
   const firstName = userName.split(' ')[0];
@@ -110,6 +112,7 @@ export const HomeScreen: React.FC = () => {
         ref={scrollRef}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
       >
         {/* 1. HERO SECTION (Exact Mobile Replica of #hero in src/app/page.tsx) */}
         <View style={styles.heroSection}>

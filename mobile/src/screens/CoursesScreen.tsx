@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { Header } from '../components/Header';
 import { FadeInView } from '../components/FadeInView';
 import { spacing, radii } from '../theme/spacing';
@@ -13,12 +14,17 @@ import { Layers, Landmark, Cpu, ArrowLeft, ArrowRight } from 'lucide-react-nativ
 export const CoursesScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { colors } = useTheme();
+  const { refreshControl } = usePullToRefresh();
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]} edges={['top']}>
       <Header />
 
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+      >
         {/* Breadcrumb */}
         <View style={styles.breadcrumbRow}>
           <TouchableOpacity
