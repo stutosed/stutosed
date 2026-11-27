@@ -9,7 +9,6 @@ import {
   BackHandler,
   StatusBar,
   ScrollView,
-  Linking,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -38,8 +37,6 @@ import {
   SlidersHorizontal,
   X,
   FileText,
-  Download,
-  ExternalLink,
 } from 'lucide-react-native';
 
 type WatchRouteProp = RouteProp<RootStackParamList, 'Watch'>;
@@ -95,7 +92,6 @@ export const WatchScreen: React.FC = () => {
   const [showUpperOverlay, setShowUpperOverlay] = useState(false);
   const [apiStreamUrl, setApiStreamUrl] = useState<string | null>(null);
   const [nativeFallbackToWebView, setNativeFallbackToWebView] = useState(false);
-  const [pdfEngine, setPdfEngine] = useState<'google' | 'pdfjs' | 'direct'>('google');
   const [pdfLoadError, setPdfLoadError] = useState(false);
 
   const isLandscape = width > height;
@@ -219,28 +215,15 @@ export const WatchScreen: React.FC = () => {
 
   const activePdfViewerUrl = useMemo(() => {
     if (!pdfDirectUrl) return '';
-    if (pdfEngine === 'pdfjs') {
-      const target = pdfProxiedUrl || pdfDirectUrl;
-      return `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(target)}`;
-    }
-    if (pdfEngine === 'direct') {
-      return pdfProxiedUrl || pdfDirectUrl;
-    }
     return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(pdfDirectUrl)}`;
-  }, [pdfDirectUrl, pdfProxiedUrl, pdfEngine]);
-
-  const handleOpenPdfExternal = useCallback(() => {
-    const target = lecture.downloadUrl || pdfProxiedUrl || pdfDirectUrl;
-    if (!target) return;
-    Linking.openURL(target).catch(() => {});
-  }, [lecture.downloadUrl, pdfProxiedUrl, pdfDirectUrl]);
+  }, [pdfDirectUrl]);
 
   // Safety auto-dismiss PDF loading spinner so streaming PDFs stay immediately visible
   useEffect(() => {
     if (!isPdfMode || !loading) return;
     const timer = setTimeout(() => setLoading(false), 1800);
     return () => clearTimeout(timer);
-  }, [isPdfMode, loading, webViewKey, pdfEngine, selectedServerIdx]);
+  }, [isPdfMode, loading, webViewKey, selectedServerIdx]);
 
   const iframeWrapperHtml = useMemo(() => {
     const safeSrc = escapeHtmlAttr(mediaConfig.resolvedUrl);
@@ -386,21 +369,10 @@ export const WatchScreen: React.FC = () => {
           >
             <RefreshCw size={15} color={colors.textMuted} />
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.pdfHeaderIconBtn,
-              { backgroundColor: colors.accent, borderColor: colors.accent },
-            ]}
-            onPress={handleOpenPdfExternal}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Download size={15} color="#ffffff" />
-          </TouchableOpacity>
         </View>
 
-        {/* PDF Viewer Switcher & Quick Controls Bar */}
-        {!isPdfImageNote && (
+        {/* Source Switcher when multiple PDF sources exist */}
+        {!isPdfImageNote && servers.length > 1 && (
           <View
             style={[
               styles.pdfToolbar,
@@ -412,86 +384,36 @@ export const WatchScreen: React.FC = () => {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.pdfToolbarScroll}
             >
-              {[
-                { key: 'google' as const, label: 'Reader View' },
-                { key: 'pdfjs' as const, label: 'PDF.js HD' },
-                { key: 'direct' as const, label: 'Direct Stream' },
-              ].map((opt) => {
-                const active = pdfEngine === opt.key;
+              {servers.map((srv, idx) => {
+                const active = idx === selectedServerIdx;
                 return (
                   <TouchableOpacity
-                    key={opt.key}
+                    key={`pdf-srv-${idx}`}
                     style={[
                       styles.pdfEngineChip,
                       {
-                        backgroundColor: active ? colors.accent : colors.bgCard,
+                        backgroundColor: active ? `${colors.accent}20` : colors.bgCard,
                         borderColor: active ? colors.accent : colors.border,
                       },
                     ]}
                     onPress={() => {
-                      setPdfEngine(opt.key);
+                      setSelectedServerIdx(idx);
                       setPdfLoadError(false);
                       setLoading(true);
                       setWebViewKey((k) => k + 1);
                     }}
-                    activeOpacity={0.8}
                   >
                     <Text
                       style={[
                         styles.pdfEngineText,
-                        { color: active ? '#ffffff' : colors.textMuted },
+                        { color: active ? colors.accent : colors.textMuted },
                       ]}
                     >
-                      {opt.label}
+                      {srv.name || `Source ${idx + 1}`}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
-
-              {servers.length > 1 &&
-                servers.map((srv, idx) => {
-                  const active = idx === selectedServerIdx;
-                  return (
-                    <TouchableOpacity
-                      key={`pdf-srv-${idx}`}
-                      style={[
-                        styles.pdfEngineChip,
-                        {
-                          backgroundColor: active ? `${colors.accent}20` : colors.bgCard,
-                          borderColor: active ? colors.accent : colors.border,
-                        },
-                      ]}
-                      onPress={() => {
-                        setSelectedServerIdx(idx);
-                        setPdfLoadError(false);
-                        setLoading(true);
-                        setWebViewKey((k) => k + 1);
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.pdfEngineText,
-                          { color: active ? colors.accent : colors.textMuted },
-                        ]}
-                      >
-                        {srv.name || `Source ${idx + 1}`}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-
-              <TouchableOpacity
-                style={[
-                  styles.pdfEngineChip,
-                  { backgroundColor: colors.bgCard, borderColor: colors.border },
-                ]}
-                onPress={handleOpenPdfExternal}
-              >
-                <ExternalLink size={11} color={colors.accent} />
-                <Text style={[styles.pdfEngineText, { color: colors.accent }]}>
-                  Open Browser
-                </Text>
-              </TouchableOpacity>
             </ScrollView>
           </View>
         )}
@@ -515,7 +437,7 @@ export const WatchScreen: React.FC = () => {
           ) : (
             <>
               <WebView
-                key={`pdf-${webViewKey}-${pdfEngine}-${selectedServerIdx}`}
+                key={`pdf-${webViewKey}-${selectedServerIdx}`}
                 source={{ uri: activePdfViewerUrl }}
                 style={styles.pdfWebView}
                 javaScriptEnabled
@@ -538,34 +460,24 @@ export const WatchScreen: React.FC = () => {
                   <Text style={[styles.pdfLoadingTitle, { color: colors.text }]}>
                     Opening PDF Document...
                   </Text>
-                  <Text style={[styles.pdfLoadingSub, { color: colors.textMuted }]}>
-                    Agar page slow load ho toh upar "PDF.js HD" ya "Open Browser" use karein
-                  </Text>
                 </View>
               )}
 
               {pdfLoadError && !loading && (
                 <View style={[styles.pdfErrorBanner, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
                   <Text style={[styles.pdfErrorText, { color: colors.text }]}>
-                    Preview load nahi ho paaya. PDF.js HD try karein ya browser me kholein:
+                    PDF preview load nahi ho paaya. Reload try karein.
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 8 }}>
                     <TouchableOpacity
                       style={[styles.pdfFallbackBtn, { backgroundColor: colors.accent }]}
                       onPress={() => {
-                        setPdfEngine(pdfEngine === 'google' ? 'pdfjs' : 'direct');
                         setPdfLoadError(false);
                         setLoading(true);
                         setWebViewKey((k) => k + 1);
                       }}
                     >
-                      <Text style={styles.pdfFallbackBtnText}>Switch Reader</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.pdfFallbackBtn, { backgroundColor: colors.bgCardSubtle, borderWidth: 1, borderColor: colors.border }]}
-                      onPress={handleOpenPdfExternal}
-                    >
-                      <Text style={[styles.pdfFallbackBtnText, { color: colors.text }]}>Open / Download</Text>
+                      <Text style={styles.pdfFallbackBtnText}>Reload PDF</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
