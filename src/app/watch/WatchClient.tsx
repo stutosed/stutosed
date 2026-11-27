@@ -2149,6 +2149,41 @@ export default function WatchClient() {
               </div>
               )}
             </div>
+
+            {isEmbedMode && !isPendingLecture && (
+              <div className="player-embed-glass-bar" onClick={(e) => e.stopPropagation()}>
+                <div className="player-embed-glass-badge">
+                  <Sparkles width={12} height={12} />
+                  <span>Liquid Glass • Abyss Stream</span>
+                </div>
+                <div className="player-embed-glass-actions">
+                  <button
+                    type="button"
+                    className="player-embed-glass-btn"
+                    disabled={currentIndex === 0}
+                    onClick={() => setCurrentIndex(currentIndex - 1)}
+                  >
+                    <span>‹ Prev</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="player-embed-glass-btn"
+                    disabled={currentIndex >= playlist.length - 1}
+                    onClick={() => setCurrentIndex(currentIndex + 1)}
+                  >
+                    <span>Next ›</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="player-embed-glass-btn"
+                    onClick={toggleFullscreen}
+                  >
+                    {isFullscreen ? <Minimize width={12} height={12} /> : <Maximize width={12} height={12} />}
+                    <span>{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ==================== INFO & ACTIONS ROW (NO CUT-OFF) ==================== */}
