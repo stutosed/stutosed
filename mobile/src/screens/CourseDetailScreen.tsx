@@ -15,6 +15,7 @@ import { RootStackParamList, Course, LectureItem } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { spacing, radii } from '../theme/spacing';
+import { triggerSmoothLayout } from '../lib/layoutAnim';
 import { loadCourseDetails } from '../data/coursesData';
 import { LectureRow } from '../components/LectureRow';
 import { ArrowLeft, User, BookOpen, Layers, Bookmark } from 'lucide-react-native';
@@ -214,7 +215,12 @@ export const CourseDetailScreen: React.FC = () => {
                           borderColor: isActive ? colors.accent : colors.border,
                         },
                       ]}
-                      onPress={() => setSelectedTabId(tab.id)}
+                      onPress={() => {
+                        if (!isActive) {
+                          triggerSmoothLayout();
+                          setSelectedTabId(tab.id);
+                        }
+                      }}
                       activeOpacity={0.7}
                     >
                       <Text

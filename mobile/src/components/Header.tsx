@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   Image,
   Modal,
   Pressable,
+  Animated,
+  Easing,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -43,6 +45,38 @@ export const Header: React.FC = () => {
   const { openDrawer } = useDrawer();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const popupOpacity = useRef(new Animated.Value(0)).current;
+  const popupScale = useRef(new Animated.Value(0.94)).current;
+  const popupY = useRef(new Animated.Value(-8)).current;
+
+  useEffect(() => {
+    if (menuOpen) {
+      popupOpacity.setValue(0);
+      popupScale.setValue(0.94);
+      popupY.setValue(-8);
+      Animated.parallel([
+        Animated.timing(popupOpacity, {
+          toValue: 1,
+          duration: 180,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.spring(popupScale, {
+          toValue: 1,
+          damping: 20,
+          stiffness: 280,
+          mass: 0.75,
+          useNativeDriver: true,
+        }),
+        Animated.timing(popupY, {
+          toValue: 0,
+          duration: 180,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [menuOpen, popupOpacity, popupScale, popupY]);
 
   const userName = user?.full_name || user?.email?.split('@')[0] || 'Advik';
   const initials = getInitials(userName);
@@ -142,17 +176,19 @@ export const Header: React.FC = () => {
           onRequestClose={() => setMenuOpen(false)}
         >
           <Pressable style={styles.dropdownBackdrop} onPress={() => setMenuOpen(false)}>
-            <Pressable
+            <Animated.View
               style={[
                 styles.dropdownCard,
                 {
                   top: insets.top + 56,
                   backgroundColor: colors.bgCard,
                   borderColor: colors.border,
+                  opacity: popupOpacity,
+                  transform: [{ translateY: popupY }, { scale: popupScale }],
                 },
               ]}
-              onPress={(e) => e.stopPropagation()}
             >
+              <Pressable onPress={(e) => e.stopPropagation()}>
               {/* User Summary Row */}
               <View style={[styles.dropdownHeader, { borderBottomColor: colors.border }]}>
                 {user.avatar_url ? (
@@ -264,7 +300,8 @@ export const Header: React.FC = () => {
                 <LogOut size={15} color={colors.red} />
                 <Text style={[styles.signOutText, { color: colors.red }]}>Sign Out</Text>
               </TouchableOpacity>
-            </Pressable>
+              </Pressable>
+            </Animated.View>
           </Pressable>
         </Modal>
       )}

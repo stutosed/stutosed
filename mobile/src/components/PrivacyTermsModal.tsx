@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal,
   View,
@@ -7,8 +7,11 @@ import {
   ScrollView,
   StyleSheet,
   Pressable,
+  Animated,
+  Easing,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { triggerSmoothLayout } from '../lib/layoutAnim';
 import { spacing, radii } from '../theme/spacing';
 import { X, ShieldCheck, Scale, CheckCircle2, Lock } from 'lucide-react-native';
 
@@ -25,23 +28,62 @@ export const PrivacyTermsModal: React.FC<PrivacyTermsModalProps> = ({
 }) => {
   const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<'privacy' | 'terms'>(initialTab);
+  const cardOpacity = useRef(new Animated.Value(0)).current;
+  const cardScale = useRef(new Animated.Value(0.95)).current;
+  const cardY = useRef(new Animated.Value(12)).current;
 
   useEffect(() => {
     if (visible) {
       setActiveTab(initialTab);
+      cardOpacity.setValue(0);
+      cardScale.setValue(0.95);
+      cardY.setValue(12);
+      Animated.parallel([
+        Animated.timing(cardOpacity, {
+          toValue: 1,
+          duration: 210,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.spring(cardScale, {
+          toValue: 1,
+          damping: 22,
+          stiffness: 260,
+          mass: 0.8,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardY, {
+          toValue: 0,
+          duration: 210,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
     }
-  }, [visible, initialTab]);
+  }, [visible, initialTab, cardOpacity, cardScale, cardY]);
+
+  const handleSwitchTab = (tab: 'privacy' | 'terms') => {
+    if (tab !== activeTab) {
+      triggerSmoothLayout();
+      setActiveTab(tab);
+    }
+  };
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable
+        <Animated.View
           style={[
             styles.card,
-            { backgroundColor: colors.bgCard, borderColor: colors.border },
+            {
+              backgroundColor: colors.bgCard,
+              borderColor: colors.border,
+              opacity: cardOpacity,
+              transform: [{ translateY: cardY }, { scale: cardScale }],
+            },
           ]}
-          onPress={(e) => e.stopPropagation()}
         >
+          <Pressable style={{ flexShrink: 1 }} onPress={(e) => e.stopPropagation()}>
           {/* Top Gradient-like Accent Bar */}
           <View style={[styles.topAccentBar, { backgroundColor: colors.accent }]} />
 
@@ -57,7 +99,7 @@ export const PrivacyTermsModal: React.FC<PrivacyTermsModalProps> = ({
                     borderColor: activeTab === 'privacy' ? colors.accent : colors.border,
                   },
                 ]}
-                onPress={() => setActiveTab('privacy')}
+                onPress={() => handleSwitchTab('privacy')}
                 activeOpacity={0.75}
               >
                 <ShieldCheck
@@ -83,7 +125,7 @@ export const PrivacyTermsModal: React.FC<PrivacyTermsModalProps> = ({
                     borderColor: activeTab === 'terms' ? colors.accent : colors.border,
                   },
                 ]}
-                onPress={() => setActiveTab('terms')}
+                onPress={() => handleSwitchTab('terms')}
                 activeOpacity={0.75}
               >
                 <Scale
@@ -204,7 +246,8 @@ export const PrivacyTermsModal: React.FC<PrivacyTermsModalProps> = ({
               </View>
             )}
           </ScrollView>
-        </Pressable>
+          </Pressable>
+        </Animated.View>
       </Pressable>
     </Modal>
   );

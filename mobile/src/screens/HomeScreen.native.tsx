@@ -17,6 +17,7 @@ import { RootStackParamList, Course, LectureItem } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { Header } from '../components/Header';
+import { FadeInView } from '../components/FadeInView';
 import {
   INITIAL_COURSES,
   getCourseById,
@@ -300,29 +301,32 @@ export const HomeScreen: React.FC = () => {
         }
       >
         {/* 1. COMPACT GREETING ROW (Full width, clean one-line feel) */}
-        <View style={styles.greetingRow}>
-          <View
-            style={[
-              styles.greetingAvatar,
-              {
-                backgroundColor: user?.avatar_url ? 'transparent' : colors.accent,
-                borderColor: colors.border,
-              },
-            ]}
-          >
-            {user?.avatar_url ? (
-              <Image source={{ uri: user.avatar_url }} style={styles.greetingAvatarImg} />
-            ) : (
-              <Text style={styles.greetingAvatarText}>{initials}</Text>
-            )}
+        <FadeInView delay={0}>
+          <View style={styles.greetingRow}>
+            <View
+              style={[
+                styles.greetingAvatar,
+                {
+                  backgroundColor: user?.avatar_url ? 'transparent' : colors.accent,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              {user?.avatar_url ? (
+                <Image source={{ uri: user.avatar_url }} style={styles.greetingAvatarImg} />
+              ) : (
+                <Text style={styles.greetingAvatarText}>{initials}</Text>
+              )}
+            </View>
+            <Text style={[styles.greetingText, { color: colors.text }]}>
+              {getGreetingPrefix()}, {firstName}
+            </Text>
           </View>
-          <Text style={[styles.greetingText, { color: colors.text }]}>
-            {getGreetingPrefix()}, {firstName}
-          </Text>
-        </View>
+        </FadeInView>
 
         {/* 2. ONE ROW, TWO COLUMNS: BIG STREAK SQUARE BOX + TODAY'S STUDY STATS COLUMN */}
-        <View style={styles.bentoRow}>
+        <FadeInView delay={55}>
+          <View style={styles.bentoRow}>
           {/* Column 1: Big Static Square Streak Box */}
           <View
             style={[
@@ -418,9 +422,11 @@ export const HomeScreen: React.FC = () => {
             </View>
           </View>
         </View>
+        </FadeInView>
 
         {/* 3. COMPACT TRACKS (Two small side-by-side tiles: Icon + Name + Count only) */}
-        <View style={styles.sectionBlock}>
+        <FadeInView delay={110}>
+          <View style={styles.sectionBlock}>
           <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Tracks</Text>
           <View style={styles.tracksGrid}>
             <TouchableOpacity
@@ -466,8 +472,10 @@ export const HomeScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
         </View>
+        </FadeInView>
 
         {/* 4. RESUME LECTURE CARD (Last Viewed Lecture) OR SKELETON / EMPTY STATE */}
+        <FadeInView delay={165}>
         {showSkeleton ? (
           <Animated.View
             style={[
@@ -559,8 +567,10 @@ export const HomeScreen: React.FC = () => {
             <ArrowRight size={18} color={colors.accent} />
           </TouchableOpacity>
         )}
+        </FadeInView>
 
         {/* 5. QUICK ACCESS HORIZONTAL ROW */}
+        <FadeInView delay={220}>
         <View style={styles.sectionBlock}>
           <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Quick Access</Text>
           <ScrollView
@@ -635,6 +645,7 @@ export const HomeScreen: React.FC = () => {
             </TouchableOpacity>
           </ScrollView>
         </View>
+        </FadeInView>
       </ScrollView>
     </SafeAreaView>
   );

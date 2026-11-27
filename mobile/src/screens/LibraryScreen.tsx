@@ -15,6 +15,7 @@ import { useAuth } from '../context/AuthContext';
 import { Header } from '../components/Header';
 import { CourseCard } from '../components/CourseCard';
 import { getCourseById } from '../data/coursesData';
+import { triggerSmoothLayout } from '../lib/layoutAnim';
 import { spacing, radii } from '../theme/spacing';
 import {
   BookmarkCheck,
@@ -119,7 +120,12 @@ export const LibraryScreen: React.FC = () => {
                 borderColor: colors.border,
               },
             ]}
-            onPress={() => setActiveTab('bookmarks')}
+            onPress={() => {
+              if (activeTab !== 'bookmarks') {
+                triggerSmoothLayout();
+                setActiveTab('bookmarks');
+              }
+            }}
             activeOpacity={0.8}
           >
             <BookmarkCheck
@@ -162,7 +168,12 @@ export const LibraryScreen: React.FC = () => {
                 borderColor: colors.border,
               },
             ]}
-            onPress={() => setActiveTab('history')}
+            onPress={() => {
+              if (activeTab !== 'history') {
+                triggerSmoothLayout();
+                setActiveTab('history');
+              }
+            }}
             activeOpacity={0.8}
           >
             <FolderHeart

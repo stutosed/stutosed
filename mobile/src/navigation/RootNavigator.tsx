@@ -27,7 +27,14 @@ export const RootNavigator: React.FC = () => {
     >
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
-      <Stack.Screen name="Watch" component={WatchScreen} />
+      <Stack.Screen
+        name="Watch"
+        component={WatchScreen}
+        options={{
+          animation: 'fade_from_bottom',
+          animationDuration: 260,
+        }}
+      />
       <Stack.Screen name="GovtExams" component={GovtExamsScreen} />
       <Stack.Screen name="Gate" component={GateScreen} />
       <Stack.Screen name="Help" component={HelpScreen} />

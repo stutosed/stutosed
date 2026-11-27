@@ -6,6 +6,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { Header } from '../components/Header';
+import { FadeInView } from '../components/FadeInView';
 import { spacing, radii } from '../theme/spacing';
 import { Layers, Landmark, Cpu, ArrowLeft, ArrowRight } from 'lucide-react-native';
 
@@ -32,117 +33,123 @@ export const CoursesScreen: React.FC = () => {
         </View>
 
         {/* Title Block */}
-        <View style={styles.headerBlock}>
-          <View style={[styles.iconBox, { backgroundColor: 'rgba(204,120,92,0.12)' }]}>
-            <Layers size={20} color={colors.accent} />
+        <FadeInView delay={0}>
+          <View style={styles.headerBlock}>
+            <View style={[styles.iconBox, { backgroundColor: 'rgba(204,120,92,0.12)' }]}>
+              <Layers size={20} color={colors.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.pageTitle, { color: colors.text }]}>Explore All Courses</Text>
+              <Text style={[styles.pageSub, { color: colors.textMuted }]}>
+                Choose Government Exam batches or GATE Engineering preparation tracks below.
+              </Text>
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.pageTitle, { color: colors.text }]}>Explore All Courses</Text>
-            <Text style={[styles.pageSub, { color: colors.textMuted }]}>
-              Choose Government Exam batches or GATE Engineering preparation tracks below.
-            </Text>
-          </View>
-        </View>
+        </FadeInView>
 
         {/* Portal 1: Government Exam Section */}
-        <TouchableOpacity
-          style={[
-            styles.portalCard,
-            { backgroundColor: colors.bgCard, borderColor: colors.border },
-          ]}
-          onPress={() => navigation.navigate('GovtExams')}
-          activeOpacity={0.85}
-        >
-          <View style={styles.portalTop}>
-            <View style={[styles.portalIconBox, { backgroundColor: colors.govtDim }]}>
-              <Landmark size={24} color={colors.govtIndigo} />
+        <FadeInView delay={65}>
+          <TouchableOpacity
+            style={[
+              styles.portalCard,
+              { backgroundColor: colors.bgCard, borderColor: colors.border },
+            ]}
+            onPress={() => navigation.navigate('GovtExams')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.portalTop}>
+              <View style={[styles.portalIconBox, { backgroundColor: colors.govtDim }]}>
+                <Landmark size={24} color={colors.govtIndigo} />
+              </View>
+              <View style={[styles.portalBadge, { backgroundColor: colors.govtDim }]}>
+                <Text style={[styles.portalBadgeText, { color: colors.govtIndigo }]}>
+                  9 Batches • 1,400+ Classes
+                </Text>
+              </View>
             </View>
-            <View style={[styles.portalBadge, { backgroundColor: colors.govtDim }]}>
-              <Text style={[styles.portalBadgeText, { color: colors.govtIndigo }]}>
-                9 Batches • 1,400+ Classes
-              </Text>
-            </View>
-          </View>
 
-          <Text style={[styles.portalTitle, { color: colors.text }]}>
-            Government Exam Section
-          </Text>
-          <Text style={[styles.portalDesc, { color: colors.textMuted }]}>
-            All SSC, CGL, CHSL, MTS, Railway &amp; Banking foundation batches organized into Maths,
-            Reasoning, English, GK/GS &amp; Computer folders.
-          </Text>
+            <Text style={[styles.portalTitle, { color: colors.text }]}>
+              Government Exam Section
+            </Text>
+            <Text style={[styles.portalDesc, { color: colors.textMuted }]}>
+              All SSC, CGL, CHSL, MTS, Railway &amp; Banking foundation batches organized into Maths,
+              Reasoning, English, GK/GS &amp; Computer folders.
+            </Text>
 
-          <View style={styles.portalFooter}>
-            <View style={styles.portalTags}>
-              {['SSC CGL/CHSL', 'Banking', 'GK/GS'].map((t) => (
-                <View
-                  key={t}
-                  style={[
-                    styles.portalTagChip,
-                    { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
-                  ]}
-                >
-                  <Text style={[styles.portalTagText, { color: colors.textDim }]}>{t}</Text>
-                </View>
-              ))}
+            <View style={styles.portalFooter}>
+              <View style={styles.portalTags}>
+                {['SSC CGL/CHSL', 'Banking', 'GK/GS'].map((t) => (
+                  <View
+                    key={t}
+                    style={[
+                      styles.portalTagChip,
+                      { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
+                    ]}
+                  >
+                    <Text style={[styles.portalTagText, { color: colors.textDim }]}>{t}</Text>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.portalExplore}>
+                <Text style={[styles.portalExploreText, { color: colors.govtIndigo }]}>
+                  Open Portal
+                </Text>
+                <ArrowRight size={15} color={colors.govtIndigo} />
+              </View>
             </View>
-            <View style={styles.portalExplore}>
-              <Text style={[styles.portalExploreText, { color: colors.govtIndigo }]}>
-                Open Portal
-              </Text>
-              <ArrowRight size={15} color={colors.govtIndigo} />
-            </View>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </FadeInView>
 
         {/* Portal 2: GATE Engineering Section */}
-        <TouchableOpacity
-          style={[
-            styles.portalCard,
-            { backgroundColor: colors.bgCard, borderColor: colors.border },
-          ]}
-          onPress={() => navigation.navigate('Gate')}
-          activeOpacity={0.85}
-        >
-          <View style={styles.portalTop}>
-            <View style={[styles.portalIconBox, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
-              <Cpu size={24} color="#f59e0b" />
+        <FadeInView delay={130}>
+          <TouchableOpacity
+            style={[
+              styles.portalCard,
+              { backgroundColor: colors.bgCard, borderColor: colors.border },
+            ]}
+            onPress={() => navigation.navigate('Gate')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.portalTop}>
+              <View style={[styles.portalIconBox, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
+                <Cpu size={24} color="#f59e0b" />
+              </View>
+              <View style={[styles.portalBadge, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
+                <Text style={[styles.portalBadgeText, { color: '#d97706' }]}>
+                  ECE • 36 Lectures
+                </Text>
+              </View>
             </View>
-            <View style={[styles.portalBadge, { backgroundColor: 'rgba(245, 158, 11, 0.12)' }]}>
-              <Text style={[styles.portalBadgeText, { color: '#d97706' }]}>
-                ECE • 36 Lectures
-              </Text>
-            </View>
-          </View>
 
-          <Text style={[styles.portalTitle, { color: colors.text }]}>
-            GATE Section
-          </Text>
-          <Text style={[styles.portalDesc, { color: colors.textMuted }]}>
-            Structured GATE ECE preparation featuring Made Easy Signals &amp; Systems full video
-            series, Fourier, Laplace &amp; Z-Transform.
-          </Text>
+            <Text style={[styles.portalTitle, { color: colors.text }]}>
+              GATE Section
+            </Text>
+            <Text style={[styles.portalDesc, { color: colors.textMuted }]}>
+              Structured GATE ECE preparation featuring Made Easy Signals &amp; Systems full video
+              series, Fourier, Laplace &amp; Z-Transform.
+            </Text>
 
-          <View style={styles.portalFooter}>
-            <View style={styles.portalTags}>
-              {['GATE ECE', 'Made Easy', 'Signals'].map((t) => (
-                <View
-                  key={t}
-                  style={[
-                    styles.portalTagChip,
-                    { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
-                  ]}
-                >
-                  <Text style={[styles.portalTagText, { color: colors.textDim }]}>{t}</Text>
-                </View>
-              ))}
+            <View style={styles.portalFooter}>
+              <View style={styles.portalTags}>
+                {['GATE ECE', 'Made Easy', 'Signals'].map((t) => (
+                  <View
+                    key={t}
+                    style={[
+                      styles.portalTagChip,
+                      { backgroundColor: colors.bgCardSubtle, borderColor: colors.border },
+                    ]}
+                  >
+                    <Text style={[styles.portalTagText, { color: colors.textDim }]}>{t}</Text>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.portalExplore}>
+                <Text style={[styles.portalExploreText, { color: '#d97706' }]}>Open Portal</Text>
+                <ArrowRight size={15} color="#d97706" />
+              </View>
             </View>
-            <View style={styles.portalExplore}>
-              <Text style={[styles.portalExploreText, { color: '#d97706' }]}>Open Portal</Text>
-              <ArrowRight size={15} color="#d97706" />
-            </View>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </FadeInView>
       </ScrollView>
     </SafeAreaView>
   );

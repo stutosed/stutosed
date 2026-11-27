@@ -1,6 +1,9 @@
-import React, { useRef } from 'react';
-import { View, StyleSheet, PanResponder } from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, PanResponder, Animated, Easing } from 'react-native';
+import {
+  createBottomTabNavigator,
+  BottomTabNavigationOptions,
+} from '@react-navigation/bottom-tabs';
 import { BottomTabParamList } from '../types';
 import { useTheme } from '../context/ThemeContext';
 import { useDrawer } from '../context/DrawerContext';
@@ -11,6 +14,77 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 import { Home, Layers, BookOpen, User } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
+
+const tabSceneInterpolator: NonNullable<BottomTabNavigationOptions['sceneStyleInterpolator']> = ({
+  current,
+}) => ({
+  sceneStyle: {
+    opacity: current.progress.interpolate({
+      inputRange: [-1, 0, 1],
+      outputRange: [0, 1, 0],
+    }),
+    transform: [
+      {
+        translateX: current.progress.interpolate({
+          inputRange: [-1, 0, 1],
+          outputRange: [-20, 0, 20],
+        }),
+      },
+    ],
+  },
+});
+
+interface AnimatedTabIconProps {
+  focused: boolean;
+  IconComponent: typeof Home;
+  color: string;
+  accentColor: string;
+}
+
+const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
+  focused,
+  IconComponent,
+  color,
+  accentColor,
+}) => {
+  const scaleAnim = useRef(new Animated.Value(focused ? 1.08 : 1)).current;
+  const barScale = useRef(new Animated.Value(focused ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: focused ? 1.08 : 1,
+        damping: 15,
+        stiffness: 240,
+        useNativeDriver: true,
+      }),
+      Animated.timing(barScale, {
+        toValue: focused ? 1 : 0,
+        duration: 200,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [focused, scaleAnim, barScale]);
+
+  return (
+    <View style={styles.iconWrap}>
+      <Animated.View
+        style={[
+          styles.activeBar,
+          {
+            backgroundColor: accentColor,
+            opacity: barScale,
+            transform: [{ scaleX: barScale }],
+          },
+        ]}
+      />
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <IconComponent size={20} strokeWidth={focused ? 2.4 : 1.8} color={color} />
+      </Animated.View>
+    </View>
+  );
+};
 
 export const BottomTabNavigator: React.FC = () => {
   const { colors } = useTheme();
@@ -61,12 +135,12 @@ export const BottomTabNavigator: React.FC = () => {
     IconComponent: typeof Home,
     color: string
   ) => (
-    <View style={styles.iconWrap}>
-      {focused && (
-        <View style={[styles.activeBar, { backgroundColor: colors.accent }]} />
-      )}
-      <IconComponent size={20} strokeWidth={focused ? 2.4 : 1.8} color={color} />
-    </View>
+    <AnimatedTabIcon
+      focused={focused}
+      IconComponent={IconComponent}
+      color={color}
+      accentColor={colors.accent}
+    />
   );
 
   return (
@@ -75,6 +149,14 @@ export const BottomTabNavigator: React.FC = () => {
         backBehavior="history"
         screenOptions={{
           headerShown: false,
+          sceneStyleInterpolator: tabSceneInterpolator,
+          transitionSpec: {
+            animation: 'timing',
+            config: {
+              duration: 220,
+              easing: Easing.out(Easing.cubic),
+            },
+          },
           tabBarStyle: [
             styles.tabBar,
             { backgroundColor: colors.bgCard, borderTopColor: colors.border },

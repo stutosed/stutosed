@@ -48,39 +48,65 @@ export const SidebarDrawer: React.FC = () => {
   const { user } = useAuth();
 
   const [modalVisible, setModalVisible] = useState(isOpen);
+  const [activeRouteName, setActiveRouteName] = useState<string>('HomeTab');
   const slideX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const navStagger = useRef(
+    Array.from({ length: 7 }, () => new Animated.Value(0))
+  ).current;
 
   useEffect(() => {
     if (isOpen) {
+      try {
+        if (navigationRef.isReady()) {
+          const current = navigationRef.getCurrentRoute();
+          if (current?.name) setActiveRouteName(current.name);
+        }
+      } catch {}
+
       setModalVisible(true);
       slideX.setValue(-DRAWER_WIDTH);
       backdropOpacity.setValue(0);
+      navStagger.forEach((v) => v.setValue(0));
+
       Animated.parallel([
-        Animated.timing(slideX, {
+        Animated.spring(slideX, {
           toValue: 0,
-          duration: 270,
-          easing: Easing.out(Easing.cubic),
+          damping: 25,
+          stiffness: 260,
+          mass: 0.85,
           useNativeDriver: true,
         }),
         Animated.timing(backdropOpacity, {
           toValue: 1,
-          duration: 240,
-          easing: Easing.out(Easing.quad),
+          duration: 250,
+          easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
+        Animated.stagger(
+          32,
+          navStagger.map((v) =>
+            Animated.timing(v, {
+              toValue: 1,
+              duration: 210,
+              delay: 50,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            })
+          )
+        ),
       ]).start();
     } else if (modalVisible) {
       Animated.parallel([
         Animated.timing(slideX, {
           toValue: -DRAWER_WIDTH,
-          duration: 210,
+          duration: 195,
           easing: Easing.in(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(backdropOpacity, {
           toValue: 0,
-          duration: 200,
+          duration: 185,
           easing: Easing.in(Easing.quad),
           useNativeDriver: true,
         }),
@@ -90,7 +116,7 @@ export const SidebarDrawer: React.FC = () => {
         }
       });
     }
-  }, [isOpen, modalVisible, slideX, backdropOpacity]);
+  }, [isOpen, modalVisible, slideX, backdropOpacity, navStagger]);
 
   const userName = user?.full_name || user?.email?.split('@')[0] || 'Student';
   const initials = getInitials(userName);
@@ -101,7 +127,7 @@ export const SidebarDrawer: React.FC = () => {
       if (navigationRef.isReady()) {
         (navigationRef as any).navigate('MainTabs', { screen: tabName });
       }
-    }, 90);
+    }, 160);
   };
 
   const navigateScreen = (screenName: 'GovtExams' | 'Gate' | 'Help' | 'Auth') => {
@@ -110,7 +136,7 @@ export const SidebarDrawer: React.FC = () => {
       if (navigationRef.isReady()) {
         (navigationRef as any).navigate(screenName);
       }
-    }, 90);
+    }, 160);
   };
 
   const closeDrawerRef = useRef(closeDrawer);
@@ -203,70 +229,99 @@ export const SidebarDrawer: React.FC = () => {
               contentContainerStyle={styles.navList}
               showsVerticalScrollIndicator={false}
             >
-              <TouchableOpacity
-                style={styles.navItem}
-                onPress={() => navigateTab('HomeTab')}
-                activeOpacity={0.7}
-              >
-                <Home size={18} color={colors.textMuted} />
-                <Text style={[styles.navLabel, { color: colors.text }]}>Home</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.navItem}
-                onPress={() => navigateTab('CoursesTab')}
-                activeOpacity={0.7}
-              >
-                <Layers size={18} color={colors.accent} />
-                <Text style={[styles.navLabel, { color: colors.text }]}>All Courses</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.navItem}
-                onPress={() => navigateScreen('GovtExams')}
-                activeOpacity={0.7}
-              >
-                <Landmark size={18} color={colors.govtIndigo} />
-                <Text style={[styles.navLabel, { color: colors.text }]}>Govt Exams</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.navItem}
-                onPress={() => navigateScreen('Gate')}
-                activeOpacity={0.7}
-              >
-                <Cpu size={18} color={colors.orange} />
-                <Text style={[styles.navLabel, { color: colors.text }]}>GATE</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.navItem}
-                onPress={() => navigateTab('LibraryTab')}
-                activeOpacity={0.7}
-              >
-                <BookmarkCheck size={18} color={colors.textMuted} />
-                <Text style={[styles.navLabel, { color: colors.text }]}>My Library</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.navItem}
-                onPress={() => navigateTab('ProfileTab')}
-                activeOpacity={0.7}
-              >
-                <User size={18} color={colors.textMuted} />
-                <Text style={[styles.navLabel, { color: colors.text }]}>Profile</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.navItem}
-                onPress={() => navigateScreen('Help')}
-                activeOpacity={0.7}
-              >
-                <HelpCircle size={18} color={colors.textMuted} />
-                <Text style={[styles.navLabel, { color: colors.text }]}>
-                  Help &amp; Community
-                </Text>
-              </TouchableOpacity>
+              {[
+                {
+                  key: 'HomeTab',
+                  label: 'Home',
+                  icon: Home,
+                  iconColor: colors.textMuted,
+                  onPress: () => navigateTab('HomeTab'),
+                },
+                {
+                  key: 'CoursesTab',
+                  label: 'All Courses',
+                  icon: Layers,
+                  iconColor: colors.accent,
+                  onPress: () => navigateTab('CoursesTab'),
+                },
+                {
+                  key: 'GovtExams',
+                  label: 'Govt Exams',
+                  icon: Landmark,
+                  iconColor: colors.govtIndigo,
+                  onPress: () => navigateScreen('GovtExams'),
+                },
+                {
+                  key: 'Gate',
+                  label: 'GATE',
+                  icon: Cpu,
+                  iconColor: colors.orange,
+                  onPress: () => navigateScreen('Gate'),
+                },
+                {
+                  key: 'LibraryTab',
+                  label: 'My Library',
+                  icon: BookmarkCheck,
+                  iconColor: colors.textMuted,
+                  onPress: () => navigateTab('LibraryTab'),
+                },
+                {
+                  key: 'ProfileTab',
+                  label: 'Profile',
+                  icon: User,
+                  iconColor: colors.textMuted,
+                  onPress: () => navigateTab('ProfileTab'),
+                },
+                {
+                  key: 'Help',
+                  label: 'Help & Community',
+                  icon: HelpCircle,
+                  iconColor: colors.textMuted,
+                  onPress: () => navigateScreen('Help'),
+                },
+              ].map((item, idx) => {
+                const animVal = navStagger[idx];
+                const isActive = activeRouteName === item.key;
+                const IconComp = item.icon;
+                return (
+                  <Animated.View
+                    key={item.key}
+                    style={{
+                      opacity: animVal,
+                      transform: [
+                        {
+                          translateX: animVal.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [-14, 0],
+                          }),
+                        },
+                      ],
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.navItem,
+                        isActive && { backgroundColor: 'rgba(204, 120, 92, 0.11)' },
+                      ]}
+                      onPress={item.onPress}
+                      activeOpacity={0.7}
+                    >
+                      <IconComp
+                        size={18}
+                        color={isActive ? colors.accent : item.iconColor}
+                      />
+                      <Text
+                        style={[
+                          styles.navLabel,
+                          { color: isActive ? colors.accent : colors.text },
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  </Animated.View>
+                );
+              })}
             </ScrollView>
 
             {/* Bottom Toolbar: Theme Toggle + Account */}

@@ -11,7 +11,10 @@ import {
   ActivityIndicator,
   AppState,
   Pressable,
+  Animated,
+  Easing,
 } from 'react-native';
+import { triggerSmoothLayout } from '../lib/layoutAnim';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
@@ -69,6 +72,9 @@ export const AuthScreen: React.FC = () => {
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeTokenRef = useRef<string | null>(null);
   const finalizedRef = useRef<boolean>(false);
+  const cardOpacity = useRef(new Animated.Value(0)).current;
+  const cardScale = useRef(new Animated.Value(0.94)).current;
+  const cardY = useRef(new Animated.Value(16)).current;
 
   const stopPolling = () => {
     if (pollTimerRef.current) {
@@ -79,8 +85,29 @@ export const AuthScreen: React.FC = () => {
   };
 
   useEffect(() => {
+    Animated.parallel([
+      Animated.timing(cardOpacity, {
+        toValue: 1,
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(cardScale, {
+        toValue: 1,
+        damping: 22,
+        stiffness: 260,
+        mass: 0.8,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardY, {
+        toValue: 0,
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
     return () => stopPolling();
-  }, []);
+  }, [cardOpacity, cardScale, cardY]);
 
   const passwordStrength = useMemo(() => {
     if (!password) return { score: 0, label: '', color: 'transparent' };
@@ -300,13 +327,18 @@ export const AuthScreen: React.FC = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardWrap}
       >
-        <Pressable
+        <Animated.View
           style={[
             styles.modalCard,
-            { backgroundColor: colors.bgCard, borderColor: colors.border },
+            {
+              backgroundColor: colors.bgCard,
+              borderColor: colors.border,
+              opacity: cardOpacity,
+              transform: [{ translateY: cardY }, { scale: cardScale }],
+            },
           ]}
-          onPress={(e) => e.stopPropagation()}
         >
+          <Pressable style={{ flexShrink: 1 }} onPress={(e) => e.stopPropagation()}>
           {/* Top Brand Accent Stripe matching AuthModal.tsx */}
           <View style={styles.topGradientBar}>
             <View style={{ flex: 1, backgroundColor: colors.accent }} />
@@ -575,6 +607,7 @@ export const AuthScreen: React.FC = () => {
               </Text>
               <TouchableOpacity
                 onPress={() => {
+                  triggerSmoothLayout();
                   setIsSignUp((prev) => !prev);
                   setMessage(null);
                 }}
@@ -619,7 +652,8 @@ export const AuthScreen: React.FC = () => {
               .
             </Text>
           </ScrollView>
-        </Pressable>
+          </Pressable>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Pressable>
   );
